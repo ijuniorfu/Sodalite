@@ -159,4 +159,50 @@ struct LiveRouteChoiceTests {
             transcodeURL: transcodeURL, tunerFileURL: tunerFileURL, staticURL: staticURL,
             transcodeIsReencode: isReencode) == .transcode(transcodeURL))
     }
+
+    // MARK: - Whether the server offered to build a soundtrack we can play (#100 round 2)
+
+    /// The offer is only worth anything with a URL to consume it from: a reason without a
+    /// TranscodingUrl leaves the route ranking with nothing but the tuner file, which carries the
+    /// original soundtrack and is therefore silence for this channel.
+    @Test("an audio re-encode counts only when there is a URL to take it from")
+    func audioReencodeNeedsATranscodingURL() {
+        #expect(PlayerViewModel.liveServerOffersAudioReencode(
+            transcodeReasons: ["AudioCodecNotSupported"],
+            transcodingURL: url("AudioCodecNotSupported")))
+        #expect(!PlayerViewModel.liveServerOffersAudioReencode(
+            transcodeReasons: ["AudioCodecNotSupported"], transcodingURL: nil))
+    }
+
+    @Test("a picture-only re-encode is not an offer to rebuild the sound")
+    func videoReasonIsNotAnAudioOffer() {
+        #expect(!PlayerViewModel.liveServerOffersAudioReencode(
+            transcodeReasons: ["VideoCodecNotSupported"],
+            transcodingURL: url("VideoCodecNotSupported")))
+    }
+
+    @Test("the reason may arrive in the URL alone, as it does on some channels")
+    func audioReencodeFromURLAlone() {
+        #expect(PlayerViewModel.liveServerOffersAudioReencode(
+            transcodeReasons: nil, transcodingURL: url("AudioCodecNotSupported")))
+    }
+
+    /// A provider playlist is the original stream, AC-4 and all. Ingesting it directly would be the
+    /// one route that ends in silence for exactly the channel we kept alive for the server's sake.
+    @Test("a channel whose sound only the server can build never goes to the direct ingest")
+    func audioReencodeBlocksDirectIngest() {
+        #expect(PlayerViewModel.liveDirectIngestEligibility(
+            transcodingURL: "/videos/1/master.m3u8", sourcePath: providerPath,
+            audioNeedsServerReencode: true) == .audioNeedsServerReencode)
+        #expect(PlayerViewModel.liveDirectIngestEligibility(
+            transcodingURL: "/videos/1/master.m3u8", sourcePath: providerPath,
+            audioNeedsServerReencode: false) == .eligible(URL(string: providerPath)!))
+    }
+
+    @Test("that refusal names itself in the line too")
+    func audioReencodeReasonIsDistinct() {
+        #expect(PlayerViewModel.LiveDirectEligibility.audioNeedsServerReencode.logReason
+            == "audio=needs_server_reencode")
+    }
+
 }

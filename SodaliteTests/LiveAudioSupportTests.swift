@@ -93,31 +93,33 @@ struct LiveAudioSupportTests {
 
     @Test("the log line keeps the server's raw spelling and index")
     func logLineKeepsRawSpelling() {
-        #expect(LiveAudioSupport.logLine(for: [stream(.video, codec: "hevc"), audio("AC4")])
-            == "[Live] audio streams: -1=AC4 verdict=noDecodableAudio(AC-4)")
+        #expect(LiveAudioSupport.logLine(for: [stream(.video, codec: "hevc"), audio("AC4")],
+                                         serverOffersAudioReencode: false)
+            == "[Live] audio streams: -1=AC4 verdict=noDecodableAudio(AC-4) decision=refuse")
     }
 
     @Test("a probed source's indices survive")
     func logLineProbedIndices() {
-        #expect(LiveAudioSupport.logLine(for: [audio("ac4", index: 1), audio("ac4", index: 3)])
-            == "[Live] audio streams: 1=ac4 3=ac4 verdict=noDecodableAudio(AC-4)")
+        #expect(LiveAudioSupport.logLine(for: [audio("ac4", index: 1), audio("ac4", index: 3)],
+                                         serverOffersAudioReencode: false)
+            == "[Live] audio streams: 1=ac4 3=ac4 verdict=noDecodableAudio(AC-4) decision=refuse")
     }
 
     @Test("a channel the server said nothing about says so")
     func logLineNoAudio() {
-        #expect(LiveAudioSupport.logLine(for: [stream(.video, codec: "hevc")])
+        #expect(LiveAudioSupport.logLine(for: [stream(.video, codec: "hevc")], serverOffersAudioReencode: false)
             == "[Live] audio streams: none reported")
     }
 
     @Test("a healthy channel is logged as checked, not as silence")
     func logLineHealthy() {
-        #expect(LiveAudioSupport.logLine(for: [audio("ac3", index: 1)])
+        #expect(LiveAudioSupport.logLine(for: [audio("ac3", index: 1)], serverOffersAudioReencode: false)
             == "[Live] audio streams: 1=ac3 verdict=mayHaveAudio")
     }
 
     @Test("an empty codec is visible in the line rather than blank")
     func logLineEmptyCodec() {
-        #expect(LiveAudioSupport.logLine(for: [audio(nil, index: 2)])
+        #expect(LiveAudioSupport.logLine(for: [audio(nil, index: 2)], serverOffersAudioReencode: false)
             == "[Live] audio streams: 2=? verdict=mayHaveAudio")
     }
 
@@ -140,4 +142,63 @@ struct LiveAudioSupportTests {
         #expect(ErrorText.user(for: PlayerEngineError.liveAudioUnsupported(codec: codec.displayName))
             .contains(codec.displayName))
     }
+
+    // MARK: - The server's re-encode, which is the only route to sound
+
+    /// jellyfin-ffmpeg has carried an AC-4 decoder since v6.0.1-8 (jellyfin-ffmpeg#387, merged
+    /// 2024-07-16, which is also why #128 was closed the same day), so a server can make this
+    /// channel audible even though nothing on this device decodes the original. Refusing on the
+    /// codec alone cut off the one route home, and the route ranking next door was already built to
+    /// take it: liveTranscodeIsRealReencode counts an audio reason.
+    @Test("an AC-4 channel the server re-encodes is played, not refused")
+    func serverReencodeIsPlayed() {
+        #expect(LiveAudioSupport.decision(for: [audio("AC4")], serverOffersAudioReencode: true)
+            == .serverReencodeRequired(.ac4))
+    }
+
+    @Test("an AC-4 channel no server will re-encode is still refused")
+    func withoutServerHelpItIsRefused() {
+        #expect(LiveAudioSupport.decision(for: [audio("AC4")], serverOffersAudioReencode: false)
+            == .refuse(.ac4))
+    }
+
+    /// The offer is not a reason on its own: a channel whose sound this device decodes keeps every
+    /// route it had, including the tuner file the ranking prefers.
+    @Test("a decodable soundtrack is never pushed onto the server for our sake")
+    func decodableAudioProceeds() {
+        #expect(LiveAudioSupport.decision(for: [audio("ac3")], serverOffersAudioReencode: true)
+            == .proceed)
+    }
+
+    @Test("a channel with no audio named proceeds either way", arguments: [true, false])
+    func noAudioProceeds(_ offered: Bool) {
+        #expect(LiveAudioSupport.decision(for: [stream(.video, codec: "hevc")],
+                                          serverOffersAudioReencode: offered) == .proceed)
+    }
+
+    @Test("MPEG-H takes the same route out")
+    func mpeghUsesTheServerToo() {
+        #expect(LiveAudioSupport.decision(for: [audio("mhm1")], serverOffersAudioReencode: true)
+            == .serverReencodeRequired(.mpegH))
+    }
+
+    /// The raw tuner stream and the provider's own playlist both carry the original soundtrack, so
+    /// the moment the server's re-encode is the reason we are still here, those two routes are
+    /// silence. Only that case may skip them.
+    @Test("only the server re-encode gives up the routes that carry the original")
+    func onlyServerReencodeSkipsDirect() {
+        #expect(LiveAudioSupport.decision(for: [audio("AC4")], serverOffersAudioReencode: true)
+            .requiresServerReencode)
+        #expect(!LiveAudioSupport.decision(for: [audio("ac3")], serverOffersAudioReencode: true)
+            .requiresServerReencode)
+        #expect(!LiveAudioSupport.decision(for: [audio("AC4")], serverOffersAudioReencode: false)
+            .requiresServerReencode)
+    }
+
+    @Test("the line says which way the decision went, since the codec alone no longer decides")
+    func logLineNamesTheServerRoute() {
+        #expect(LiveAudioSupport.logLine(for: [audio("AC4")], serverOffersAudioReencode: true)
+            == "[Live] audio streams: -1=AC4 verdict=noDecodableAudio(AC-4) decision=serverReencode")
+    }
+
 }

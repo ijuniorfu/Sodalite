@@ -62,8 +62,13 @@ extension PlayerViewModel {
             // Inside the do block so the catch below releases the stage-1 tuner, same as every other
             // live failure (#70). Logged on every tune, not only on a refusal: a report needs to tell
             // "checked, the audio is fine" apart from "the server named no audio at all" (#100).
-            LogTap.shared.note(LiveAudioSupport.logLine(for: source.mediaStreams))
-            if case .noDecodableAudio(let codec) = LiveAudioSupport.verdict(for: source.mediaStreams) {
+            let serverOffersAudioReencode = Self.liveServerOffersAudioReencode(
+                transcodeReasons: source.transcodeReasons, transcodingURL: source.transcodingUrl)
+            LogTap.shared.note(LiveAudioSupport.logLine(
+                for: source.mediaStreams, serverOffersAudioReencode: serverOffersAudioReencode))
+            let audioDecision = LiveAudioSupport.decision(
+                for: source.mediaStreams, serverOffersAudioReencode: serverOffersAudioReencode)
+            if case .refuse(let codec) = audioDecision {
                 throw PlayerEngineError.liveAudioUnsupported(codec: codec.displayName)
             }
 
@@ -71,7 +76,8 @@ extension PlayerViewModel {
             // a real http(s) PROVIDER playlist. Jellyfin's own LiveStreamFiles route is not one, and the
             // guard that used to stand here could not tell them apart (#70).
             let eligibility = Self.liveDirectIngestEligibility(
-                transcodingURL: source.transcodingUrl, sourcePath: source.path)
+                transcodingURL: source.transcodingUrl, sourcePath: source.path,
+                audioNeedsServerReencode: audioDecision.requiresServerReencode)
             if !didAttemptLiveFallback, case .eligible(let upstream) = eligibility {
                 // Reader created here so its terminalError is reachable in the catch fallback log.
                 let reader = HLSLiveIngestReader(playlistURL: upstream)
@@ -738,6 +744,9 @@ extension PlayerViewModel {
         case notARemuxChannel
         /// Path names Jellyfin's own buffered tuner stream, which is the server route's input, not a playlist.
         case pathIsJellyfinTunerFile
+        /// The soundtrack only the server can build. The upstream playlist carries the original,
+        /// undecodable audio, so ingesting it directly is the one route that ends in silence (#100).
+        case audioNeedsServerReencode
         /// Path is missing, a local file, or otherwise not an http(s) URL.
         case pathNotAnUpstreamURL
 
@@ -746,13 +755,31 @@ extension PlayerViewModel {
             case .eligible: "eligible"
             case .notARemuxChannel: "transcodingUrl=none"
             case .pathIsJellyfinTunerFile: "path=jellyfin_tunerfile"
+            case .audioNeedsServerReencode: "audio=needs_server_reencode"
             case .pathNotAnUpstreamURL: "path=not_an_upstream_url"
             }
         }
     }
 
-    static func liveDirectIngestEligibility(transcodingURL: String?, sourcePath: String?) -> LiveDirectEligibility {
+    /// Whether Jellyfin offered to rebuild this source's AUDIO into something we can play.
+    ///
+    /// Both halves matter. The reason has to name audio, because a picture-only re-encode copies the
+    /// soundtrack through untouched and would leave an AC-4 channel just as silent. And the offer
+    /// needs a TranscodingUrl to consume: with a reason but no URL the route ranking has nothing but
+    /// the tuner file, which is the original stream (#100).
+    static func liveServerOffersAudioReencode(transcodeReasons: [String]?, transcodingURL: String?) -> Bool {
+        guard transcodingURL != nil else { return false }
+        return liveTranscodeReasons(transcodeReasons: transcodeReasons, transcodingURL: transcodingURL)
+            .contains("AudioCodecNotSupported")
+    }
+
+    static func liveDirectIngestEligibility(
+        transcodingURL: String?, sourcePath: String?, audioNeedsServerReencode: Bool = false
+    ) -> LiveDirectEligibility {
         guard transcodingURL != nil else { return .notARemuxChannel }
+        // Ahead of the path checks: this one is a statement about the SOUND, and it is the answer a
+        // report on such a channel needs to see in the line.
+        guard !audioNeedsServerReencode else { return .audioNeedsServerReencode }
         guard let sourcePath else { return .pathNotAnUpstreamURL }
         guard JellyfinPlaybackService.liveStreamFileRelativePath(fromSourcePath: sourcePath) == nil else {
             return .pathIsJellyfinTunerFile
