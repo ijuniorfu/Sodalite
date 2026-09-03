@@ -86,6 +86,14 @@ struct MediaCard: View {
         // here, the policy already passes everything that is not an unseen episode or movie.
         .spoilerVeil(for: item, style: .image, veils: !showsSeriesArtwork)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        // The clip is visual only, so without this the artwork stays TAPPABLE where it is invisible.
+        // A fill-scaled image overflows the card on one axis by design: a 16:9 still in a 2:3 card
+        // draws 320pt wide inside a 120pt frame, so it reached 100pt past both edges and, being a
+        // later sibling in the row, sat on top of the card to its left and answered its taps
+        // (measured on device, discussion #98: a tap at x=89 fired the card whose frame is 148..268).
+        // Only cards whose artwork aspect matches their style were ever safe, which is why it showed
+        // up on one row and not the rest.
+        .contentShape(RoundedRectangle(cornerRadius: 12))
         .overlay(alignment: .bottom) {
             progressOverlay
         }

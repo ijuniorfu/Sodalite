@@ -33,6 +33,10 @@ struct SeerrMediaCard: View {
         }
         .frame(width: cardWidth, height: cardHeight)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        // Bounded for the same reason as MediaCard's poster: a fill-scaled image overflows its
+        // frame, and the clip above is visual only, so the invisible part stays tappable and
+        // covers the neighbour drawn before it (discussion #98).
+        .contentShape(RoundedRectangle(cornerRadius: 12))
         .overlay(alignment: .topTrailing) {
             if let status = media.mediaInfo?.status, status != .unknown {
                 SeerrStatusBadge(status: status, compact: true)
