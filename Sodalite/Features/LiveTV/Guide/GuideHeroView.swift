@@ -107,19 +107,11 @@ struct GuideHeroView: View {
     /// Same cascade as `ProgramInfoPopover.episodeLabel`: episode title, then series name, then bare
     /// season and episode numbers, dropping anything that just repeats the title.
     private func episodeLabel(for program: JellyfinProgram) -> String? {
-        let numbers: String? = if let season = program.parentIndexNumber,
-                                  let episode = program.indexNumber {
-            "S\(season):E\(episode)"
-        } else {
-            nil
-        }
-        if let title = program.episodeTitle, title != program.name {
-            return numbers.map { "\($0) · \(title)" } ?? title
-        }
-        if let series = program.seriesName, series != program.name {
-            return numbers.map { "\(series) · \($0)" } ?? series
-        }
-        return numbers
+        EpisodeMetadataFormatter.programLabel(season: program.parentIndexNumber,
+                                              episode: program.indexNumber,
+                                              episodeTitle: program.episodeTitle,
+                                              seriesName: program.seriesName,
+                                              header: program.name)
     }
 
     private var programImageURL: URL? {

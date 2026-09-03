@@ -370,7 +370,7 @@ struct TransportBar: View {
     /// "3 / 12", the position and nothing else. The chip pins its label now, and a chapter name is
     /// unbounded ("The Trial of the Chicago Seven") where `.fixedSize()` would let it shove the whole
     /// right-aligned row off the screen. Names live in the dropdown rows, which have room for them.
-    /// Same trade the episode chip makes with "S1E5" over the episode title.
+    /// Same trade the episode chip makes with "S1, E5" over the episode title.
     private var chapterButtonLabel: String {
         guard let i = activeChapterIndex else {
             return String(localized: "player.chapters", defaultValue: "Chapters")
@@ -378,14 +378,12 @@ struct TransportBar: View {
         return "\(i + 1) / \(chapters.count)"
     }
 
-    /// "S1E5" when both numbers exist, else a generic label.
+    /// "S1, E5" when the active episode is numbered, else a generic label.
     private var episodeButtonLabel: String {
-        let active = seasonEpisodes.first(where: { $0.id == activeEpisodeID })
-        if let active {
-            var parts: [String] = []
-            if let s = active.parentIndexNumber { parts.append("S\(s)") }
-            if let e = active.indexNumber { parts.append("E\(e)") }
-            if !parts.isEmpty { return parts.joined() }
+        if let active = seasonEpisodes.first(where: { $0.id == activeEpisodeID }) {
+            let token = EpisodeMetadataFormatter.seasonEpisode(season: active.parentIndexNumber,
+                                                               episode: active.indexNumber)
+            if !token.isEmpty { return token }
         }
         return String(localized: "player.episodes", defaultValue: "Episodes")
     }
@@ -434,12 +432,10 @@ struct TransportBar: View {
         return String(format: "%d:%02d", m, s)
     }
 
+    /// "E5 · Title": the dropdown lists one season, so the season number is implied by the row above it.
     private func episodeRowTitle(for episode: JellyfinItem) -> String {
-        var prefix = ""
-        if let e = episode.indexNumber {
-            prefix = "E\(e) · "
-        }
-        return prefix + episode.name
+        EpisodeMetadataFormatter.label(season: nil, episode: episode.indexNumber,
+                                       title: episode.name)
     }
 
     /// "1×" / "1.5×", deliberately not localized (× glyph + arabic digits are universal).
@@ -673,18 +669,9 @@ struct PlayerTitleOverlay: View {
     }
 
     private var episodeDescription: String {
-        var parts: [String] = []
-        if let season = item.parentIndexNumber {
-            parts.append("S\(season)")
-        }
-        if let episode = item.indexNumber {
-            parts.append("E\(episode)")
-        }
-        let prefix = parts.joined(separator: "")
-        if prefix.isEmpty {
-            return item.name
-        }
-        return "\(prefix) \(item.name)"
+        EpisodeMetadataFormatter.label(season: item.parentIndexNumber,
+                                       episode: item.indexNumber,
+                                       title: item.name)
     }
 }
 

@@ -49,13 +49,13 @@ struct ProgramInfoPopoverTests {
     @Test func episodeTitleWithSeasonEpisode() {
         #expect(label(episodeTitle: "Ross Finds Out",
                        parentIndexNumber: 2, indexNumber: 21)
-                == "S2:E21 · Ross Finds Out")
+                == "S2, E21 · Ross Finds Out")
     }
 
     @Test func seriesNameWithSeasonEpisode() {
         #expect(label(seriesName: "Friends",
                        parentIndexNumber: 3, indexNumber: 15)
-                == "Friends · S3:E15")
+                == "Friends · S3, E15")
     }
 
     // MARK: - Title / series without S/E
@@ -71,7 +71,7 @@ struct ProgramInfoPopoverTests {
     // MARK: - S/E only
 
     @Test func seasonEpisodeWithoutTitleOrSeries() {
-        #expect(label(parentIndexNumber: 4, indexNumber: 8) == "S4:E8")
+        #expect(label(parentIndexNumber: 4, indexNumber: 8) == "S4, E8")
     }
 
     // MARK: - Priority cascade
@@ -79,7 +79,7 @@ struct ProgramInfoPopoverTests {
     @Test func episodeTitleBeatsSeriesName() {
         #expect(label(episodeTitle: "The Finale", seriesName: "The Show",
                        parentIndexNumber: 1, indexNumber: 10)
-                == "S1:E10 · The Finale")
+                == "S1, E10 · The Finale")
     }
 
     @Test func seriesNameBeatsBareSE() {
@@ -88,7 +88,7 @@ struct ProgramInfoPopoverTests {
         // case where seriesName is present, the same branch.)
         #expect(label(seriesName: "The Show",
                        parentIndexNumber: 1, indexNumber: 10)
-                == "The Show · S1:E10")
+                == "The Show · S1, E10")
     }
 
     // MARK: - Header de-duplication
@@ -98,19 +98,19 @@ struct ProgramInfoPopoverTests {
     @Test func episodeTitleEqualToNameFallsBackToSeries() {
         #expect(label(episodeTitle: "Program Name", seriesName: "The Show",
                        parentIndexNumber: 2, indexNumber: 5)
-                == "The Show · S2:E5")
+                == "The Show · S2, E5")
     }
 
     @Test func episodeTitleEqualToNameFallsBackToBareSE() {
         #expect(label(episodeTitle: "Program Name",
                        parentIndexNumber: 1, indexNumber: 2)
-                == "S1:E2")
+                == "S1, E2")
     }
 
     @Test func seriesNameEqualToNameDropped() {
         #expect(label(seriesName: "Program Name",
                        parentIndexNumber: 1, indexNumber: 1)
-                == "S1:E1")
+                == "S1, E1")
     }
 
     @Test func episodeTitleEqualToNameWithNoOtherMetadataIsNil() {

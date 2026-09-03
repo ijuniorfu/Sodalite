@@ -656,7 +656,7 @@ struct SeriesDetailView: View {
             isProminent: true,
             subtitle: playButtonSubtitle(vm: vm),
             progressFraction: playProgressFraction(vm: vm),
-            // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
+            // Spinner until a concrete play target: avoids the "Abspielen" → "Fortsetzen + S1, E5 · 12:34" repaint when getNextUp lands a few hundred ms after appear.
             isLoading: playTarget(vm: vm) == nil,
             // Never disabled: a series whose getNextUp outruns the 500ms snapshot deadline paints its
             // action row with Play disabled, and the row's auto-focus then lands on Shuffle while the
@@ -895,7 +895,7 @@ struct SeriesDetailView: View {
         return "detail.play"
     }
 
-    /// Play-button subtitle: "S1E5 · 12:34" when resuming, "S1E5" fresh, nil if no resolvable target.
+    /// Play-button subtitle: "S1, E5 · 12:34" when resuming, "S1, E5" fresh, nil if no resolvable target.
     private func playButtonSubtitle(vm: DetailViewModel) -> String? {
         guard let target = playTarget(vm: vm) else { return nil }
 
@@ -922,12 +922,9 @@ struct SeriesDetailView: View {
         return min(1.0, max(0.0, Double(ticks) / Double(total)))
     }
 
-    /// "S1E5" / "E5" / "" by which numbers the episode carries. Verbatim across all locales (format is universal in streaming UIs).
     private func episodeShorthand(for episode: JellyfinItem) -> String {
-        var out = ""
-        if let s = episode.parentIndexNumber { out += "S\(s)" }
-        if let e = episode.indexNumber { out += "E\(e)" }
-        return out
+        EpisodeMetadataFormatter.seasonEpisode(season: episode.parentIndexNumber,
+                                               episode: episode.indexNumber)
     }
 
     /// "Request in Seerr" only for series that may still grow (status "Continuing" vs "Ended"). Missing status stays permissive and shows the button.

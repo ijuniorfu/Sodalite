@@ -125,20 +125,17 @@ struct MediaCard: View {
     }
 
     private var displayTitle: String {
-        if style == .landscape, item.type == .episode {
-            if let ep = item.indexNumber {
-                return "E\(ep) · \(item.name)"
-            }
-        }
-        return item.name
+        guard style == .landscape, item.type == .episode else { return item.name }
+        return EpisodeMetadataFormatter.label(season: nil, episode: item.indexNumber,
+                                              title: item.name)
     }
 
     private var displaySubtitle: String? {
         if item.type == .episode, let seriesName = item.seriesName {
-            if let season = item.parentIndexNumber {
-                return "\(seriesName) · S\(season)"
-            }
-            return seriesName
+            // Season only: the episode number is already on the title line above.
+            return EpisodeMetadataFormatter.label(seriesName: seriesName,
+                                                  season: item.parentIndexNumber,
+                                                  episode: nil, title: nil)
         }
         if let year = item.productionYear {
             return String(year)

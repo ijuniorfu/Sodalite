@@ -385,7 +385,7 @@ struct PlayerOverlayView: View {
                 }
                 .frame(width: width, height: height)
                 // Sodalite#50: before the clip so the blur stays inside the card. The title and the
-                // SxEy label stay readable, the user is being asked whether to continue.
+                // season/episode label stay readable, the user is being asked whether to continue.
                 .spoilerVeil(isHidden: viewModel.spoilerPolicy.isHidden(episode, surface: .artwork), style: .image)
                 .clipped()
                 .opacity(0.4)
@@ -402,8 +402,12 @@ struct PlayerOverlayView: View {
                 Spacer(minLength: 8)
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    if let s = episode.parentIndexNumber, let e = episode.indexNumber {
-                        Text("S\(s)E\(e)")
+                    // The separator rides with the token rather than the title so `layoutPriority`
+                    // keeps the pair together and the truncating title never leaves a dangling dot.
+                    let token = EpisodeMetadataFormatter.seasonEpisode(
+                        season: episode.parentIndexNumber, episode: episode.indexNumber)
+                    if !token.isEmpty {
+                        Text(verbatim: "\(token) ·")
                             .foregroundStyle(.white.opacity(0.85))
                             .layoutPriority(1)
                     }

@@ -98,10 +98,10 @@ extension JellyfinItem {
     /// Card headline: movies render bare name; episodes prefix series + S/E breadcrumb (the still alone doesn't identify the show).
     var topShelfTitle: String {
         guard type == .episode, let series = seriesName else { return name }
-        if let s = parentIndexNumber, let e = indexNumber {
-            return "\(series) · S\(s)E\(e) · \(name)"
-        }
-        return "\(series) · \(name)"
+        return EpisodeMetadataFormatter.label(seriesName: series,
+                                              season: parentIndexNumber,
+                                              episode: indexNumber,
+                                              title: name)
     }
 
     /// format=Jpg so the image-cache daemon never hits a WebP/AVIF response ImageIO can choke on in the tight extension budget. maxWidth=1280 covers Apple TV 4K (cells ~820px@2x + focus-zoom). enableImageEnhancers=false skips a downscaling server transform; quality=100 avoids stacking JPEG loss on an already-thumbnail episode still.

@@ -544,10 +544,10 @@ struct MovieDetailView: View {
     }
 
     private func episodeSubtitle(vm: DetailViewModel, seriesName: String) -> String {
-        var parts = [seriesName]
-        if let s = vm.item.parentIndexNumber { parts.append("S\(s)") }
-        if let e = vm.item.indexNumber { parts.append("E\(e)") }
-        return parts.joined(separator: " · ")
+        EpisodeMetadataFormatter.label(seriesName: seriesName,
+                                       season: vm.item.parentIndexNumber,
+                                       episode: vm.item.indexNumber,
+                                       title: nil)
     }
 
     /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.

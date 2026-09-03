@@ -196,8 +196,11 @@ struct EpisodeLandscapeCard: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    if let ep = episode.indexNumber {
-                        Text("E\(ep)")
+                    // No separator glyph: the accent colour is what sets the token off the title here.
+                    let token = EpisodeMetadataFormatter.seasonEpisode(season: nil,
+                                                                       episode: episode.indexNumber)
+                    if !token.isEmpty {
+                        Text(verbatim: token)
                             .font(.caption)
                             .foregroundStyle(.tint)
                             .fontWeight(.semibold)
