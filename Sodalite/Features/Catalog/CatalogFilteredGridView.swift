@@ -85,6 +85,7 @@ struct CatalogFilteredGridView: View {
         .hidesShellTabBar()
         .navigationDestination(item: $selectedMedia) { media in
             CatalogDetailView(media: media)
+                .detailCoverPush()
         }
         .task(id: filter) {
             errorMessage = nil

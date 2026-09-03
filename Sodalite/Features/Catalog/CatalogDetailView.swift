@@ -89,9 +89,11 @@ struct CatalogDetailView: View {
         .hidesShellTabBar()
         .navigationDestination(item: $navigateToMedia) { media in
             CatalogDetailView(media: media)
+                .detailCoverPush()
         }
         .navigationDestination(item: $selectedCastMember) { member in
             PersonDetailView(personID: member.personID, personName: member.name)
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToCollection) { collection in
             // Hand over the Radarr options this screen already resolved: re-deriving them there is two more round
@@ -103,6 +105,7 @@ struct CatalogDetailView: View {
                 profileID: selectedProfileID,
                 rootFolder: selectedRootFolder
             )
+                .detailCoverPush()
         }
         .sheet(isPresented: $showRequestOptions) {
             requestOptionsSheet

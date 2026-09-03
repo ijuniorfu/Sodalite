@@ -367,6 +367,17 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .padding(.horizontal, metrics.rowInset)
                 .padding(.bottom, 12)
         }
+        // Rubber-band overscroll pulls the band down and would uncover the base black above it, the
+        // same hole the trailing filler closes at the other end (Sodalite discussion #98, point 6).
+        // The bounce itself stays: a scroll view that does not give is the odd thing on iOS, and the
+        // complaint was the black it revealed, not the travel. Island colour, because that is what
+        // the band's own top edge is made of.
+        .overlay(alignment: .top) {
+            portraitPalette.near
+                .frame(height: 600)
+                .offset(y: -600)
+                .allowsHitTesting(false)
+        }
     }
 
     /// Artwork for the band. A backdrop fills 16:9 exactly; a poster standing in for a missing

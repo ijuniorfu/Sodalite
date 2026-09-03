@@ -29,6 +29,7 @@
 		03AB2C8A89A4DA81B8ADF7C7 /* SeerrSearchResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105916A43830F66C8297D56D /* SeerrSearchResults.swift */; };
 		03B7593FD5B642D94733586E /* MusicHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466FF1007CC23C8934BA9FD7 /* MusicHomeView.swift */; };
 		043AA9080FBD05FF97E1E369 /* JellyfinAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7BCB7F7CD85E2F64A64C87D /* JellyfinAPI.swift */; };
+		058B43B17E7A9B5D4ADC420E /* DetailCoverStackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82681003CF5DC40285C9B41 /* DetailCoverStackTests.swift */; };
 		066D43A85929E970CF6EBA89 /* SeerrAuthResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B88E8CE251D5B15713F56E /* SeerrAuthResponse.swift */; };
 		068E7969370C5ED933944046 /* ProfilePickerOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A9CC5FDDF0FA315CB336BDA /* ProfilePickerOrdering.swift */; };
 		06C59317D983AD352B7526F5 /* ReplacedEpisodeResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F1B3C38E5D186AFF71A7FA /* ReplacedEpisodeResolver.swift */; };
@@ -345,6 +346,7 @@
 		5C69B7B41DBFB7EDACB6A5BD /* TrackSelectionMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247F3F4BFD1A383FB168B6F6 /* TrackSelectionMemory.swift */; };
 		5C950AD6BE0E377E0CAB0B36 /* CatalogGenreRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAF0DCC3698E211D9E6132F /* CatalogGenreRow.swift */; };
 		5C9B1927478341433BDBEF31 /* RememberedUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287E31101A6E454F2B09BEF9 /* RememberedUser.swift */; };
+		5CABFC149C346F69D45F1838 /* DetailCoverStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A178C6A20B34B4FF1A96EBF /* DetailCoverStack.swift */; };
 		5CC1AD49C00E8D6893898AE2 /* RecordingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730C8FB986E1263A255832CC /* RecordingsViewModel.swift */; };
 		5D251B26E974680A9A2D4E26 /* SeerrUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5DC5A520828B9C0565934A /* SeerrUser.swift */; };
 		5D6FF869455188BA8DE18E2A /* ServerRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0E521708A7EBC3D396F706 /* ServerRouteResolver.swift */; };
@@ -919,6 +921,7 @@
 		F50872F7E5C58ABEB8FC67A1 /* SeerrMediaCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C70C69CE2B4D51320E884C /* SeerrMediaCard.swift */; };
 		F517D12411E0A5F7484EF17F /* PosterBadgeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F01696A03EAD1FC14EEA5F35 /* PosterBadgeOverlay.swift */; };
 		F529D9DFA1CD12E929C2C729 /* MediaCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231D308F2B70E534C8F04447 /* MediaCard.swift */; };
+		F5ED743F86088BB7C2E28BBD /* DetailCoverStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A178C6A20B34B4FF1A96EBF /* DetailCoverStack.swift */; };
 		F610614426258955F2A3AC46 /* PosterBadgeEnrichment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */; };
 		F64338DACB5F08005B74787F /* PlayerViewModel+Scrubbing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B281014661348826CF938E /* PlayerViewModel+Scrubbing.swift */; };
 		F6491082B1EF3D9273CA5F79 /* SharedSessionMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786B359C3F0DB004141A34F1 /* SharedSessionMirror.swift */; };
@@ -1233,6 +1236,7 @@
 		698E68F119A7E37585120CE2 /* LocalNetworkAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNetworkAccess.swift; sourceTree = "<group>"; };
 		69B1A60DF572501C0FDF0002 /* RememberedProfileReconciliation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RememberedProfileReconciliation.swift; sourceTree = "<group>"; };
 		69C6C2AD69C879659FBC50AD /* AirPlayRouteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRouteButton.swift; sourceTree = "<group>"; };
+		6A178C6A20B34B4FF1A96EBF /* DetailCoverStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailCoverStack.swift; sourceTree = "<group>"; };
 		6A1AC3DC2967075D0F243004 /* SkipSegmentResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkipSegmentResolverTests.swift; sourceTree = "<group>"; };
 		6A377CDB4D5AD8C205148883 /* ResumeTimeFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeTimeFormatter.swift; sourceTree = "<group>"; };
 		6A4B143BEE303D1937555CAA /* GuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideView.swift; sourceTree = "<group>"; };
@@ -1542,6 +1546,7 @@
 		F6EDE0D3AF30D46C46DE8DFA /* SeerrPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrPermissions.swift; sourceTree = "<group>"; };
 		F7AFC9D69550F3562E83D486 /* PlayerTouchInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTouchInputTests.swift; sourceTree = "<group>"; };
 		F7BD8B6E3869668E8D374D2B /* CloudSyncForwardCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncForwardCompat.swift; sourceTree = "<group>"; };
+		F82681003CF5DC40285C9B41 /* DetailCoverStackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailCoverStackTests.swift; sourceTree = "<group>"; };
 		F8AFD18467EFC7535B275979 /* JellyfinServerDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServerDiscovery.swift; sourceTree = "<group>"; };
 		F8DC84F824CF8CC3435DD6D7 /* TrackRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRow.swift; sourceTree = "<group>"; };
 		F8E8471B0A8EB90E76396E7C /* PlayerGestureCatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerGestureCatcher.swift; sourceTree = "<group>"; };
@@ -1615,6 +1620,7 @@
 				B9A555200A5ACA574AF2055E /* AppTab.swift */,
 				B358C258474B9350188F12C6 /* DeepLinkRoute.swift */,
 				7B1E8FDE55D8F67C402AE221 /* DetailCover.swift */,
+				6A178C6A20B34B4FF1A96EBF /* DetailCoverStack.swift */,
 				6C1D0037C8C7ACE6E546F1A0 /* LocalNetworkDeniedView.swift */,
 				015C965A64CF0A6364D1C065 /* Notifications.swift */,
 				2866E3279048E699E940339D /* PlayerModalDismisser.swift */,
@@ -1802,6 +1808,7 @@
 				B07E95DC61BDDF80C17F37F5 /* DeepLinkRouteTests.swift */,
 				9369DC581B31CDF29ACEFE58 /* DeletedActiveProfileReconcileTests.swift */,
 				8921B4CB17D85FE1BD42D192 /* DetailActionRowPackingTests.swift */,
+				F82681003CF5DC40285C9B41 /* DetailCoverStackTests.swift */,
 				4AB1FCFE662FB3BE348E2ABB /* DetailViewModelFavoriteTests.swift */,
 				E9E3BF97D18324FFA9D4E64D /* DiscoveryProbeRaceTests.swift */,
 				D56D9C510CDDF570489238BA /* DualURLPromptLatchTests.swift */,
@@ -2853,6 +2860,7 @@
 				91D2C8DA8F6C9BBCC2795742 /* DependencyContainer.swift in Sources */,
 				09BA45A637714EBC8D078981 /* DetailBackdrop.swift in Sources */,
 				7CCA4F310D16A175FED988DE /* DetailCover.swift in Sources */,
+				5CABFC149C346F69D45F1838 /* DetailCoverStack.swift in Sources */,
 				0368E6E01D3545255E065560 /* DetailRouterView.swift in Sources */,
 				B8859E83555491FE39146112 /* DetailSecondaryInfo.swift in Sources */,
 				C8B595BF4C192CE6F09E0C01 /* DetailViewModel.swift in Sources */,
@@ -3219,6 +3227,7 @@
 				1BACA753B79B7BB7FBC63E29 /* DeepLinkRouteTests.swift in Sources */,
 				092532C8CB08BDDCEC574C53 /* DeletedActiveProfileReconcileTests.swift in Sources */,
 				95D7E87C32B0ED2C2E010541 /* DetailActionRowPackingTests.swift in Sources */,
+				058B43B17E7A9B5D4ADC420E /* DetailCoverStackTests.swift in Sources */,
 				60248B700F919858C7BF08B2 /* DetailViewModelFavoriteTests.swift in Sources */,
 				57BFD4311521443D0BD154B8 /* DiscoveryProbeRaceTests.swift in Sources */,
 				F79D26C973ABE2B9E5DDF233 /* DualURLPromptLatchTests.swift in Sources */,
@@ -3425,6 +3434,7 @@
 				769EE5E5BA6E963852C08B12 /* DependencyContainer.swift in Sources */,
 				87458510518378A90609D16F /* DetailBackdrop.swift in Sources */,
 				CA94C16ECC7A49B1479BFE23 /* DetailCover.swift in Sources */,
+				F5ED743F86088BB7C2E28BBD /* DetailCoverStack.swift in Sources */,
 				075BFA51EE3EF9670505ED09 /* DetailRouterView.swift in Sources */,
 				96A3D146A758D14061FDF5F0 /* DetailSecondaryInfo.swift in Sources */,
 				072E639ACDCE716FC8F6E881 /* DetailViewModel.swift in Sources */,

@@ -274,6 +274,7 @@ struct FilteredGridView: View {
         .hidesShellTabBar()
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
+                .detailCoverPush()
         }
         .sheet(isPresented: $showSortSheet) {
             LibrarySortSheet(

@@ -9,35 +9,61 @@ extension View {
         @ViewBuilder content: @escaping (Item) -> Content
     ) -> some View {
         fullScreenCover(item: item) { value in
-            NavigationStack {
+            DetailCoverHost(dismiss: { item.wrappedValue = nil }) {
                 content(value)
-                    #if os(iOS)
-                    .themedStaticBackground(pausesMotion: false)
-                    #endif
             }
-            #if os(iOS)
-            .pausesAppBackgroundMotion()
-            #else
-            .themedStaticBackground()
-            #endif
-            #if os(iOS)
-            // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
-            // has no swipe-to-dismiss), else detail / program-info covers are a dead end.
-            // Top-trailing glass circle (matching the settings gear) so it never sits on the
-            // leading page title.
-            .overlay(alignment: .topTrailing) {
-                Button { item.wrappedValue = nil } label: {
-                    Image(systemName: "xmark")
-                        .font(.title3.weight(.semibold))
-                        .padding(12)
-                        .glassEffect(.regular, in: Circle())
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .padding(.trailing, 16)
-                .padding(.top, 8)
-            }
-            #endif
         }
+    }
+}
+
+/// One cover's NavigationStack plus the close button that belongs to it.
+///
+/// Split out of the modifier because the button's visibility is state: it stands down while a page is
+/// pushed above the root, where the stack's own back arrow already means "one step back" and the X
+/// would silently mean "leave the whole cover" (Sodalite discussion #98, point 5).
+private struct DetailCoverHost<Content: View>: View {
+    let dismiss: () -> Void
+    @ViewBuilder let content: () -> Content
+
+    /// Owned here, one per presented cover, so a second cover opened over the first cannot inherit
+    /// the first's pushed pages.
+    @State private var stack = DetailCoverStack()
+
+    var body: some View {
+        NavigationStack {
+            content()
+                #if os(iOS)
+                .themedStaticBackground(pausesMotion: false)
+                #endif
+        }
+        .environment(\.detailCoverStack, stack)
+        #if os(iOS)
+        .pausesAppBackgroundMotion()
+        #else
+        .themedStaticBackground()
+        #endif
+        #if os(iOS)
+        // tvOS dismisses via the Menu button; iOS needs a touch close (a fullScreenCover
+        // has no swipe-to-dismiss), else detail / program-info covers are a dead end.
+        // Top-trailing glass circle (matching the settings gear) so it never sits on the
+        // leading page title.
+        .overlay(alignment: .topTrailing) {
+            Button(action: dismiss) {
+                Image(systemName: "xmark")
+                    .font(.title3.weight(.semibold))
+                    .padding(12)
+                    .glassEffect(.regular, in: Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(.trailing, 16)
+            .padding(.top, 8)
+            // Hidden, not removed: the stack's own back arrow is the way out of a pushed page,
+            // and two buttons that mean different amounts of "back" is the confusion this ends.
+            .opacity(stack.isPushed ? 0 : 1)
+            .allowsHitTesting(!stack.isPushed)
+            .animation(.easeInOut(duration: 0.2), value: stack.isPushed)
+        }
+        #endif
     }
 }

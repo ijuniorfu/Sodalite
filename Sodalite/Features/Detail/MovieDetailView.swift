@@ -207,13 +207,16 @@ struct MovieDetailView: View {
         }
         .navigationDestination(item: $navigateToSeerrRequest) { media in
             CatalogDetailView(media: media)
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToSeries) { series in
             SeriesDetailView(item: series)
                 .hidesShellTabBar()
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToPerson) { route in
             PersonDetailView(
@@ -221,6 +224,7 @@ struct MovieDetailView: View {
                 jellyfinPersonID: route.jellyfinPersonID,
                 personName: route.name
             )
+                .detailCoverPush()
         }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {

@@ -43,9 +43,11 @@ struct PersonDetailView: View {
             .hidesShellTabBar()
         .navigationDestination(item: $navigateToJellyfinItem) { item in
             DetailRouterView(item: item)
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToSeerrMedia) { media in
             CatalogDetailView(media: media)
+                .detailCoverPush()
         }
         .task { await bootstrap() }
     }
