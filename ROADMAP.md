@@ -54,3 +54,18 @@ phone has less room than a NAS.
 The original file stays the default. A lower rung means the server re-encodes, which is exactly
 what Sodalite avoids by default, so it is a trade you make on purpose rather than a slider that
 quietly costs nothing.
+
+### Something to browse before you type ([#107](https://github.com/superuser404notfound/Sodalite/issues/107))
+
+Search is the only tab that shows nothing at all until you start typing, which on a remote is the
+most expensive thing it could ask for. It gets the two things that belong on an empty search
+screen: your recent searches, and a grid of genre tiles you can walk into. The genres are the same
+tiles Home already shows, pointing at the same grids Home has already loaded, so picking one lands
+on content instead of a spinner.
+
+Behind that sits an open question. Sodalite draws its own search field today, and tvOS has a real
+system search screen (the one the App Store and the Apple TV app use) that brings dictation, the
+system keyboard and system focus handling with it. Switching to it was measured as too slow once
+before, with a related but different API. It gets measured again on an actual Apple TV, and if
+opening the tab is still slower than it is today, the field stays as it is and the browse screen
+ships anyway.
