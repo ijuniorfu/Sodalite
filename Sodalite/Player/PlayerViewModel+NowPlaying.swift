@@ -75,24 +75,13 @@ extension PlayerViewModel {
         return items
     }
 
-    /// Now-Playing title line. Episodes: "S2E5 · Title", with series on the second line via artist/subtitle items (music convention: title = piece, artist = owner; issue #15 follow-up). Movies keep their plain title.
+    /// Now-Playing title line. Episodes: "S2, E5 · Title", with series on the second line via artist/subtitle items (music convention: title = piece, artist = owner; issue #15 follow-up). Movies keep their plain title.
     private var nowPlayingTitle: String {
         guard item.type == .episode else { return item.name }
-        var parts: [String] = []
-        var seasonEpisode = ""
-        if let season = item.parentIndexNumber {
-            seasonEpisode += "S\(season)"
-        }
-        if let ep = item.indexNumber {
-            seasonEpisode += "E\(ep)"
-        }
-        if !seasonEpisode.isEmpty {
-            parts.append(seasonEpisode)
-        }
-        if !item.name.isEmpty {
-            parts.append(item.name)
-        }
-        return parts.isEmpty ? item.name : parts.joined(separator: " · ")
+        let label = EpisodeMetadataFormatter.label(season: item.parentIndexNumber,
+                                                   episode: item.indexNumber,
+                                                   title: item.name)
+        return label.isEmpty ? item.name : label
     }
 
     /// Series name for the second Now-Playing line. Episodes only;
@@ -106,7 +95,7 @@ extension PlayerViewModel {
 
     private var displayDescriptionLine: String? {
         if item.type == .episode {
-            // Title + subtitle already carry series and SxEy; use the description slot for the synopsis instead of repeating them.
+            // Title + subtitle already carry series and season/episode; use the description slot for the synopsis instead of repeating them.
             // Sodalite#50: AVKit metadata cannot be blurred, so a veiled synopsis is dropped instead.
             guard !spoilerPolicy.isHidden(item) else { return nil }
             if let overview = item.overview, !overview.isEmpty {

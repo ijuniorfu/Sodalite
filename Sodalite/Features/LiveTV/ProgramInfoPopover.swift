@@ -97,20 +97,11 @@ struct ProgramInfoPopover: View {
     /// Builds the episode-identity label with cascading priority:
     /// episodeTitle > seriesName > S/E numbers alone.
     var episodeLabel: String? {
-        let se = if let s = program.parentIndexNumber, let e = program.indexNumber {
-            "S\(s):E\(e)"
-        } else {
-            nil as String?
-        }
-        // Drop an episode title or series name that just repeats the header (`program.name`);
-        // some EPG providers set these equal, which would render the same string twice.
-        if let title = program.episodeTitle, title != program.name {
-            return se.map { "\($0) · \(title)" } ?? title
-        }
-        if let series = program.seriesName, series != program.name {
-            return se.map { "\(series) · \($0)" } ?? series
-        }
-        return se
+        EpisodeMetadataFormatter.programLabel(season: program.parentIndexNumber,
+                                              episode: program.indexNumber,
+                                              episodeTitle: program.episodeTitle,
+                                              seriesName: program.seriesName,
+                                              header: program.name)
     }
 
     @ViewBuilder
