@@ -75,6 +75,7 @@ struct CollectionDetailView: View {
         }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
+                .detailCoverPush()
         }
         // task(id:), not onChange: the list can already be populated when this view first renders
         // (warm cache), and onChange only sees transitions. No spinner gate here on purpose: isLoading

@@ -424,6 +424,7 @@ struct SeriesDetailView: View {
         }
         .navigationDestination(item: $navigateToItem) { item in
             DetailRouterView(item: item)
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToPerson) { route in
             PersonDetailView(
@@ -431,9 +432,11 @@ struct SeriesDetailView: View {
                 jellyfinPersonID: route.jellyfinPersonID,
                 personName: route.name
             )
+                .detailCoverPush()
         }
         .navigationDestination(item: $navigateToSeerrRequest) { media in
             CatalogDetailView(media: media)
+                .detailCoverPush()
         }
         .onAppear {
             if viewModel == nil, let userID = appState.activeUser?.id {

@@ -68,9 +68,19 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         ZStack {
             if let loaded {
                 content(Image(uiImage: loaded), loaded.size)
-                    .transition(.opacity.animation(.easeIn(duration: 0.2)))
+                    .transition(.opacity.animation(.easeIn(duration: 0.25)))
+                    // Above the placeholder for the length of the swap, which is what lets the
+                    // placeholder stay opaque underneath instead of having to fade in step.
+                    .zIndex(1)
             } else {
                 placeholder()
+                    // The image faded IN and the placeholder was removed with no transition at all,
+                    // so between the two there was a gap where neither was drawn: every artwork on
+                    // the page appeared to pop out and then fade back (Sodalite discussion #98,
+                    // point 3). It now holds full strength until the image above it is opaque, and
+                    // lets go behind it, so nothing ever uncovers what is behind them both.
+                    .transition(.opacity.animation(.easeOut(duration: 0.2).delay(0.25)))
+                    .zIndex(0)
             }
         }
         .task(id: "\(url?.absoluteString ?? "")|\(fallbackURL?.absoluteString ?? "")") {

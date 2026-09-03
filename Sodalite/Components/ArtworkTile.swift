@@ -52,6 +52,10 @@ struct ArtworkTile<Fallback: View>: View {
             }
             .frame(width: size.width, height: size.height)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            // Bounded for the same reason as MediaCard's poster: a fill-scaled image overflows its
+            // frame, and the clip above is visual only, so the invisible part stays tappable and
+            // covers the neighbour drawn before it (discussion #98).
+            .contentShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 MediaFocusRing(
                     shape: RoundedRectangle(cornerRadius: 16),

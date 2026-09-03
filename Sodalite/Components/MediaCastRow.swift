@@ -82,6 +82,10 @@ private struct MediaCastCard: View {
             }
             .frame(width: portrait, height: portrait)
             .clipShape(Circle())
+            // Bounded for the same reason as MediaCard's poster: a fill-scaled image overflows its
+            // frame, and the clip above is visual only, so the invisible part stays tappable and
+            // covers the neighbour drawn before it (discussion #98).
+            .contentShape(Circle())
             .overlay(
                 MediaFocusRing(
                     shape: Circle(),

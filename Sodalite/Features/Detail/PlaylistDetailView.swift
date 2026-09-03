@@ -71,6 +71,7 @@ struct PlaylistDetailView: View {
         }
         .navigationDestination(item: $selectedItem) { item in
             DetailRouterView(item: item)
+                .detailCoverPush()
         }
         // task(id:), not onChange: the list can already be populated at first render. Same reasoning
         // as CollectionDetailView, no spinner gate.

@@ -77,6 +77,7 @@ struct CatalogCollectionView: View {
         .hidesShellTabBar()
         .navigationDestination(item: $selectedMedia) { media in
             CatalogDetailView(media: media)
+                .detailCoverPush()
         }
         .sheet(isPresented: $showRequestOptions) {
             requestOptionsSheet
