@@ -22,6 +22,11 @@ import SwiftUI
         hasResolved && !isLoading && songs.isEmpty && displayedError == nil
     }
 
+    /// Play and Shuffle hand `songs` to the coordinator, which refuses an empty queue outright, so
+    /// without tracks they are controls that cannot do anything. That covers the album that has
+    /// none and the fetch that failed alike.
+    var canPlay: Bool { !songs.isEmpty }
+
     func load(album: JellyfinItem, using dependencies: DependencyContainer) async {
         await load(albumID: album.id, service: dependencies.jellyfinMusicService, userID: dependencies.activeUserID)
     }
@@ -135,7 +140,7 @@ struct AlbumDetailView: View {
         if viewModel.isLoading {
             ProgressView()
                 .padding(.top, 8)
-        } else {
+        } else if viewModel.canPlay {
             actionButtons
         }
     }

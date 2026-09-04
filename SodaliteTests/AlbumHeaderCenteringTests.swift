@@ -112,6 +112,44 @@ struct AlbumHeaderCenteringTests {
         #expect(viewModel.isConfirmedEmpty)
     }
 
+    // MARK: - Dead controls
+
+    /// The coordinator refuses an empty queue, so on a track-less album Play and Shuffle were
+    /// controls that could not do anything. They are drawn only when there is something to play.
+    @Test("A track-less album offers no Play button")
+    func anEmptyAlbumHidesItsTransport() async {
+        let viewModel = AlbumDetailViewModel()
+        await viewModel.load(albumID: "alb", service: MusicAlbumLoadTests.MusicSpy(), userID: "u")
+
+        #expect(viewModel.isConfirmedEmpty)
+        #expect(viewModel.canPlay == false)
+    }
+
+    /// A failed fetch leaves nothing to play either, and hiding the two dead buttons hands tvOS
+    /// focus to the Retry button below, which is the control that can actually help.
+    @Test("A failed fetch offers no Play button either")
+    func aFailedFetchHidesItsTransport() async {
+        let spy = MusicAlbumLoadTests.MusicSpy()
+        spy.error = APIError.timeout
+
+        let viewModel = AlbumDetailViewModel()
+        await viewModel.load(albumID: "alb", service: spy, userID: "u")
+
+        #expect(viewModel.displayedError != nil)
+        #expect(viewModel.canPlay == false)
+    }
+
+    @Test("An album with tracks keeps its transport")
+    func tracksKeepTheTransport() async throws {
+        let spy = MusicAlbumLoadTests.MusicSpy()
+        spy.songs = [try track("t1")]
+
+        let viewModel = AlbumDetailViewModel()
+        await viewModel.load(albumID: "alb", service: spy, userID: "u")
+
+        #expect(viewModel.canPlay)
+    }
+
     // MARK: - Structure
 
     /// Centering has to move the title block's OWN alignment. `.multilineTextAlignment` alone
@@ -135,6 +173,18 @@ struct AlbumHeaderCenteringTests {
 
         #expect(source.contains("AnyLayout(VStackLayout(alignment: .center, spacing: 24))"))
         #expect(source.contains("AnyLayout(HStackLayout(alignment: .top, spacing: 48))"))
+    }
+
+    /// The two halves of one rule, in two files: the coordinator refuses an empty queue, and the
+    /// header does not offer a button that would hit that refusal. Either half alone brings the dead
+    /// control back.
+    @Test("The button only exists where the coordinator would not refuse")
+    func theTransportGateMatchesTheCoordinatorGuard() throws {
+        let view = try sourceFile("Sodalite/Features/Music/AlbumDetailView.swift")
+        let coordinator = try sourceFile("Sodalite/Features/Music/MusicPlaybackCoordinator.swift")
+
+        #expect(view.contains("} else if viewModel.canPlay {"))
+        #expect(coordinator.contains("guard !items.isEmpty else { return }"))
     }
 
     private func sourceFile(_ relativePath: String) throws -> String {
