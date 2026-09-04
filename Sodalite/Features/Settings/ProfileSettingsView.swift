@@ -314,11 +314,9 @@ struct ProfileSettingsView: View {
     }
 
     private func switchTo(_ user: RememberedUser, server: JellyfinServer) {
-        // isColdStart: false, reaching Settings means a session is already trusted. An entry-locked
-        // target still costs the PIN here, which is the whole point of the role.
+        // An entry-locked target costs the PIN here too, which is the whole point of the role.
         guard dependencies.parentalGateRequired(forActivatingUserID: user.id,
-                                                serverID: server.id,
-                                                isColdStart: false) else {
+                                                serverID: server.id) else {
             performSwitch(user, server: server)
             return
         }

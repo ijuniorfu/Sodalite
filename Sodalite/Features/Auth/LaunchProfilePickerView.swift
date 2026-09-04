@@ -285,8 +285,7 @@ struct LaunchProfilePickerView: View {
         // recovery.
         if context == .reprompt, user.id == activeSessionUserID {
             guard dependencies.parentalGateRequired(forActivatingUserID: user.id,
-                                                    serverID: server.id,
-                                                    isColdStart: false) else {
+                                                    serverID: server.id) else {
                 onFinished?()
                 return
             }
@@ -297,11 +296,10 @@ struct LaunchProfilePickerView: View {
             }
             return
         }
-        // Cold-start picker context: an entry-locked profile always costs the PIN, an open one
-        // costs it here because nobody has identified themselves yet, a locked-in one enters free.
+        // An entry-locked profile always costs the PIN, a locked-in one enters free, and an open
+        // one costs it only as the far side of the leave-lock.
         if dependencies.parentalGateRequired(forActivatingUserID: user.id,
-                                              serverID: server.id,
-                                              isColdStart: true) {
+                                              serverID: server.id) {
             let reason = dependencies.parentalGateReason(forActivatingUserID: user.id,
                                                          serverID: server.id)
             Task {

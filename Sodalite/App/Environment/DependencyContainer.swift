@@ -189,6 +189,8 @@ final class DependencyContainer {
 
         // Idempotent, and cheap once the legacy entries are gone (one miss per known server).
         migrateLegacyJellyfinPasswords()
+        // Latched, and a no-op on any install that never configured parental controls.
+        migrateUnmarkedProfilesToEntryLocked()
     }
 
     /// Connect the pending-requests monitor to the live session. Called once from SodaliteApp.init
@@ -472,13 +474,10 @@ final class DependencyContainer {
         guard let candidate = pinned ?? (remembered.count == 1 ? remembered.first : nil),
               !candidate.token.isEmpty
         else { return nil }
-        // isColdStart: nobody identified themselves for this pick, so it has to clear the strictest bar
-        // the picker would put in front of the same card.
-        guard !parentalGateRequired(
-            forActivatingUserID: candidate.id,
-            serverID: serverID,
-            isColdStart: true
-        ) else { return nil }
+        // Nobody identified themselves for this pick, so it has to clear the same bar the picker
+        // would put in front of that card.
+        guard !parentalGateRequired(forActivatingUserID: candidate.id, serverID: serverID)
+        else { return nil }
         return candidate
     }
 
@@ -1144,14 +1143,11 @@ final class DependencyContainer {
 
     /// Whether activating the given target profile needs the Guardian-PIN. The judgement itself
     /// lives in `ParentalGatePolicy`; this resolves the two roles it decides on.
-    func parentalGateRequired(forActivatingUserID userID: String,
-                              serverID: String,
-                              isColdStart: Bool) -> Bool {
+    func parentalGateRequired(forActivatingUserID userID: String, serverID: String) -> Bool {
         guard parentalControlsActive() else { return false }
         return ParentalGatePolicy.gateRequiredForActivating(
             targetRole: parentalControlsPreferences.role(serverID: serverID, userID: userID),
-            activeRole: activeProfileRole(),
-            isColdStart: isColdStart
+            activeRole: activeProfileRole()
         )
     }
 
@@ -1163,10 +1159,28 @@ final class DependencyContainer {
     }
 
     /// Whether a session-scoped escape action (logout, server management,
-    /// opening parental settings, switching server from the picker)
-    /// needs the PIN. Required only while a protected profile is active.
+    /// switching server from the picker) needs the PIN.
     func parentalGateRequiredForSessionAction() -> Bool {
-        parentalControlsActive() && activeProfileIsProtected()
+        parentalControlsActive()
+            && ParentalGatePolicy.sessionActionRequiresPIN(activeRole: activeProfileRole())
+    }
+
+    /// One-shot: before #105 an unmarked profile still cost the PIN to enter at a cold start, and
+    /// "unmarked" is what the new model calls open, which costs nothing. So an install that had
+    /// parental controls configured has its unmarked profiles read as what they behaved like,
+    /// pinToEnter. Without this the upgrade would silently unlock every adult profile on the device.
+    /// Latched in UserDefaults, and it never runs on an install that had no lock to migrate.
+    func migrateUnmarkedProfilesToEntryLocked() {
+        let latch = "parental.entryLockMigrationDone"
+        guard !UserDefaults.standard.bool(forKey: latch) else { return }
+        UserDefaults.standard.set(true, forKey: latch)
+        guard isGuardianPINSet(), !parentalControlsPreferences.protectedProfileIDs.isEmpty else { return }
+        for server in listKnownServers() {
+            for user in listRememberedUsers(serverID: server.id)
+            where parentalControlsPreferences.role(serverID: server.id, userID: user.id) == .open {
+                parentalControlsPreferences.setRole(.pinToEnter, serverID: server.id, userID: user.id)
+            }
+        }
     }
 
     /// See `restoreSession()` for the rationale behind silent `try?` here.
