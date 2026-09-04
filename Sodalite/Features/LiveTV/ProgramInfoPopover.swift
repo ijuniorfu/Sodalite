@@ -163,7 +163,7 @@ private struct PopoverActionButton: View {
             .padding(.horizontal, 28)
             .padding(.vertical, 16)
             .background(
-                Capsule().fill(focused ? AnyShapeStyle(accent) : AnyShapeStyle(Color.white.opacity(0.12)))
+                Capsule().fill(focused ? AnyShapeStyle(accent) : AnyShapeStyle(Color.Theme.restFillStrong))
             )
             .overlay(
                 Capsule().strokeBorder(accent, lineWidth: focused ? 0 : 2)

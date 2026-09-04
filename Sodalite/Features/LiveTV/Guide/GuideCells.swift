@@ -20,7 +20,7 @@ struct GuideProgramCellContent: View {
     var body: some View {
         HStack(spacing: 6) {
             if hasTimer {
-                Circle().fill(.red).frame(width: 10, height: 10)
+                Circle().fill(Color.Theme.recording).frame(width: 10, height: 10)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)

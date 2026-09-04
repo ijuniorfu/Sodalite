@@ -51,7 +51,7 @@ struct SeerrRequestOptionsForm: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
                 .frame(maxWidth: .infinity)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                .background(Color.Theme.restFill, in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
             .fullScreenCover(isPresented: $isProfilePickerPresented) {
@@ -94,7 +94,7 @@ struct SeerrRequestOptionsForm: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
                 .frame(maxWidth: .infinity)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                .background(Color.Theme.restFill, in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
             .fullScreenCover(isPresented: $isRootFolderPickerPresented) {
@@ -143,7 +143,7 @@ struct SeerrRequestOptionsForm: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
                 .frame(maxWidth: .infinity)
-                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                .background(Color.Theme.restFill, in: RoundedRectangle(cornerRadius: 12))
             }
             .buttonStyle(CatalogPickerButtonStyle())
             .fullScreenCover(isPresented: $isTagPickerPresented) {

@@ -174,7 +174,7 @@ private struct NowPlayingContent: View {
                 .aspectRatio(contentMode: .fill)
         } placeholder: {
             Rectangle()
-                .fill(Color.white.opacity(0.04))
+                .fill(Color.Theme.restFillFaint)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
@@ -196,7 +196,7 @@ private struct NowPlayingContent: View {
                 .aspectRatio(contentMode: .fill)
         } placeholder: {
             RoundedRectangle(cornerRadius: 24)
-                .fill(Color.white.opacity(0.08))
+                .fill(Color.Theme.restFill)
                 .overlay(
                     Image(systemName: "music.note")
                         .font(.system(size: 72))

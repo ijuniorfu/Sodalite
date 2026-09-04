@@ -29,7 +29,7 @@ struct PosterBadgeOverlay: View {
             .foregroundStyle(.white)
             .padding(.horizontal, fontSize * 0.42)
             .padding(.vertical, fontSize * 0.18)
-            .background(.black.opacity(0.55), in: Capsule())
-            .overlay(Capsule().strokeBorder(.white.opacity(0.18), lineWidth: 1))
+            .background(Color.Theme.scrim, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.Theme.hairline, lineWidth: 1))
     }
 }

@@ -22,10 +22,6 @@ enum ResumeBarRenderer {
         static let inset = 0.0275
         static let scrimHeight = 0.16
         static let scrimOpacity = 0.65
-        /// Opaque, not a translucent white. A see-through track lets the scrim bleed into it and
-        /// drags it toward the fill: measured on a bright backdrop, white-at-30% put fill and
-        /// track at 183 vs 115 luma (1.54:1), while this level puts them at 183 vs 44 (3.46:1).
-        static let trackLevel = 0.13
         static let jpegQuality = 0.9
     }
 
@@ -89,9 +85,9 @@ enum ResumeBarRenderer {
 
         let inset = (bounds.width * Metrics.inset).rounded()
         let track = CGRect(x: inset, y: inset, width: bounds.width - 2 * inset, height: barHeight)
-        context.setFillColor(CGColor(red: Metrics.trackLevel,
-                                     green: Metrics.trackLevel,
-                                     blue: Metrics.trackLevel,
+        context.setFillColor(CGColor(red: NeutralLevel.resumeTrack,
+                                     green: NeutralLevel.resumeTrack,
+                                     blue: NeutralLevel.resumeTrack,
                                      alpha: 1))
         fillCapsule(in: context, rect: track)
 

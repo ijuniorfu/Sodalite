@@ -126,7 +126,7 @@ struct SeerrRequestAdminRow: View {
 
     private var placeholderPoster: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8).fill(.white.opacity(0.08))
+            RoundedRectangle(cornerRadius: 8).fill(Color.Theme.restFill)
             Image(systemName: typeIcon).font(.title3).foregroundStyle(.tint)
         }
     }
@@ -214,7 +214,7 @@ private struct AdminActionButton: View {
 
     private var backgroundStyle: AnyShapeStyle {
         if isDestructive {
-            return AnyShapeStyle(Color.red.opacity(focused ? 0.85 : 0.6))
+            return AnyShapeStyle(Color.Theme.destructive.opacity(focused ? 0.85 : 0.6))
         }
         if isProminent {
             let opacity = focused ? 0.9 : 0.55
@@ -223,6 +223,6 @@ private struct AdminActionButton: View {
         if focused {
             return AnyShapeStyle(TintShapeStyle.tint.opacity(0.25))
         }
-        return AnyShapeStyle(Color.white.opacity(0.12))
+        return AnyShapeStyle(Color.Theme.restFillStrong)
     }
 }

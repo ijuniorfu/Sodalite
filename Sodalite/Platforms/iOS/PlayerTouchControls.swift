@@ -195,7 +195,7 @@ struct PlayerTouchControls: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: isPad ? 150 : 110)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.white.opacity(0.18), lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.Theme.hairline, lineWidth: 1))
             }
 
             iconRow
@@ -352,7 +352,7 @@ struct PlayerTouchControls: View {
                                     viewModel.requestSubtitleDeletion(streamIndex: deleteIndex)
                                 } label: {
                                     Image(systemName: "trash")
-                                        .foregroundStyle(.red)
+                                        .foregroundStyle(Color.Theme.destructive)
                                         .frame(width: 44, height: rowHeight)
                                         .contentShape(Rectangle())
                                 }

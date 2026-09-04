@@ -86,7 +86,7 @@ struct ExpandableTextBox: View {
 struct ExpandableTextBoxPlaceholder: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 16)
-            .fill(.white.opacity(0.04))
+            .fill(Color.Theme.restFillFaint)
             .frame(maxWidth: .infinity)
             .frame(height: 150)
     }
@@ -98,7 +98,7 @@ struct TextOverlay: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.85).ignoresSafeArea()
+            Color.Theme.scrimHeavy.ignoresSafeArea()
 
             #if os(tvOS)
             // A focusable ScrollView does not scroll on the remote; focus moving between its

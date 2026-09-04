@@ -42,12 +42,6 @@ struct ResumeProgressBar: View {
     let posterWidth: CGFloat
     var scale: CGFloat = 1
 
-    /// Opaque, and neither a material nor a translucent black. Both of those let the artwork
-    /// through, so on a bright still the track ends up as light as the fill and the played part
-    /// stops being readable. The level matches the Top Shelf renderer's track so the shelf and the
-    /// app show the same bar.
-    private static let trackLevel = 0.13
-
     private var inset: CGFloat { PosterBadgeMetrics.checkInset(posterWidth: posterWidth, scale: scale) }
     private var trackHeight: CGFloat { PosterBadgeMetrics.trackHeight(posterWidth: posterWidth, scale: scale) }
     private var gap: CGFloat { PosterBadgeMetrics.labelGap(posterWidth: posterWidth, scale: scale) }
@@ -97,7 +91,7 @@ struct ResumeProgressBar: View {
 
     private var track: some View {
         Capsule()
-            .fill(Color(white: Self.trackLevel))
+            .fill(Color.Theme.resumeTrack)
             .frame(height: trackHeight)
             .overlay(alignment: .leading) {
                 GeometryReader { geo in

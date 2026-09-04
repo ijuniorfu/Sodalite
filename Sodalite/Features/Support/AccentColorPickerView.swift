@@ -266,7 +266,7 @@ private struct AccentPresetTile: View {
                     width: AccentPickerLayout.swatchSize,
                     height: AccentPickerLayout.swatchSize
                 )
-                .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 1))
+                .overlay(Circle().stroke(Color.Theme.hairline, lineWidth: 1))
             Text(preset.title)
                 .font(.headline)
                 .lineLimit(2)

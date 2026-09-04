@@ -24,7 +24,7 @@ struct ValuePickerRow<Value: Hashable>: View {
             .padding(.vertical, isCompact ? 16 : 22)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
+                    .fill(focused ? Color.Theme.focusFill : Color.Theme.restFillFaint)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)

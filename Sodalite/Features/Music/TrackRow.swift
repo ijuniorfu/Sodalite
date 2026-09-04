@@ -48,7 +48,7 @@ struct TrackRow: View {
         .padding(.vertical, hSizeClass == .compact ? 12 : 18)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
+                .fill(focused ? Color.Theme.focusFill : Color.Theme.restFillFaint)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)

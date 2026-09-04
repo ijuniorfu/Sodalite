@@ -166,7 +166,7 @@ private struct SeerrRequestRow: View {
     private var placeholderPoster: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)
-                .fill(.white.opacity(0.08))
+                .fill(Color.Theme.restFill)
             Image(systemName: typeIcon)
                 .font(.title3)
                 .foregroundStyle(.tint)

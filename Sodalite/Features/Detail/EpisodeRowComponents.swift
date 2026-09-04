@@ -32,7 +32,7 @@ struct SeasonTab: View {
 
     private var tabBackground: Color {
         if isFocused { return .white.opacity(0.12) }
-        if isSelected { return .white.opacity(0.08) }
+        if isSelected { return Color.Theme.restFill }
         return .clear
     }
 }

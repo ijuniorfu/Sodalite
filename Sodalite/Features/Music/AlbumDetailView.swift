@@ -127,7 +127,7 @@ struct AlbumDetailView: View {
                 .aspectRatio(contentMode: .fill)
         } placeholder: {
             Rectangle()
-                .fill(Color.white.opacity(0.08))
+                .fill(Color.Theme.restFill)
                 .overlay(
                     Image(systemName: "music.note")
                         .font(.system(size: 40))

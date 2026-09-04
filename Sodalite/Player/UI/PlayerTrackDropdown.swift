@@ -202,12 +202,12 @@ struct PlayerTrackDropdownList: View {
                         AsyncCachedImage(url: url) { image in
                             image.resizable().aspectRatio(contentMode: .fill)
                         } placeholder: {
-                            Rectangle().fill(Color.white.opacity(0.08))
+                            Rectangle().fill(Color.Theme.restFill)
                         }
                     case .chapterThumbnail(let index):
                         ChapterThumbnailView(index: index, load: chapterThumbnail ?? { _ in nil })
                     case .none:
-                        Rectangle().fill(Color.white.opacity(0.08))
+                        Rectangle().fill(Color.Theme.restFill)
                     }
                 }
                 .frame(width: 120, height: 68)
@@ -253,7 +253,7 @@ private struct ChapterThumbnailView: View {
 
     var body: some View {
         ZStack {
-            Rectangle().fill(Color.white.opacity(0.08))
+            Rectangle().fill(Color.Theme.restFill)
             if let image {
                 Image(decorative: image, scale: 1.0)
                     .resizable()

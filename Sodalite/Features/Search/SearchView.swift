@@ -159,7 +159,7 @@ struct SearchView: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(.white.opacity(0.08))
+                    .fill(Color.Theme.restFill)
             )
             .padding(.horizontal, LayoutMetrics.current(hSizeClass).screenHInset)
             .padding(.top, 38)

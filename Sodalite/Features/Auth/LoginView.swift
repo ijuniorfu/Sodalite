@@ -82,7 +82,7 @@ struct LoginView: View {
 
     private var addURLPromptOverlay: some View {
         ZStack {
-            Color.black.opacity(0.55)
+            Color.Theme.scrim
                 .ignoresSafeArea()
             VStack(spacing: 16) {
                 Text(addURLDialogTitle, bundle: .main)

@@ -368,7 +368,7 @@ struct CollectionItemRow: View {
 
                 if item.userData?.played == true {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Color.Theme.success)
                 } else if let pct = item.userData?.playedPercentage, pct > 0 {
                     Text("\(Int(pct))%")
                         .font(.caption)

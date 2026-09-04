@@ -60,7 +60,7 @@ struct SubtitleDeletePromptView: View {
             .foregroundStyle(focused ? .black : (destructive ? .red : .primary))
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(focused ? (destructive ? Color.red : tint) : Color.white.opacity(0.12))
+                    .fill(focused ? (destructive ? Color.Theme.destructive : tint) : Color.Theme.restFillStrong)
             )
     }
 }

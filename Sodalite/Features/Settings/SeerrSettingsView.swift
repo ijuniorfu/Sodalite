@@ -135,7 +135,7 @@ struct SeerrSettingsView: View {
         HStack(spacing: 16) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.title2)
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.Theme.success)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(server.url.host ?? server.url.absoluteString)
@@ -262,12 +262,12 @@ struct SeerrSettingsView: View {
                 Text(useJellyfinCredentials ? "common.on" : "common.off")
                     .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(useJellyfinCredentials ? Color.green : Color.secondary)
+                    .foregroundStyle(useJellyfinCredentials ? Color.Theme.success : Color.secondary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(useJellyfinCredentials ? Color.green.opacity(0.15) : Color.white.opacity(0.08))
+                            .fill(useJellyfinCredentials ? Color.Theme.success.opacity(0.15) : Color.Theme.restFill)
                     )
             }
             .padding(20)
@@ -286,13 +286,13 @@ struct SeerrSettingsView: View {
                 .font(.caption)
         } icon: {
             Image(systemName: "lock.shield.fill")
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.Theme.success)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.green.opacity(0.08))
+                .fill(Color.Theme.success.opacity(0.08))
         )
     }
 
@@ -312,7 +312,7 @@ struct SeerrSettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(.white.opacity(0.04))
+                .fill(Color.Theme.restFillFaint)
         )
     }
 
@@ -323,7 +323,7 @@ struct SeerrSettingsView: View {
             HStack(spacing: 16) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.Theme.success)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(appState.activeSeerrUser?.resolvedDisplayName ?? "")
@@ -469,7 +469,7 @@ struct SeerrSettingsView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black.opacity(0.85))
+        .background(Color.Theme.scrimHeavy)
     }
 
     // MARK: - Derived

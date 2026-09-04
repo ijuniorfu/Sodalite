@@ -59,7 +59,7 @@ struct SubtitleSearchView: View {
                             .padding(.vertical, 12)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(isFocused ? tint : Color.white.opacity(0.12))
+                                    .fill(isFocused ? tint : Color.Theme.restFillStrong)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -117,7 +117,7 @@ struct SubtitleSearchView: View {
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(isFocused ? tint : Color.white.opacity(0.12))
+                                .fill(isFocused ? tint : Color.Theme.restFillStrong)
                         )
                         .foregroundStyle(isFocused ? .black : .primary)
                         #if os(iOS)
@@ -180,7 +180,7 @@ struct SubtitleSearchView: View {
                         )
                         .labelStyle(.titleAndIcon)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(focused ? .black : .green)
+                        .foregroundStyle(focused ? .black : Color.Theme.success)
                     }
                     Text(info.name ?? info.providerName ?? "Subtitle")
                         .lineLimit(1)
@@ -206,7 +206,7 @@ struct SubtitleSearchView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(focused ? tint : Color.white.opacity(0.08))
+                .fill(focused ? tint : Color.Theme.restFill)
         )
     }
 }
