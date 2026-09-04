@@ -128,8 +128,12 @@ struct PlayerOverlayView: View {
                 segmentSkipOverlay(label: skipSegment.kind.buttonLabel)
             }
 
+            // Floating next-episode prompt. On tvOS it follows the skip pill exactly: hidden once the
+            // transport opens, where the same action is a focusable TransportBar button instead
+            // (Sodalite#103). Touch has no focus handover, so it stays and lifts clear of the controls.
             if viewModel.showNextEpisodeOverlay,
-               let next = viewModel.nextEpisode {
+               let next = viewModel.nextEpisode,
+               showsFloatingNextEpisodePrompt {
                 nextEpisodeOverlay(next)
             }
 
@@ -273,14 +277,10 @@ struct PlayerOverlayView: View {
             Spacer()
             HStack {
                 Spacer()
+                // Anchor from PlayerActionPill, the same one the next-episode prompt positions to.
                 skipSegmentHint(label: label)
-                    #if os(iOS)
-                    .padding(.trailing, 24)
-                    .padding(.bottom, 28)
-                    #else
-                    .padding(.trailing, 80)
-                    .padding(.bottom, 80)
-                    #endif
+                    .padding(.trailing, PlayerPillMetrics.current.marginX)
+                    .padding(.bottom, PlayerPillMetrics.current.marginY)
             }
         }
         // ignoresSafeArea pins the hint to the true screen bottom: alpha=0 AVKit chrome (kept for the CC +10s handler via playbackControlsIncludeTransportBar) still widens contentOverlayView's bottom safe-area inset, which would shift a Spacer-anchored hint mid-screen at session start.
@@ -292,35 +292,13 @@ struct PlayerOverlayView: View {
     }
 
     private func skipSegmentHint(label: String) -> some View {
-        #if os(iOS)
-        let labelFont = Font.subheadline
-        let hPad: CGFloat = 18
-        let vPad: CGFloat = 11
-        #else
-        let labelFont = Font.body
-        let hPad: CGFloat = 24
-        let vPad: CGFloat = 14
-        #endif
-        let content = HStack(spacing: 10) {
+        // Chrome and geometry come from PlayerActionPill, shared with the next-episode prompt that
+        // lands in this same corner seconds later (Sodalite#103).
+        let content = PlayerPillLabel(title: label) {
             Image(systemName: "forward.end.fill")
-                .font(labelFont)
-            Text(label)
-                .font(labelFont)
-                .fontWeight(.semibold)
+                .font(PlayerPillMetrics.current.labelFont)
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, hPad)
-        .padding(.vertical, vPad)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-                .environment(\.colorScheme, .dark)
-        )
-        .overlay(
-            Capsule()
-                .strokeBorder(.white.opacity(0.35), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.45), radius: 14, y: 6)
+        .playerGlassPill()
         #if os(iOS)
         return Button { viewModel.skipActiveSegment() } label: { content }.buttonStyle(.plain)
         #else
@@ -328,29 +306,40 @@ struct PlayerOverlayView: View {
         #endif
     }
 
+    /// Whether the floating prompt draws at all. tvOS hands it to TransportBar while the transport
+    /// is open, because that is where Select goes: with controls up, `PlayerHostController` routes
+    /// the press to the focused control, so a floating pill there would promise a press it cannot take.
+    private var showsFloatingNextEpisodePrompt: Bool {
+        #if os(tvOS)
+        return !viewModel.showControls
+        #else
+        return true
+        #endif
+    }
+
     private func nextEpisodeOverlay(_ episode: JellyfinItem) -> some View {
-        // Absolute scene-screen `.position(x:,y:)` instead of frame/alignment anchors: at end-of-playback playNextEpisode tears down AVKit chrome, collapsing the SwiftUI parent's frame for ~100 ms, so any alignment-based anchor recomputes against the shrunken parent and drifts the card mid-screen. Scene-derived screen (not deprecated UIScreen.main); 1080p fallback is the impossible no-scene case.
+        // Absolute scene-screen `.position(x:,y:)` instead of frame/alignment anchors: at end-of-playback playNextEpisode tears down AVKit chrome, collapsing the SwiftUI parent's frame for ~100 ms, so any alignment-based anchor recomputes against the shrunken parent and drifts the prompt mid-screen. Scene-derived screen (not deprecated UIScreen.main); 1080p fallback is the impossible no-scene case.
         let screen = UIApplication.shared.connectedScenes
             .lazy.compactMap { $0 as? UIWindowScene }
             .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
+        let metrics = PlayerPillMetrics.current
+        let marginX = metrics.marginX
         #if os(iOS)
-        // `screen` reflects interface orientation, so `.width` is the oriented (visible) width. The card is capped at 240pt (landscape/iPad hit the cap) and otherwise ~55% of the actual width, so a portrait phone (~393pt) shrinks to ~216pt instead of dominating the letterboxed video. Height follows 16:9.
-        let cardW: CGFloat = min(240, screen.width * 0.55)
-        let cardH: CGFloat = cardW * 9 / 16
-        let cardPadding: CGFloat = min(20, cardW / 14)
-        let marginX: CGFloat = 24
-        let marginY: CGFloat = viewModel.showControls ? 150 : 28
+        // The skip pill's anchor, except that the prompt stays put with the touch controls up, so it
+        // lifts clear of them instead of hiding the way the skip pill does.
+        let marginY: CGFloat = viewModel.showControls ? 150 : metrics.marginY
         #else
-        let cardW: CGFloat = 380
-        let cardH: CGFloat = 214
-        let cardPadding: CGFloat = 20
-        let marginX: CGFloat = viewModel.showControls ? 60 : 40
-        let marginY: CGFloat = viewModel.showControls ? 300 : 40
+        // On tvOS this only renders with the transport hidden, so there is no open-transport margin
+        // to dodge; the prompt is a TransportBar button then.
+        let marginY = metrics.marginY
         #endif
-        return nextEpisodeCard(for: episode, width: cardW, height: cardH, padding: cardPadding)
+        // A portrait phone has less width than the stack wants; the pill hugs its label either way,
+        // the frame only bounds the metadata line's truncation.
+        let width = min(metrics.stackWidth, screen.width - marginX * 2)
+        return nextEpisodePillButton(for: episode, width: width, screen: screen, marginX: marginX, metrics: metrics)
             .position(
-                x: screen.width - cardW / 2 - marginX,
-                y: screen.height - cardH / 2 - marginY
+                x: screen.width - width / 2 - marginX,
+                y: screen.height - metrics.stackHeight / 2 - marginY
             )
             .ignoresSafeArea()
             // Asymmetric: slide in from trailing, fade-only on removal. Symmetric `.move(edge: .trailing)` removal composed with the end-of-playback parent reflow and exposed the drift-to-middle symptom; fade has no spatial component to disrupt.
@@ -361,106 +350,43 @@ struct PlayerOverlayView: View {
     }
 
     @ViewBuilder
-    private func nextEpisodeCard(for episode: JellyfinItem, width: CGFloat, height: CGFloat, padding: CGFloat) -> some View {
+    private func nextEpisodePillButton(for episode: JellyfinItem, width: CGFloat, screen: CGSize, marginX: CGFloat, metrics: PlayerPillMetrics) -> some View {
+        let pill = NextEpisodePill(
+            title: nextEpisodeLabel(for: episode),
+            metadata: nextEpisodeMetadata(for: episode),
+            countdownProgress: NextEpisodeCountdown.ringProgress(
+                remaining: viewModel.isCountdownActive ? viewModel.nextEpisodeCountdown : 0,
+                total: viewModel.nextEpisodeCountdownTotal),
+            width: width,
+            // The line may grow left across the whole usable width before it ever truncates.
+            metadataMaxWidth: max(width, screen.width - marginX * 2),
+            metrics: metrics
+        )
         #if os(iOS)
         // Tappable on touch; tvOS commits via the Select press machine.
-        Button { Task { await viewModel.playNextEpisode() } } label: {
-            cardBody(for: episode, width: width, height: height, padding: padding)
-        }
-        .buttonStyle(.plain)
+        Button { Task { await viewModel.playNextEpisode() } } label: { pill }
+            .buttonStyle(.plain)
         #else
-        cardBody(for: episode, width: width, height: height, padding: padding)
+        pill
         #endif
     }
 
-    private func cardBody(for episode: JellyfinItem, width: CGFloat, height: CGFloat, padding: CGFloat) -> some View {
-        ZStack(alignment: .topLeading) {
-            // Explicit frame + clipped() required: otherwise the image's intrinsic size leaks into ZStack sizing and a portrait fallback (series poster) blows the card into a tall portrait.
-            if let imageURL = episodeThumbnailURL(for: episode) {
-                // AsyncCachedImage, not AsyncImage: the card mounts/unmounts with the overlay, and raw AsyncImage re-fetched the thumbnail each time at the worst moment (end of episode, next-item prefetch).
-                AsyncCachedImage(url: imageURL) { image in
-                    image.resizable().aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Color.clear
-                }
-                .frame(width: width, height: height)
-                // Sodalite#50: before the clip so the blur stays inside the card. The title and the
-                // season/episode label stay readable, the user is being asked whether to continue.
-                .spoilerVeil(isHidden: viewModel.spoilerPolicy.isHidden(episode, surface: .artwork), style: .image)
-                .clipped()
-                .opacity(0.4)
-            }
-
-            VStack(alignment: .leading, spacing: 0) {
-                // Episodes show "Next Episode"; a movie reached via a shuffle queue shows "Up Next" (the S/E label below is naturally hidden for movies).
-                Text(episode.type == .episode
-                     ? String(localized: "player.nextEpisode", defaultValue: "Next Episode")
-                     : String(localized: "player.upNext", defaultValue: "Up Next"))
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-
-                Spacer(minLength: 8)
-
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    // The separator rides with the token rather than the title so `layoutPriority`
-                    // keeps the pair together and the truncating title never leaves a dangling dot.
-                    let token = EpisodeMetadataFormatter.seasonEpisode(
-                        season: episode.parentIndexNumber, episode: episode.indexNumber)
-                    if !token.isEmpty {
-                        Text(verbatim: "\(token) ·")
-                            .foregroundStyle(.white.opacity(0.85))
-                            .layoutPriority(1)
-                    }
-                    Text(episode.name)
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .truncationMode(.tail)
-                }
-                .font(.body)
-                .fontWeight(.semibold)
-
-                Spacer(minLength: 8)
-
-                if viewModel.isCountdownActive, viewModel.nextEpisodeCountdown > 0 {
-                    Text("player.nextEpisode.countdown \(viewModel.nextEpisodeCountdown)")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                } else if !viewModel.isCountdownActive, let hint = playNowHint {
-                    // One line, shrink instead of wrap: the countdown it replaces is a handful of
-                    // characters, this is a sentence, and hu/ro/ru/uk run half again as long as en.
-                    Text(hint)
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-            }
-            .padding(padding)
-            .frame(width: width, height: height, alignment: .topLeading)
-        }
-        // Fixed 16:9: image and content share the explicit 380x214 frame so nothing intrinsic-leaking can stretch the ZStack into a portrait.
-        .frame(width: width, height: height)
-        .background(.thinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+    /// Episodes show "Next Episode"; a movie reached via a shuffle queue shows "Up Next".
+    private func nextEpisodeLabel(for episode: JellyfinItem) -> String {
+        episode.type == .episode
+            ? String(localized: "player.nextEpisode", defaultValue: "Next Episode")
+            : String(localized: "player.upNext", defaultValue: "Up Next")
     }
 
-    /// Hint in the countdown's slot, for the card that carries no countdown: with the countdown switched
-    /// off (Sodalite#67) or autoplay off, nothing on the card says it is actionable at all, and it then
-    /// sits through the whole credits. Shares the slot with the countdown, so the layout never shifts;
-    /// the sub-second window at countdown 0 stays empty on purpose.
-    ///
-    /// nil where the press it names would not land: on tvOS the card only commandeers Select while the
-    /// transport is hidden (PlayerHostController.selectPressed), with the transport open Select belongs
-    /// to the focused control. Touch has no such handover, the card is its own Button there.
-    private var playNowHint: String? {
-        #if os(tvOS)
-        guard !viewModel.showControls else { return nil }
-        return String(localized: "player.nextEpisode.clickToPlay", defaultValue: "Click to play now")
-        #else
-        return String(localized: "player.nextEpisode.tapToPlay", defaultValue: "Tap to play now")
-        #endif
+    /// The line above the pill. Kept out of the pill so the pill stays one width per tier: in the
+    /// label this would be the only part that varies per episode, and a long title runs to twice the
+    /// width of the card this replaces. Naturally just the title for a movie, which has no S/E token.
+    private func nextEpisodeMetadata(for episode: JellyfinItem) -> String? {
+        let token = EpisodeMetadataFormatter.seasonEpisode(
+            season: episode.parentIndexNumber, episode: episode.indexNumber)
+        let name = episode.name
+        if name.isEmpty { return token.isEmpty ? nil : token }
+        return token.isEmpty ? name : "\(token) · \(name)"
     }
 
     /// Build episode thumbnail URL directly from item data
@@ -604,6 +530,11 @@ struct PlayerOverlayView: View {
                     controlsFocus: viewModel.controlsFocus,
                     trackDropdown: viewModel.trackDropdown,
                     skipSegmentLabel: viewModel.activeSkipSegment?.kind.buttonLabel,
+                    nextEpisodeLabel: viewModel.showNextEpisodeOverlay
+                        ? viewModel.nextEpisode.map { nextEpisodeLabel(for: $0) } : nil,
+                    nextEpisodeCountdownProgress: NextEpisodeCountdown.ringProgress(
+                        remaining: viewModel.isCountdownActive ? viewModel.nextEpisodeCountdown : 0,
+                        total: viewModel.nextEpisodeCountdownTotal),
                     seasonEpisodes: viewModel.seasonEpisodes,
                     activeEpisodeID: viewModel.item.id,
                     episodeImageURL: { episodeThumbnailURL(for: $0) },

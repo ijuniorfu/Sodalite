@@ -1013,7 +1013,14 @@ final class PlayerHostController: AVPlayerViewController {
             return
         }
         let order = viewModel.transportFocusOrder
-        guard let current = order.firstIndex(of: viewModel.controlsFocus) else { return }
+        guard let current = order.firstIndex(of: viewModel.controlsFocus) else {
+            // The focused button left the row under the user: the skip segment ended, or the
+            // next-episode prompt was taken (Sodalite#103). Both sit at the head of the row, so the
+            // row start is the nearest thing to where focus was; returning here left it stuck on a
+            // control that is not on screen, with only Menu or Down to get out.
+            if let first = order.first { viewModel.controlsFocus = first }
+            return
+        }
         let next = current + direction
         if next >= 0 && next < order.count {
             viewModel.controlsFocus = order[next]
@@ -1050,7 +1057,7 @@ final class PlayerHostController: AVPlayerViewController {
                 viewModel.controlsFocus = viewModel.transportFocusOrder
                     .first(where: { $0 != .restartButton }) ?? .speedButton
                 viewModel.scheduleControlsHide()
-            case .restartButton, .skipSegmentButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
+            case .restartButton, .skipSegmentButton, .nextEpisodeButton, .chapterButton, .episodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton, .pipButton, .infoButton, .returnToLiveButton:
                 viewModel.scheduleControlsHide()
             }
         } else {

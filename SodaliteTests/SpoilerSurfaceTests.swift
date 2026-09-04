@@ -82,10 +82,16 @@ struct SpoilerSurfaceTests {
         #expect(source.contains("spoilerPolicy.isHidden(item)"))
     }
 
-    @Test("the next-episode still is veiled")
-    func nextEpisodeVeiled() throws {
+    /// Sodalite#103 replaced the next-episode card with a pill, and the episode still went with it.
+    /// That removed the player's only spoiler-bearing surface: the title and the S/E line were
+    /// deliberately unveiled before and still are, because the viewer is being asked whether to
+    /// continue into exactly that episode. So the invariant flips from "veil the still" to "there
+    /// is no still", and a re-added image has to answer this test before it answers a design one.
+    @Test("the next-episode prompt carries no still to veil")
+    func nextEpisodePromptHasNoArtwork() throws {
         let source = try sourceFile("Sodalite/Player/UI/PlayerOverlayView.swift")
-        #expect(source.contains(".spoilerVeil(isHidden:"))
+        #expect(!source.contains("AsyncCachedImage"))
+        #expect(!source.contains(".spoilerVeil("))
     }
 
     private func sourceFile(_ relativePath: String) throws -> String {

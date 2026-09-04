@@ -127,6 +127,7 @@ final class PlayerViewModel {
         case progressBar
         case restartButton
         case skipSegmentButton
+        case nextEpisodeButton
         case chapterButton
         case episodeButton
         case audioButton
@@ -304,6 +305,10 @@ final class PlayerViewModel {
     var nextEpisode: JellyfinItem?
     var showNextEpisodeOverlay = false
     var nextEpisodeCountdown = 10
+    /// What the countdown started FROM, so the ring can draw a fraction. Not the fixed default: the
+    /// user sets the length (Sodalite#67) and the no-outro fallback passes the real remaining
+    /// seconds, and both have to drain one full turn of the ring.
+    var nextEpisodeCountdownTotal = 10
     /// Fired once at demux EOF when there's no next episode; PlayerHostController routes it to the
     /// Menu dismiss path. Without it the player sits on a black frame with no focus target.
     var onPlaybackReachedEnd: (() -> Void)?
@@ -3082,6 +3087,7 @@ final class PlayerViewModel {
         switch focus {
         case .restartButton: restartFromBeginning()
         case .skipSegmentButton: skipActiveSegment()
+        case .nextEpisodeButton: Task { await playNextEpisode() }
         case .chapterButton: openChapterDropdown()
         case .episodeButton: openEpisodeDropdown()
         case .audioButton: openAudioDropdown()

@@ -4,11 +4,13 @@ import Testing
 @Suite("Transport focus order")
 @MainActor
 struct TransportFocusOrderTests {
-    private func order(hasSkippableSegment: Bool = false, episodeCount: Int = 1, chapterCount: Int = 0,
+    private func order(hasSkippableSegment: Bool = false, hasNextEpisodePrompt: Bool = false,
+                       episodeCount: Int = 1, chapterCount: Int = 0,
                        hasAudioTracks: Bool = true, hasSubtitles: Bool = true,
                        isPiPAvailable: Bool = false, showsStats: Bool = false) -> [PlayerViewModel.ControlsFocus] {
         PlayerViewModel.transportFocusOrder(
-            hasSkippableSegment: hasSkippableSegment, episodeCount: episodeCount, chapterCount: chapterCount,
+            hasSkippableSegment: hasSkippableSegment, hasNextEpisodePrompt: hasNextEpisodePrompt,
+            episodeCount: episodeCount, chapterCount: chapterCount,
             hasAudioTracks: hasAudioTracks, hasSubtitles: hasSubtitles,
             isPiPAvailable: isPiPAvailable, showsStats: showsStats)
     }
@@ -23,6 +25,17 @@ struct TransportFocusOrderTests {
     @Test("the skip button sits between restart and the track buttons")
     func skipSegmentPosition() {
         #expect(order(hasSkippableSegment: true) == [.restartButton, .skipSegmentButton, .audioButton, .subtitleButton, .speedButton, .pictureButton])
+    }
+
+    /// Sodalite#103: with the transport open the floating prompt is suppressed and this button is
+    /// the only thing that can take the press, so its gate has to match the one the pill draws on.
+    @Test("the next-episode button sits beside the skip button, and only while the prompt is up")
+    func nextEpisodePosition() {
+        #expect(order(hasNextEpisodePrompt: true)
+                == [.restartButton, .nextEpisodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton])
+        #expect(order(hasSkippableSegment: true, hasNextEpisodePrompt: true)
+                == [.restartButton, .skipSegmentButton, .nextEpisodeButton, .audioButton, .subtitleButton, .speedButton, .pictureButton])
+        #expect(!order().contains(.nextEpisodeButton))
     }
 
     @Test("a bare stream still has restart, speed and picture")
