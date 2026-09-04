@@ -62,15 +62,6 @@ final class ParentalControlsPreferences {
         }
     }
 
-    func setProtected(_ isProtected: Bool, serverID: String, userID: String) {
-        let key = Self.compositeID(serverID: serverID, userID: userID)
-        if isProtected {
-            protectedProfileIDs.insert(key)
-        } else {
-            protectedProfileIDs.remove(key)
-        }
-    }
-
     private let store: UserDefaults
 
     init(store: UserDefaults = .standard) {

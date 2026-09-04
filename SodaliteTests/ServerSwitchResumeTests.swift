@@ -99,8 +99,8 @@ struct ServerSwitchResumeTests {
     @Test func aProfileTheGuardianPINGuardsIsNotResumedUnasked() throws {
         let container = try twoServerDevice(profilesOnB: [profile("u1")])
         try container.saveGuardianPIN("1234")
-        container.parentalControlsPreferences.setProtected(true, serverID: "A", userID: "user-a")
-        defer { container.parentalControlsPreferences.setProtected(false, serverID: "A", userID: "user-a") }
+        container.parentalControlsPreferences.setRole(.pinToLeave, serverID: "A", userID: "user-a")
+        defer { container.parentalControlsPreferences.setRole(.open, serverID: "A", userID: "user-a") }
 
         #expect(container.resumableProfile(serverID: "B") == nil)
         #expect(throws: DependencyContainer.ServerSwitchError.missingToken) {
@@ -113,8 +113,8 @@ struct ServerSwitchResumeTests {
     @Test func aProtectedProfileIsStillResumed() throws {
         let container = try twoServerDevice(profilesOnB: [profile("u1")])
         try container.saveGuardianPIN("1234")
-        container.parentalControlsPreferences.setProtected(true, serverID: "B", userID: "u1")
-        defer { container.parentalControlsPreferences.setProtected(false, serverID: "B", userID: "u1") }
+        container.parentalControlsPreferences.setRole(.pinToLeave, serverID: "B", userID: "u1")
+        defer { container.parentalControlsPreferences.setRole(.open, serverID: "B", userID: "u1") }
 
         try container.switchServer(to: "B")
 
