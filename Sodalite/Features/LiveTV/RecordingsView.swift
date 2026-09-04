@@ -197,7 +197,7 @@ private struct RecordingCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(focused ? tint : .white.opacity(0.15),
+                        .strokeBorder(focused ? tint : Color.Theme.hairline,
                                       lineWidth: focused ? 4 : 1)
                 )
                 if isInProgress {

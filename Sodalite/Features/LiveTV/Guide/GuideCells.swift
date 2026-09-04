@@ -45,7 +45,7 @@ struct GuideProgramCellContent: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(isAiring ? tint : Color.white.opacity(0.12),
+                .strokeBorder(isAiring ? tint : Color.Theme.panelEdge,
                               lineWidth: isAiring ? 2 : 1)
         )
         .padding(EdgeInsets(top: 4, leading: 2, bottom: 4, trailing: 2))

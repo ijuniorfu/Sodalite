@@ -174,7 +174,7 @@ private struct Paragraph: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(isFocused ? .white.opacity(0.12) : .white.opacity(emphasized ? 0.06 : 0.03))
+                    .fill(isFocused ? Color.Theme.focusFill : .white.opacity(emphasized ? 0.06 : 0.03))
             )
             .scaleEffect(isFocused ? 1.01 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isFocused)

@@ -46,11 +46,21 @@ struct ColorThemeTests {
         expectSame(Color.Theme.restFillFaint, Color.white.opacity(0.04), "restFillFaint")
     }
 
-    @Test("the hairline and the two scrims keep their levels")
+    @Test("the two edges and the two scrims keep their levels")
     func strokesAndScrims() {
         expectSame(Color.Theme.hairline, Color.white.opacity(0.18), "hairline")
+        expectSame(Color.Theme.panelEdge, Color.white.opacity(0.12), "panelEdge")
         expectSame(Color.Theme.scrim, Color.black.opacity(0.55), "scrim")
         expectSame(Color.Theme.scrimHeavy, Color.black.opacity(0.85), "scrimHeavy")
+    }
+
+    /// The content edge outlines a thumbnail or a swatch against a page it cannot predict; the panel
+    /// edge outlines a surface whose own darkness already does most of that work. Rendered over
+    /// eight cases, the content edge is the one that has to survive a dark subject on a dark page,
+    /// so it stays the brighter of the two whatever either is retuned to.
+    @Test("the content edge stays brighter than the panel edge")
+    func edgeOrder() {
+        #expect(components(Color.Theme.hairline).alpha > components(Color.Theme.panelEdge).alpha)
     }
 
     @Test("status tokens resolve to the system colours they stand for")

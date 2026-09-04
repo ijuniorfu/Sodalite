@@ -163,7 +163,7 @@ private struct FocusableTextBlock: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(isFocused ? .white.opacity(0.12) : .clear)
+                    .fill(isFocused ? Color.Theme.focusFill : .clear)
             )
             .animation(.easeInOut(duration: 0.2), value: isFocused)
             .focusable()

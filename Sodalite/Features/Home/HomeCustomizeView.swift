@@ -279,7 +279,7 @@ struct HomeCustomizeView: View {
 
     private func tileBackground(isFocused: Bool, isMoving: Bool, isEnabled: Bool) -> AnyShapeStyle {
         if isMoving { return AnyShapeStyle(TintShapeStyle.tint.opacity(0.12)) }
-        if isFocused { return AnyShapeStyle(Color.white.opacity(0.12)) }
+        if isFocused { return AnyShapeStyle(Color.Theme.focusFill) }
         return AnyShapeStyle(isEnabled ? Color.white.opacity(0.05) : Color.white.opacity(0.02))
     }
 

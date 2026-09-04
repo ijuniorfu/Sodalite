@@ -174,7 +174,7 @@ struct StatsOverlayView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
-                .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.4), radius: 18, y: 6)
         .task {
@@ -626,7 +626,7 @@ private struct StatsSectionHighlight: ViewModifier {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isCurrent ? .white.opacity(0.12) : .clear)
+                    .fill(isCurrent ? Color.Theme.focusFill : .clear)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
