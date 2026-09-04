@@ -46,6 +46,28 @@ struct AppearanceThemeTests {
         for preset in AccentPreset.allCases {
             #expect(preset.palette.navigation.contrastRatio(with: lightGlass) >= 4.5)
             #expect(preset.palette.focus.contrastRatio(with: darkSurface) >= 3.0)
+            // Measured against whatever the glyph constants actually are, so trading pure black for
+            // a softer near-black later has to survive this floor instead of quietly undercutting it.
+            let onControl = preset.palette.foreground.contrastRatio(with: preset.palette.control)
+            #expect(onControl >= 3.0, "\(preset.rawValue) draws its label at \(onControl):1")
+        }
+    }
+
+    /// The catalog assertion above only proves the rule on 23 hand-picked hexes. The rule itself is
+    /// a claim about every colour, and the 0.30 threshold is the whole of it: nudge it up and the
+    /// fills just under the new value keep a white label that no longer clears 3:1.
+    @Test("the derived foreground clears 3:1 on any fill, not just the catalog")
+    func foregroundRuleHoldsOffCatalog() {
+        func check(_ color: RGBColor) {
+            #expect(color.legibleForeground.contrastRatio(with: color) >= 3.0,
+                    "\(String(format: "%06X", color.hex)) is illegible under its own foreground")
+        }
+        for step in 0...255 {
+            let value = UInt32(step)
+            check(RGBColor(hex: value << 16 | value << 8 | value))
+            check(RGBColor(hex: value << 16))
+            check(RGBColor(hex: value << 8))
+            check(RGBColor(hex: value))
         }
     }
 
