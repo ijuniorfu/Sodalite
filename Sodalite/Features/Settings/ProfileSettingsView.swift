@@ -314,6 +314,24 @@ struct ProfileSettingsView: View {
     }
 
     private func switchTo(_ user: RememberedUser, server: JellyfinServer) {
+        // isColdStart: false, reaching Settings means a session is already trusted. An entry-locked
+        // target still costs the PIN here, which is the whole point of the role.
+        guard dependencies.parentalGateRequired(forActivatingUserID: user.id,
+                                                serverID: server.id,
+                                                isColdStart: false) else {
+            performSwitch(user, server: server)
+            return
+        }
+        let reason = dependencies.parentalGateReason(forActivatingUserID: user.id,
+                                                     serverID: server.id)
+        Task {
+            if await dependencies.parentalGate.challenge(reason: reason) {
+                performSwitch(user, server: server)
+            }
+        }
+    }
+
+    private func performSwitch(_ user: RememberedUser, server: JellyfinServer) {
         do {
             // switchToUser purges the identity-scoped caches (images, filter pages) itself.
             try dependencies.switchToUser(user, server: server)

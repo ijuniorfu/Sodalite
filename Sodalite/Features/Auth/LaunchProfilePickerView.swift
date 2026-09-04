@@ -283,13 +283,15 @@ struct LaunchProfilePickerView: View {
             onFinished?()
             return
         }
-        // Cold-start picker context: activating an UNPROTECTED profile
-        // requires the Guardian-PIN. Protected profiles enter free.
+        // Cold-start picker context: an entry-locked profile always costs the PIN, an open one
+        // costs it here because nobody has identified themselves yet, a locked-in one enters free.
         if dependencies.parentalGateRequired(forActivatingUserID: user.id,
                                               serverID: server.id,
                                               isColdStart: true) {
+            let reason = dependencies.parentalGateReason(forActivatingUserID: user.id,
+                                                         serverID: server.id)
             Task {
-                let unlocked = await dependencies.parentalGate.challenge(reason: .switchProfile)
+                let unlocked = await dependencies.parentalGate.challenge(reason: reason)
                 if unlocked { performSelect(user) }
             }
         } else {
@@ -422,6 +424,17 @@ struct LaunchProfilePickerView: View {
         // leave the active token in the keychain and SessionRestorer's migration block would
         // resurrect the entry on the next launch.
         guard user.id != activeSessionUserID else { return }
+        // Not an escape route, the card cannot be re-entered without its password either way, but
+        // without this a child at the picker can delete the cards they are being kept out of.
+        guard dependencies.parentalControlsActive() else { performForget(user); return }
+        Task {
+            if await dependencies.parentalGate.challenge(reason: .serverManagement) {
+                performForget(user)
+            }
+        }
+    }
+
+    private func performForget(_ user: RememberedUser) {
         do {
             try dependencies.forgetUser(id: user.id, serverID: server.id)
             reloadProfiles()
