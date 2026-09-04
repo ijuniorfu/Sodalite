@@ -108,7 +108,20 @@ struct NextEpisodePillTests {
         #expect(pill.contains("diameter * 0.025"))
         #expect(pill.contains(".offset(x: glyphNudge)"))
         // Without a ring the glyph stays as SF ships it, matching the skip pill beside it.
-        #expect(pill.contains("progress == nil ? 0 :"))
+        #expect(pill.contains("hasRing ? diameter * 0.025 : 0"))
+    }
+
+    /// The metadata rides as an overlay on the pill rather than as a sibling in a stack, because a
+    /// stack sizes to the wider of the two: the pill would leave the trailing margin by half the
+    /// title's overhang, and by a different amount every episode. The two pills share that margin,
+    /// which is the whole point of the issue.
+    @Test func theMetadataCannotMoveThePillOffItsAnchor() throws {
+        let pill = try sourceFile("Sodalite/Player/UI/PlayerActionPill.swift")
+        #expect(pill.contains(".overlay(alignment: .top)"))
+        #expect(pill.contains("alignment: .bottomTrailing"))
+        // The declared height has to be enforced, or the absolute .position in the overlay measures
+        // the pill alone and the prompt sits high by half the metadata line.
+        #expect(pill.contains("height: metrics.stackHeight"))
     }
 
     // MARK: - One treatment, not two

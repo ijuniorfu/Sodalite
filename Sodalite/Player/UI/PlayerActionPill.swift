@@ -126,6 +126,7 @@ struct CountdownRingIcon: View {
     let progress: Double?
     let diameter: CGFloat
 
+    private var hasRing: Bool { progress != nil }
     private var lineWidth: CGFloat { max(2, (diameter * 0.09).rounded()) }
     /// SF Symbols centres `play.fill` on its LAYOUT box, and a right-pointing triangle carries its
     /// mass at the base, so a box-centred glyph reads left of centre inside a ring. Apple's own
@@ -134,26 +135,48 @@ struct CountdownRingIcon: View {
     /// on the arc, so this closes the difference rather than inventing a taste value. Only with a
     /// ring: without one there is no circle to be concentric with, and the skip pill's glyph beside
     /// it is untouched.
-    private var glyphNudge: CGFloat { progress == nil ? 0 : diameter * 0.025 }
+    private var glyphNudge: CGFloat { hasRing ? diameter * 0.025 : 0 }
     /// Inside a ring the glyph has to clear the stroke. With no ring it takes the space the ring
     /// would have used, so a prompt with the countdown switched off reads like the skip pill beside
     /// it rather than like a shrunken one.
-    private var glyphSize: CGFloat { ((progress == nil ? 0.85 : 0.5) * diameter).rounded() }
+    ///
+    /// The glyph is always DRAWN at the larger of the two and scaled down, because a `Font` size is
+    /// not animatable and `scaleEffect` is. The scale is the ratio of the two rounded sizes, so the
+    /// ringed glyph still lands on exactly the size it would have been given directly.
+    private var restingGlyphSize: CGFloat { (0.85 * diameter).rounded() }
+    private var ringedGlyphSize: CGFloat { (0.5 * diameter).rounded() }
+    private var glyphScale: CGFloat { hasRing ? ringedGlyphSize / restingGlyphSize : 1 }
 
     var body: some View {
         ZStack {
-            if let progress {
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(.white, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 1), value: progress)
-            }
+            // Always in the tree, so the arrival has an identity to animate rather than an insertion
+            // to pop. Without an outro segment the prompt shows at 30s remaining and the countdown
+            // only starts at 10s (PlayerViewModel, no-outro branch), so this arrival is a thing the
+            // viewer sits and watches, 20 seconds after the pill itself slid in.
+            Circle()
+                .trim(from: 0, to: progress ?? 1)
+                .stroke(.white, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                // It settles INWARD onto the glyph rather than sweeping the arc on from zero: the
+                // trim IS the remaining fraction, and drawing it on would show a number that is not
+                // the countdown for as long as the animation runs. Starting oversize rather than
+                // undersize is what keeps the two apart: growing from 0.55 put the ring inside the
+                // still-full-size triangle for the first third, and the glyph read as bursting out
+                // of it (filmstrip, 2026-09-04).
+                .scaleEffect(hasRing ? 1 : 1.12)
+                .opacity(hasRing ? 1 : 0)
+                .animation(.linear(duration: 1), value: progress)
+
             Image(systemName: "play.fill")
-                .font(.system(size: glyphSize))
+                .font(.system(size: restingGlyphSize))
+                .scaleEffect(glyphScale)
+                // After the scale, so the nudge stays a fraction of the RING, not of the glyph.
                 .offset(x: glyphNudge)
         }
         .frame(width: diameter, height: diameter)
+        // One curve for the whole arrival: the ring blooms while the glyph shrinks into it and
+        // slides onto its optical centre. Matches the spring the action buttons reflow with.
+        .animation(.smooth(duration: 0.32), value: hasRing)
     }
 }
 
@@ -188,7 +211,16 @@ struct NextEpisodePill: View {
     var metrics: PlayerPillMetrics = .current
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: metrics.stackSpacing) {
+        PlayerPillLabel(title: title, metrics: metrics) {
+            CountdownRingIcon(progress: countdownProgress, diameter: metrics.ringDiameter)
+        }
+        .playerGlassPill(metrics: metrics)
+        // Centred on the PILL, not on the frame, and carried as an overlay so it cannot push the
+        // pill off its anchor: a stack would size to the wider of the two, and the pill would then
+        // drift away from the trailing margin by half the title's overhang, differently every
+        // episode. The overlay is proposed the pill's width, so the line centres over the button and
+        // truncates at its edges instead of reaching into the screen margin.
+        .overlay(alignment: .top) {
             if let metadata {
                 Text(metadata)
                     .font(metrics.metadataFont)
@@ -199,14 +231,12 @@ struct NextEpisodePill: View {
                     // carries its own separation. Tuned against a bright frame, where a plain white
                     // line disappears (ImageRenderer sheet, 2026-09-04).
                     .shadow(color: .black.opacity(0.75), radius: 6, y: 2)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .frame(maxWidth: .infinity)
+                    .offset(y: -(metrics.metadataLineHeight + metrics.stackSpacing))
             }
-
-            PlayerPillLabel(title: title, metrics: metrics) {
-                CountdownRingIcon(progress: countdownProgress, diameter: metrics.ringDiameter)
-            }
-            .playerGlassPill(metrics: metrics)
         }
-        .frame(width: width, alignment: .trailing)
+        // Explicit height so the absolute `.position` in PlayerOverlayView keeps measuring the whole
+        // prompt: the overlay draws outside the pill and contributes nothing to its intrinsic size.
+        .frame(width: width, height: metrics.stackHeight, alignment: .bottomTrailing)
     }
 }
