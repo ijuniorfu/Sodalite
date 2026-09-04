@@ -3061,7 +3061,7 @@ final class PlayerViewModel {
         controlsTimer?.cancel()
         guard isPlaying else { return }
         controlsTimer = Task {
-            try? await Task.sleep(for: .seconds(5))
+            try? await Task.sleep(for: TransportAutoHide.idleDelay)
             guard !Task.isCancelled else { return }
             hideControlsIfPlaying()
         }

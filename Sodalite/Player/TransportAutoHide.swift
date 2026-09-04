@@ -17,7 +17,22 @@
 /// decision arrive from different publishers in no fixed order, and a raise skipped on a stale `true`
 /// would never be retried.
 enum TransportAutoHide {
+    /// The idle countdown both auto-hides run on. Five seconds because three hides mid-read on a long
+    /// title and ten reads as broken rather than deliberate.
+    static let idleDelay: Duration = .seconds(5)
+
     static func hides(isPlaying: Bool) -> Bool { isPlaying }
+
+    /// The music Now Playing queue's auto-hide (Sodalite#110), asked at FIRE time for the same reason
+    /// `hides` is, plus one of its own: `queueHasFocus`. The queue rows are focusable, so a hide that
+    /// fired while the user sat on one would delete the focused view and let the focus engine drop the
+    /// user somewhere arbitrary. Answering at fire time means the rule sees where focus actually IS,
+    /// not where it was five seconds ago. `queueCount > 1` is the same condition the queue column
+    /// already draws itself under, restated here so the timer never schedules work for a layout that
+    /// is centered anyway.
+    static func hidesQueue(isPlaying: Bool, queueCount: Int, queueHasFocus: Bool) -> Bool {
+        hides(isPlaying: isPlaying) && queueCount > 1 && !queueHasFocus
+    }
 
     static func raisesTransport(errorVisible: Bool, inputLocked: Bool) -> Bool {
         !errorVisible && !inputLocked

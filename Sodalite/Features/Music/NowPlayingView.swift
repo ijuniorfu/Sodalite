@@ -29,6 +29,17 @@ private struct NowPlayingContent: View {
     /// Transport-row focus, so default focus lands on Play/Pause.
     @FocusState private var transportFocus: TransportButton?
 
+    /// Queue-row focus, lifted out of the rows so the auto-hide can see it (Sodalite#110). A row owns
+    /// its own look, but only the parent can refuse to delete the row the user is standing on.
+    @FocusState private var queueFocus: String?
+
+    /// tvOS only: the queue column's idle auto-hide. It starts revealed and stays revealed forever on
+    /// every other platform, where nothing ever schedules the timer.
+    @State private var queueRevealed = true
+    @State private var queueHideTask: Task<Void, Never>?
+
+    private static let queueSwap = Animation.easeInOut(duration: 0.35)
+
     var body: some View {
         ZStack {
             // Opaque base: the cover must never show the tab UI, and the blurred-art layer isn't
@@ -74,7 +85,65 @@ private struct NowPlayingContent: View {
         }
         .onAppear {
             transportFocus = .playPause
+            scheduleQueueHide()
         }
+        // The timer must not outlive the view.
+        .onDisappear {
+            queueHideTask?.cancel()
+        }
+        // Reveal triggers. Focus is the load-bearing one: `.onMoveCommand` only fires when NO focusable
+        // view consumes the directional move, and this screen is nothing but focusable views, so the
+        // focus engine would eat almost every swipe. A swipe that moves focus lands here instead.
+        .onChange(of: transportFocus) { _, _ in revealQueue() }
+        .onChange(of: queueFocus) { _, _ in revealQueue() }
+        // Scrub focus catches ENTRY only; scrubProgress keeps a pan that continues on an already
+        // focused scrubber counting for its whole duration.
+        .onChange(of: coordinator.isScrubbing) { _, _ in revealQueue() }
+        .onChange(of: coordinator.scrubProgress) { _, _ in revealQueue() }
+        // A new track is news, and a pause raises the queue the same way it raises the video transport.
+        .onChange(of: coordinator.currentItem?.id) { _, _ in revealQueue() }
+        .onChange(of: coordinator.isPlaying) { _, _ in revealQueue() }
+    }
+
+    // MARK: - Queue auto-hide (Sodalite#110)
+
+    /// The two-column layout needs a queue worth showing. Gating it on `queue.count > 1` also centers a
+    /// SINGLE-track album with the auto-hide idle, which is deliberate: that album's right column was
+    /// only ever the metadata over an empty list, and centering is the look this whole feature is after.
+    private var showsQueueColumn: Bool {
+        coordinator.queue.count > 1 && queueRevealed
+    }
+
+    /// Bring the queue back and restart the idle countdown. Cheap enough to call on every pan delta.
+    private func revealQueue() {
+        #if os(tvOS)
+        if !queueRevealed {
+            withAnimation(Self.queueSwap) { queueRevealed = true }
+        }
+        scheduleQueueHide()
+        #endif
+    }
+
+    /// tvOS only. iPhone never reaches the two-column layout at all, and on iPad the reveal side of the
+    /// deal does not exist: there is no focus engine, so the only ways back would be tapping a transport
+    /// button (which pauses) or dragging the scrubber (which seeks). A queue that hides itself with no
+    /// harmless way to bring it back is a trap, and the request is for Apple Music's tvOS behaviour.
+    private func scheduleQueueHide() {
+        #if os(tvOS)
+        queueHideTask?.cancel()
+        queueHideTask = Task { @MainActor in
+            try? await Task.sleep(for: TransportAutoHide.idleDelay)
+            guard !Task.isCancelled else { return }
+            hideQueueIfIdle()
+        }
+        #endif
+    }
+
+    private func hideQueueIfIdle() {
+        guard TransportAutoHide.hidesQueue(isPlaying: coordinator.isPlaying,
+                                           queueCount: coordinator.queue.count,
+                                           queueHasFocus: queueFocus != nil) else { return }
+        withAnimation(Self.queueSwap) { queueRevealed = false }
     }
 
     // MARK: - Layout
@@ -87,7 +156,7 @@ private struct NowPlayingContent: View {
             ScrollView {
                 VStack(spacing: 28) {
                     albumCover
-                    trackMetadata
+                    trackMetadata(centered: false)
                     progressRow
                     transportRow
                     queueList
@@ -101,24 +170,37 @@ private struct NowPlayingContent: View {
             // that column always fills the container while the cover column stays at its natural
             // height. Centering therefore lowers only the cover, dropping its top edge ~107pt below
             // the title on a 1080p screen (more on iPad, where the cover is smaller).
+            //
+            // Without the queue column the HStack shrinks to the cover column, and the enclosing ZStack
+            // centers it: the same single-column look a one-track album gets.
             HStack(alignment: .top, spacing: wideSpacing) {
                 VStack(spacing: 32) {
                     albumCover
+                    // Metadata belongs to whichever column is on screen. Centered it sits under the
+                    // cover, Apple Music's arrangement; two-column it heads the queue, as before.
+                    if !showsQueueColumn {
+                        trackMetadata(centered: true)
+                            .transition(.opacity)
+                    }
                     transportRow
                     progressRow
                 }
                 .frame(width: wideColumnWidth)
 
-                VStack(alignment: .leading, spacing: 28) {
-                    trackMetadata
-                    ScrollView(.vertical, showsIndicators: false) {
-                        queueList
+                if showsQueueColumn {
+                    VStack(alignment: .leading, spacing: 28) {
+                        trackMetadata(centered: false)
+                        ScrollView(.vertical, showsIndicators: false) {
+                            queueList
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal, contentHPadding)
             .padding(.vertical, contentVPadding)
+            .animation(Self.queueSwap, value: showsQueueColumn)
         }
     }
 
@@ -214,8 +296,8 @@ private struct NowPlayingContent: View {
 
     // MARK: - Track metadata
 
-    private var trackMetadata: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private func trackMetadata(centered: Bool) -> some View {
+        VStack(alignment: centered ? .center : .leading, spacing: 12) {
             if let item = coordinator.currentItem {
                 if let context = coordinator.contextTitle, !context.isEmpty {
                     Text(context)
@@ -246,7 +328,8 @@ private struct NowPlayingContent: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .multilineTextAlignment(centered ? .center : .leading)
+        .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
     }
 
     // MARK: - Transport row
@@ -259,6 +342,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isDisabled: !coordinator.hasPrevious
             ) {
+                revealQueue()
                 coordinator.previous()
             }
 
@@ -269,6 +353,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isLarge: true
             ) {
+                revealQueue()
                 coordinator.togglePlayPause()
             }
 
@@ -278,6 +363,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isDisabled: !coordinator.hasNext
             ) {
+                revealQueue()
                 coordinator.next()
             }
         }
@@ -286,7 +372,9 @@ private struct NowPlayingContent: View {
     // MARK: - Progress row / scrubber
 
     private var progressRow: some View {
-        ScrubBar(coordinator: coordinator)
+        // Scrub FOCUS lives inside ScrubBar (the UIKit input layer reports it there); the pan itself
+        // reaches the parent as scrubProgress. Both have to count as activity.
+        ScrubBar(coordinator: coordinator, onFocusChange: { _ in revealQueue() })
     }
 
     // MARK: - Queue list
@@ -304,7 +392,9 @@ private struct NowPlayingContent: View {
                             track: track,
                             isCurrent: index == coordinator.currentIndex,
                             isPlaying: coordinator.isPlaying,
+                            queueFocus: $queueFocus,
                             onSelect: {
+                                revealQueue()
                                 // Switch within the same queue, keeping the album/playlist context.
                                 coordinator.skip(toQueueIndex: index)
                             }
@@ -384,6 +474,7 @@ private struct TransportIconButton: View {
 /// UIKit overlay (`MusicScrubberInput`) owning gestures so it matches the video player.
 private struct ScrubBar: View {
     let coordinator: MusicPlaybackCoordinator
+    var onFocusChange: (Bool) -> Void = { _ in }
 
     @State private var isFocused = false
 
@@ -459,6 +550,7 @@ private struct ScrubBar: View {
         .scaleEffect(isFocused ? 1.02 : 1.0)
         .animation(.easeInOut(duration: 0.15), value: isFocused)
         .animation(.easeInOut(duration: 0.2), value: scrubbing)
+        .onChange(of: isFocused) { _, focused in onFocusChange(focused) }
     }
 }
 
@@ -468,9 +560,10 @@ private struct QueueRow: View {
     let track: JellyfinItem
     let isCurrent: Bool
     let isPlaying: Bool
+    @FocusState.Binding var queueFocus: String?
     let onSelect: () -> Void
 
-    @FocusState private var focused: Bool
+    private var focused: Bool { queueFocus == track.id }
 
     var body: some View {
         HStack(spacing: 16) {
@@ -517,7 +610,7 @@ private struct QueueRow: View {
         .scaleEffect(focused ? 1.015 : 1.0)
         .shadow(color: .black.opacity(focused ? 0.3 : 0), radius: 10, y: 4)
         .focusable(true)
-        .focused($focused)
+        .focused($queueFocus, equals: track.id)
         .animation(.easeInOut(duration: 0.15), value: focused)
         .stableTap(isFocused: focused) {
             onSelect()
