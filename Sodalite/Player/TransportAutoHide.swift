@@ -21,20 +21,13 @@ enum TransportAutoHide {
     /// title and ten reads as broken rather than deliberate.
     static let idleDelay: Duration = .seconds(5)
 
+    /// Also the music Now Playing chrome's rule (Sodalite#110), asked at its fire time for the same
+    /// reason. That screen carries no extra clause of its own. It briefly had one, refusing to fire
+    /// while a queue row held focus, on the theory that hiding the focused view strands the user; in
+    /// practice that is where focus sits after any look at the queue, so the auto-hide simply never
+    /// fired again, which is how it was reported. The stranding is a job for the view, which keeps one
+    /// focusable sink alive behind the hidden chrome, not for a clause that trades one bug for another.
     static func hides(isPlaying: Bool) -> Bool { isPlaying }
-
-    /// The music Now Playing chrome's auto-hide (Sodalite#110): queue, transport and scrubber together,
-    /// leaving artwork and title. Asked at FIRE time for the same reason `hides` is, plus one of its
-    /// own: `queueHasFocus`. The queue rows are focusable, so a hide that fired while the user sat on
-    /// one would delete the focused view and let the focus engine drop the user somewhere arbitrary.
-    /// Answering at fire time means the rule sees where focus actually IS, not where it was five
-    /// seconds ago. The transport needs no such clause: it stays in the hierarchy at zero opacity
-    /// precisely so it keeps holding focus, which is what a swipe has to move for the chrome to come
-    /// back at all. The queue COUNT is not in here either; a single-track album has no queue column to
-    /// hide but the same controls to fade, and that is the view's condition to draw, not this rule's.
-    static func hidesMusicChrome(isPlaying: Bool, queueHasFocus: Bool) -> Bool {
-        hides(isPlaying: isPlaying) && !queueHasFocus
-    }
 
     static func raisesTransport(errorVisible: Bool, inputLocked: Bool) -> Bool {
         !errorVisible && !inputLocked

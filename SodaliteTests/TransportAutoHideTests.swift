@@ -21,38 +21,14 @@ struct TransportAutoHideTests {
 
     // MARK: - Music Now Playing chrome auto-hide (Sodalite#110)
 
-    @Test("Paused music keeps its chrome on screen")
-    func pausedChromeSurvivesTheTimer() {
-        #expect(TransportAutoHide.hidesMusicChrome(isPlaying: false, queueHasFocus: false) == false)
-        #expect(TransportAutoHide.hidesMusicChrome(isPlaying: true, queueHasFocus: false) == true)
-    }
-
-    @Test("A queue holding focus is never hidden out from under the user")
-    func focusedQueueSurvivesTheTimer() {
-        #expect(!TransportAutoHide.hidesMusicChrome(isPlaying: true, queueHasFocus: true))
-        #expect(!TransportAutoHide.hidesMusicChrome(isPlaying: false, queueHasFocus: true))
-    }
-
-    @Test("The chrome rule is the transport rule plus the focus clause, nothing else")
-    func chromeRuleExtendsTheTransportRule() {
-        for playing in [true, false] {
-            for focused in [true, false] {
-                let expected = TransportAutoHide.hides(isPlaying: playing) && !focused
-                #expect(TransportAutoHide.hidesMusicChrome(isPlaying: playing,
-                                                           queueHasFocus: focused) == expected)
-            }
-        }
-    }
-
-    @Test("A single-track album fades its controls too, the queue count is the view's business")
-    func singleTrackAlbumStillHidesItsControls() {
-        // No queue rows means no queue focus, and that is the only extra clause the rule carries.
-        #expect(TransportAutoHide.hidesMusicChrome(isPlaying: true, queueHasFocus: false))
-    }
-
-    @Test("Both auto-hides count down on the same delay")
-    func sharedIdleDelay() {
+    @Test("The music chrome runs on the same two constants, not a second set")
+    func musicChromeSharesTheTransportRule() {
+        // Sodalite#110 briefly gave the music screen a rule of its own, refusing to fire while a queue
+        // row held focus. That is where focus sits after any look at the queue, so the auto-hide never
+        // fired again; the view keeps a focusable sink alive instead. Nothing is left to diverge.
         #expect(TransportAutoHide.idleDelay == .seconds(5))
+        #expect(TransportAutoHide.hides(isPlaying: true))
+        #expect(!TransportAutoHide.hides(isPlaying: false))
     }
 
     @Test("The child lock keeps the transport down")
