@@ -97,7 +97,11 @@ private struct NowPlayingContent: View {
                 .padding(.vertical, contentVPadding)
             }
         } else {
-            HStack(alignment: .center, spacing: wideSpacing) {
+            // .top, not .center: the queue column's ScrollView is greedy in the vertical axis, so
+            // that column always fills the container while the cover column stays at its natural
+            // height. Centering therefore lowers only the cover, dropping its top edge ~107pt below
+            // the title on a 1080p screen (more on iPad, where the cover is smaller).
+            HStack(alignment: .top, spacing: wideSpacing) {
                 VStack(spacing: 32) {
                     albumCover
                     transportRow
