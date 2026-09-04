@@ -607,6 +607,7 @@
 		A0C910E3D7491389F8478BE9 /* JellyfinUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8C86911CAC2C3C5F103774 /* JellyfinUser.swift */; };
 		A14A6EF82BA9A7F01F9DDF06 /* AtkinsonHyperlegible-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD0A81C3E831093174A0085A /* AtkinsonHyperlegible-BoldItalic.ttf */; };
 		A1570D935F19BC0F36F0BEAE /* PlayerViewModel+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C3D4639FA7277264A7D858 /* PlayerViewModel+Live.swift */; };
+		A1E8C3BF917C8772DA62D545 /* ParentalControlsRoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A42B5B453AA2668EBD70FD6 /* ParentalControlsRoleTests.swift */; };
 		A20C0561B17DEDAE79BAB4C2 /* TopShelfProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1986FAE23765CA9C8B1537 /* TopShelfProgress.swift */; };
 		A254E90ABD1A190287B5ED8E /* SodaliteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 241980A7FAAC5D70827F795D /* SodaliteApp.swift */; };
 		A2E9339D8961C8B8167CE5A6 /* CollectionPlaybackQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD145192044D97F650B4405 /* CollectionPlaybackQueue.swift */; };
@@ -1321,6 +1322,7 @@
 		88577784DD91D770319A3349 /* PlayerHostController+SkipDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerHostController+SkipDelegate.swift"; sourceTree = "<group>"; };
 		8921B4CB17D85FE1BD42D192 /* DetailActionRowPackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailActionRowPackingTests.swift; sourceTree = "<group>"; };
 		896F7D4A24F4824487750AC9 /* ContentLogoTitle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLogoTitle.swift; sourceTree = "<group>"; };
+		8A42B5B453AA2668EBD70FD6 /* ParentalControlsRoleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentalControlsRoleTests.swift; sourceTree = "<group>"; };
 		8AC4D951D87C80695C4546AF /* PersonDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonDetailView.swift; sourceTree = "<group>"; };
 		8AC7712AD9E8B29E84A7C624 /* AccentAuroraBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentAuroraBackground.swift; sourceTree = "<group>"; };
 		8B6B9B3C8932F84704C644F5 /* PlaybackSourceFactsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSourceFactsTests.swift; sourceTree = "<group>"; };
@@ -1878,6 +1880,7 @@
 				741F6735F2BBBAF0C5648BFB /* NetworkBufferDepthTests.swift */,
 				4E2CA385A598B1BC58D04870 /* NextEpisodePillTests.swift */,
 				3A458B9951731F51899E0F4B /* NextEpisodePolicyTests.swift */,
+				8A42B5B453AA2668EBD70FD6 /* ParentalControlsRoleTests.swift */,
 				49B8AEB0E494D1AB61C2798D /* ParentalGatePresenterTests.swift */,
 				AEAABD2FB5B0BD5670877864 /* PendingRequestsMonitorTests.swift */,
 				E233C65BCA6F49513445AA3A /* PerLibraryRowRedundancyTests.swift */,
@@ -3304,6 +3307,7 @@
 				C8606BD7F2913B7C4A1DAC6B /* NetworkBufferDepthTests.swift in Sources */,
 				8D6F590ACEA1E6608E4C0A0D /* NextEpisodePillTests.swift in Sources */,
 				AE3581664FF0028C5FA58C1B /* NextEpisodePolicyTests.swift in Sources */,
+				A1E8C3BF917C8772DA62D545 /* ParentalControlsRoleTests.swift in Sources */,
 				594ADC4066CA72A3A6C79F27 /* ParentalGatePresenterTests.swift in Sources */,
 				1A3E78E267B352AC25A5F833 /* PendingRequestsMonitorTests.swift in Sources */,
 				3D9CB1FDA374DEFE3B4AE377 /* PerLibraryRowRedundancyTests.swift in Sources */,
