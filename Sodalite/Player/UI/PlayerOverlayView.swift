@@ -277,14 +277,10 @@ struct PlayerOverlayView: View {
             Spacer()
             HStack {
                 Spacer()
+                // Anchor from PlayerActionPill, the same one the next-episode prompt positions to.
                 skipSegmentHint(label: label)
-                    #if os(iOS)
-                    .padding(.trailing, 24)
-                    .padding(.bottom, 28)
-                    #else
-                    .padding(.trailing, 80)
-                    .padding(.bottom, 80)
-                    #endif
+                    .padding(.trailing, PlayerPillMetrics.current.marginX)
+                    .padding(.bottom, PlayerPillMetrics.current.marginY)
             }
         }
         // ignoresSafeArea pins the hint to the true screen bottom: alpha=0 AVKit chrome (kept for the CC +10s handler via playbackControlsIncludeTransportBar) still widens contentOverlayView's bottom safe-area inset, which would shift a Spacer-anchored hint mid-screen at session start.
@@ -327,16 +323,15 @@ struct PlayerOverlayView: View {
             .lazy.compactMap { $0 as? UIWindowScene }
             .first?.screen.bounds.size ?? CGSize(width: 1920, height: 1080)
         let metrics = PlayerPillMetrics.current
+        let marginX = metrics.marginX
         #if os(iOS)
-        // Same anchor as the skip pill (trailing 24, bottom 28); the prompt stays put with the touch
-        // controls up, so it lifts clear of them instead of hiding like the skip pill does.
-        let marginX: CGFloat = 24
-        let marginY: CGFloat = viewModel.showControls ? 150 : 28
+        // The skip pill's anchor, except that the prompt stays put with the touch controls up, so it
+        // lifts clear of them instead of hiding the way the skip pill does.
+        let marginY: CGFloat = viewModel.showControls ? 150 : metrics.marginY
         #else
-        // The skip pill's exact anchor. On tvOS this only renders with the transport hidden, so
-        // there is no open-transport margin to dodge; the prompt is a TransportBar button then.
-        let marginX: CGFloat = 80
-        let marginY: CGFloat = 80
+        // On tvOS this only renders with the transport hidden, so there is no open-transport margin
+        // to dodge; the prompt is a TransportBar button then.
+        let marginY = metrics.marginY
         #endif
         // A portrait phone has less width than the stack wants; the pill hugs its label either way,
         // the frame only bounds the metadata line's truncation.

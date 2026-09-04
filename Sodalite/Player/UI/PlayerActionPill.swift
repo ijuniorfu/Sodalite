@@ -27,10 +27,20 @@ struct PlayerPillMetrics: Sendable {
     /// itself hugs its content; this frame only has to hold the widest of them, and give the metadata
     /// line above it something to truncate against.
     let stackWidth: CGFloat
+    /// Distance from the trailing and bottom screen edges. Both pills read it from here, which is
+    /// what makes "the same corner" a fact rather than two literals that agree today.
+    let marginX: CGFloat
+    let marginY: CGFloat
 
     var labelFont: Font { .system(size: labelSize, weight: .semibold) }
     var metadataFont: Font { .system(size: metadataSize, weight: .medium) }
     var pillHeight: CGFloat { labelLineHeight + verticalPadding * 2 }
+    /// How far the metadata line may reach past the pill on EACH side. Centred on a pill that sits
+    /// flush against the margin, the line can otherwise be no wider than the pill itself, which cost
+    /// real title: 266pt holds ~21 characters where the old trailing-aligned frame held ~35, so
+    /// "S2, E4 · Plates, plates, plates" truncated where it used to fit. Half the margin buys most of
+    /// that back and still leaves the line as far from the screen edge as the margin allows.
+    var metadataOverhang: CGFloat { marginX / 2 }
     var stackHeight: CGFloat { metadataLineHeight + stackSpacing + pillHeight }
 
     /// Ring diameter follows the label line height, so the countdown costs no pill height. It costs
@@ -46,14 +56,14 @@ struct PlayerPillMetrics: Sendable {
         labelSize: 29, metadataSize: 25,
         horizontalPadding: 24, verticalPadding: 14, iconSpacing: 10,
         labelLineHeight: 34, metadataLineHeight: 30,
-        stackSpacing: 10, stackWidth: 420
+        stackSpacing: 10, stackWidth: 420, marginX: 80, marginY: 80
     )
     /// iOS `.subheadline` is 15pt; the widest localized label comes to 215pt there.
     static let touch = PlayerPillMetrics(
         labelSize: 15, metadataSize: 14,
         horizontalPadding: 18, verticalPadding: 11, iconSpacing: 10,
         labelLineHeight: 18, metadataLineHeight: 17,
-        stackSpacing: 8, stackWidth: 300
+        stackSpacing: 8, stackWidth: 300, marginX: 24, marginY: 28
     )
 
     #if os(tvOS)
@@ -232,6 +242,10 @@ struct NextEpisodePill: View {
                     // line disappears (ImageRenderer sheet, 2026-09-04).
                     .shadow(color: .black.opacity(0.75), radius: 6, y: 2)
                     .frame(maxWidth: .infinity)
+                    // The overlay is proposed the PILL's width; negative padding widens that
+                    // proposal symmetrically, so the line still centres on the button but is no
+                    // longer bounded by it. See `metadataOverhang`.
+                    .padding(.horizontal, -metrics.metadataOverhang)
                     .offset(y: -(metrics.metadataLineHeight + metrics.stackSpacing))
             }
         }

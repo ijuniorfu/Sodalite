@@ -119,9 +119,26 @@ struct NextEpisodePillTests {
         let pill = try sourceFile("Sodalite/Player/UI/PlayerActionPill.swift")
         #expect(pill.contains(".overlay(alignment: .top)"))
         #expect(pill.contains("alignment: .bottomTrailing"))
+        // Centred on a pill that is flush against the margin, the line would otherwise be bounded by
+        // the pill: 266pt of title against the 420pt the trailing-aligned version had. The overhang
+        // buys that back without letting the line into the margin, so it stays half of it.
+        #expect(pill.contains(".padding(.horizontal, -metrics.metadataOverhang)"))
+        for tier in tiers {
+            #expect(tier.metrics.metadataOverhang * 2 <= tier.metrics.marginX,
+                    "\(tier.name) overhang \(tier.metrics.metadataOverhang) against margin \(tier.metrics.marginX)")
+        }
         // The declared height has to be enforced, or the absolute .position in the overlay measures
         // the pill alone and the prompt sits high by half the metadata line.
         #expect(pill.contains("height: metrics.stackHeight"))
+    }
+
+    /// "The same corner" is the issue's actual complaint, so the anchor is one number both pills
+    /// read rather than two literals that happen to agree. They were 24/28 and 80/80 inline.
+    @Test func bothPillsAnchorToTheSameCorner() throws {
+        let overlay = try sourceFile("Sodalite/Player/UI/PlayerOverlayView.swift")
+        #expect(overlay.contains("PlayerPillMetrics.current.marginX"))
+        #expect(overlay.contains("PlayerPillMetrics.current.marginY"))
+        #expect(overlay.contains("let marginX = metrics.marginX"))
     }
 
     // MARK: - One treatment, not two
