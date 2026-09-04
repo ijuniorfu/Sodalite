@@ -137,6 +137,24 @@ struct SessionRestorerTests {
         #expect(u.id == "U")
     }
 
+    /// #105: an entry-locked profile is simply "not leave-locked" to the restorer, so the existing
+    /// rule already forces the picker for it. Pinned so a later refactor of that rule cannot let a
+    /// cold start walk past an entry lock.
+    @Test func entryLockedProfileStillForcesPicker() {
+        let env = restorable()
+        env.remembered = [user("dad"), user("kid")]
+        env.parentalControlsActiveResult = true
+        env.protectedKeys = ["A|kid"]           // "dad" carries the entry lock, which this fake models as unprotected
+        env.launchBehavior = .useDefault
+        env.defaultUserIDByServer["A"] = "dad"  // would otherwise auto-enter the entry-locked profile
+        let outcome = SessionRestorer(env: env).restore()
+        guard case .picker = outcome else {
+            Issue.record("SECURITY REGRESSION: cold start walked past an entry lock, got \(tagOf(outcome))")
+            return
+        }
+        #expect(env.switched.isEmpty)
+    }
+
     // The imageTag re-stamp fallback: no canonical tag but the remembered blob carries one -> lift it and re-save.
     @Test func imageTagFallback_liftsFromRememberedBlobAndReStamps() {
         let env = restorable()

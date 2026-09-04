@@ -12,6 +12,12 @@ private struct LegacyAppearancePayload: Encodable {
     let nowPlayingUsesSeriesPoster: Bool
 }
 
+private struct LegacyParentalControlsPayload: Encodable {
+    let schemaVersion = 1
+    let updatedAt: Date
+    let protectedProfileIDs: [String]
+}
+
 @Suite("CloudSync payload round-trips")
 struct CloudSyncPayloadsTests {
     @Test("server payload JSON round-trip")
@@ -107,5 +113,30 @@ struct CloudSyncPayloadsTests {
         #expect(stamped.updatedAt == Date(timeIntervalSince1970: 99))
         guard case .seerrNotifications(let inner) = stamped else { Issue.record("wrong case"); return }
         #expect(inner.notifyPendingRequests == true)
+    }
+
+    @Test("parental payload carries both lock sets")
+    func parentalRoundTrip() throws {
+        let payload = ParentalControlsSettingsPayload(
+            updatedAt: Date(timeIntervalSince1970: 2_000_000),
+            protectedProfileIDs: ["s1:kid"],
+            entryLockedProfileIDs: ["s1:dad", "s1:family"]
+        )
+        let data = try JSONEncoder().encode(payload)
+        let decoded = try JSONDecoder().decode(ParentalControlsSettingsPayload.self, from: data)
+        #expect(decoded == payload)
+    }
+
+    /// A record written before #105 has no entry locks, and must decode as having none rather than
+    /// failing the whole settings record.
+    @Test("parental payload without entry locks decodes as empty")
+    func parentalLegacyDecode() throws {
+        let data = try JSONEncoder().encode(
+            LegacyParentalControlsPayload(updatedAt: Date(timeIntervalSince1970: 1),
+                                          protectedProfileIDs: ["s1:kid"])
+        )
+        let decoded = try JSONDecoder().decode(ParentalControlsSettingsPayload.self, from: data)
+        #expect(decoded.protectedProfileIDs == ["s1:kid"])
+        #expect(decoded.entryLockedProfileIDs.isEmpty)
     }
 }

@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// PIN-gated entry when a protected profile is active (see SettingsView) so a kid can't disable the lock from here.
+/// PIN-gated entry whenever a PIN is set (see SettingsView) so nobody handed the remote can disable the lock from here.
 struct ParentalControlsSettingsView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
 
     @State private var pinIsSet = false
-    @State private var protectedToggles: [String: Bool] = [:]   // compositeID -> Bool
+    @State private var roles: [String: ProfileLockRole] = [:]   // compositeID -> role
     @State private var profiles: [(server: JellyfinServer, user: RememberedUser)] = []
     @State private var showSetup = false
 
@@ -67,7 +67,10 @@ struct ParentalControlsSettingsView: View {
             showSetup = true        // setup completion flips pinIsSet via reload()
         } else {
             try? dependencies.clearGuardianPIN()
+            // Both sets, else hasAnyLockedProfile stays true and the next PIN the user sets
+            // silently re-arms locks they believed they had cleared.
             dependencies.parentalControlsPreferences.protectedProfileIDs = []
+            dependencies.parentalControlsPreferences.entryLockedProfileIDs = []
             reload()
         }
     }
@@ -86,18 +89,23 @@ struct ParentalControlsSettingsView: View {
                     icon: "person.crop.circle",
                     title: LocalizedStringKey(entry.user.name),
                     subtitle: "parental.profile.protect.subtitle",
-                    options: [false, true],
+                    options: ProfileLockRole.allCases,
                     selection: Binding(
-                        get: { protectedToggles[key] ?? false },
+                        get: { roles[key] ?? .open },
                         set: { newValue in
-                            protectedToggles[key] = newValue
-                            dependencies.parentalControlsPreferences.setProtected(
+                            roles[key] = newValue
+                            dependencies.parentalControlsPreferences.setRole(
                                 newValue, serverID: entry.server.id, userID: entry.user.id
                             )
                         }
                     ),
-                    label: { $0 ? String(localized: "parental.profile.protected")
-                                : String(localized: "parental.profile.open") }
+                    label: { role in
+                        switch role {
+                        case .open:       String(localized: "parental.profile.role.open")
+                        case .pinToEnter: String(localized: "parental.profile.role.pinToEnter")
+                        case .pinToLeave: String(localized: "parental.profile.role.pinToLeave")
+                        }
+                    }
                 )
             }
         }
@@ -112,11 +120,13 @@ struct ParentalControlsSettingsView: View {
             }
         }
         profiles = list.map { (server: $0.0, user: $0.1) }
-        var toggles: [String: Bool] = [:]
+        var loaded: [String: ProfileLockRole] = [:]
         for entry in profiles {
             let key = ParentalControlsPreferences.compositeID(serverID: entry.server.id, userID: entry.user.id)
-            toggles[key] = dependencies.parentalControlsPreferences.protectedProfileIDs.contains(key)
+            loaded[key] = dependencies.parentalControlsPreferences.role(
+                serverID: entry.server.id, userID: entry.user.id
+            )
         }
-        protectedToggles = toggles
+        roles = loaded
     }
 }

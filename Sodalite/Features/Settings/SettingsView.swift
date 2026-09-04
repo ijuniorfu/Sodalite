@@ -201,7 +201,11 @@ struct SettingsView: View {
                 title: "settings.parental.title",
                 subtitle: "settings.parental.subtitle",
                 reason: .openParentalSettings,
-                requiresPIN: { dependencies.parentalGateRequiredForSessionAction() }
+                // The one screen that can switch the whole thing off asks whatever profile is
+                // active: with entry locks, "an unlocked adult profile is on screen" is the normal
+                // state, so binding this to the active profile leaves the handover case (an adult
+                // unlocks, then passes the remote on) open by default.
+                requiresPIN: { dependencies.isGuardianPINSet() }
             ) {
                 ParentalControlsSettingsView()
             }

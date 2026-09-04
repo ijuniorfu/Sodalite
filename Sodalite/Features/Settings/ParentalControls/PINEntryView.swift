@@ -116,6 +116,7 @@ struct PINEntryView: View {
         case .unlock(let reason):
             switch reason {
             case .switchProfile: return "parental.pin.unlock.switchProfile"
+            case .enterProfile: return "parental.pin.unlock.enterProfile"
             case .logout: return "parental.pin.unlock.logout"
             case .serverManagement: return "parental.pin.unlock.serverManagement"
             case .openParentalSettings: return "parental.pin.unlock.settings"

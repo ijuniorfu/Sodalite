@@ -314,6 +314,22 @@ struct ProfileSettingsView: View {
     }
 
     private func switchTo(_ user: RememberedUser, server: JellyfinServer) {
+        // An entry-locked target costs the PIN here too, which is the whole point of the role.
+        guard dependencies.parentalGateRequired(forActivatingUserID: user.id,
+                                                serverID: server.id) else {
+            performSwitch(user, server: server)
+            return
+        }
+        let reason = dependencies.parentalGateReason(forActivatingUserID: user.id,
+                                                     serverID: server.id)
+        Task {
+            if await dependencies.parentalGate.challenge(reason: reason) {
+                performSwitch(user, server: server)
+            }
+        }
+    }
+
+    private func performSwitch(_ user: RememberedUser, server: JellyfinServer) {
         do {
             // switchToUser purges the identity-scoped caches (images, filter pages) itself.
             try dependencies.switchToUser(user, server: server)

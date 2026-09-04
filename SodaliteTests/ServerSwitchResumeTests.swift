@@ -94,13 +94,13 @@ struct ServerSwitchResumeTests {
         #expect(container.jellyfinClient.baseURL == serverA.url)
     }
 
-    /// Guardian PIN set and the single card unprotected: the picker would ask for the PIN before
+    /// Guardian PIN set and the single card locked to enter: the picker would ask for the PIN before
     /// activating it, so resuming it unasked would walk straight around the lock.
     @Test func aProfileTheGuardianPINGuardsIsNotResumedUnasked() throws {
         let container = try twoServerDevice(profilesOnB: [profile("u1")])
         try container.saveGuardianPIN("1234")
-        container.parentalControlsPreferences.setProtected(true, serverID: "A", userID: "user-a")
-        defer { container.parentalControlsPreferences.setProtected(false, serverID: "A", userID: "user-a") }
+        container.parentalControlsPreferences.setRole(.pinToEnter, serverID: "B", userID: "u1")
+        defer { container.parentalControlsPreferences.setRole(.open, serverID: "B", userID: "u1") }
 
         #expect(container.resumableProfile(serverID: "B") == nil)
         #expect(throws: DependencyContainer.ServerSwitchError.missingToken) {
@@ -113,8 +113,8 @@ struct ServerSwitchResumeTests {
     @Test func aProtectedProfileIsStillResumed() throws {
         let container = try twoServerDevice(profilesOnB: [profile("u1")])
         try container.saveGuardianPIN("1234")
-        container.parentalControlsPreferences.setProtected(true, serverID: "B", userID: "u1")
-        defer { container.parentalControlsPreferences.setProtected(false, serverID: "B", userID: "u1") }
+        container.parentalControlsPreferences.setRole(.pinToLeave, serverID: "B", userID: "u1")
+        defer { container.parentalControlsPreferences.setRole(.open, serverID: "B", userID: "u1") }
 
         try container.switchServer(to: "B")
 

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// PIN recovery: prove control of an unprotected account via its Jellyfin password; recovery bound to existing server creds.
+/// PIN recovery: prove control of a guardian account via its Jellyfin password (which profiles count is GuardianPINRecoveryCandidates' call); recovery bound to existing server creds.
 struct PINRecoveryView: View {
     @Environment(\.dependencies) private var dependencies
 
@@ -86,14 +86,17 @@ struct PINRecoveryView: View {
     }
 
     private func loadCandidates() {
-        var result: [(JellyfinServer, RememberedUser)] = []
+        var all: [(server: JellyfinServer, user: RememberedUser)] = []
         for server in dependencies.listKnownServers() {
-            for user in dependencies.listRememberedUsers(serverID: server.id)
-            where !dependencies.parentalControlsPreferences.isProtected(serverID: server.id, userID: user.id) {
-                result.append((server, user))
+            for user in dependencies.listRememberedUsers(serverID: server.id) {
+                all.append((server: server, user: user))
             }
         }
-        candidates = result.map { (server: $0.0, user: $0.1) }
+        candidates = GuardianPINRecoveryCandidates.candidates(all) { entry in
+            dependencies.parentalControlsPreferences.role(
+                serverID: entry.server.id, userID: entry.user.id
+            )
+        }
     }
 
     private func validate() async {

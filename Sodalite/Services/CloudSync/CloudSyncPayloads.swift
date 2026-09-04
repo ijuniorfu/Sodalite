@@ -299,6 +299,31 @@ struct ParentalControlsSettingsPayload: Codable, Equatable {
     var schemaVersion: Int = 1
     var updatedAt: Date
     var protectedProfileIDs: [String]
+    var entryLockedProfileIDs: [String] = []
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion
+        case updatedAt
+        case protectedProfileIDs
+        case entryLockedProfileIDs
+    }
+
+    init(updatedAt: Date, protectedProfileIDs: [String], entryLockedProfileIDs: [String] = []) {
+        self.updatedAt = updatedAt
+        self.protectedProfileIDs = protectedProfileIDs
+        self.entryLockedProfileIDs = entryLockedProfileIDs
+    }
+
+    /// A property default does not make a key optional to the synthesized decoder, and a record
+    /// written before #105 carries no entry locks, so it is read as absent rather than as a failure
+    /// of the whole settings record.
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
+        updatedAt = try values.decode(Date.self, forKey: .updatedAt)
+        protectedProfileIDs = try values.decode([String].self, forKey: .protectedProfileIDs)
+        entryLockedProfileIDs = try values.decodeIfPresent([String].self, forKey: .entryLockedProfileIDs) ?? []
+    }
 }
 
 struct SecuritySyncPayload: Codable, Equatable {
