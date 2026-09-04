@@ -8,8 +8,19 @@ import SwiftUI
     /// Same rule as the album grid (Sodalite#88): a failed fetch is not an album without tracks.
     /// Swallowed, it rendered a cover and a Play button over an empty list with nothing said.
     private(set) var errorMessage: String?
+    /// A load that actually answered, which is what separates "this album has no tracks" from "we
+    /// have not asked yet". Only the former may recenter the header.
+    private(set) var hasResolved = false
 
     var displayedError: String? { songs.isEmpty ? errorMessage : nil }
+
+    /// A load that answered with no tracks and nothing to say about why, which is the one state in
+    /// which the tracklist renders nothing at all. An in-flight load and the frame before the first
+    /// one starts are deliberately not this, or an album that does have tracks would start centered
+    /// and jump into place.
+    var isConfirmedEmpty: Bool {
+        hasResolved && !isLoading && songs.isEmpty && displayedError == nil
+    }
 
     func load(album: JellyfinItem, using dependencies: DependencyContainer) async {
         await load(albumID: album.id, service: dependencies.jellyfinMusicService, userID: dependencies.activeUserID)
@@ -26,11 +37,13 @@ import SwiftUI
             let fetched = try await service.getSongs(userID: userID, albumID: albumID)
             songs = fetched
             errorMessage = nil
+            hasResolved = true
             LogTap.shared.note("[music] songs: \(fetched.count) returned for album \(albumID)")
         } catch is CancellationError {
             // A cancelled reload is not an outcome. The next one answers.
         } catch {
             errorMessage = ErrorText.user(for: error)
+            hasResolved = true
             LogTap.shared.note("[music] songs failed for album \(albumID): \(HTTPDiagnostics.describe(error))")
         }
     }
@@ -72,24 +85,32 @@ struct AlbumDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 coverImage
                     .frame(maxWidth: .infinity, alignment: .center)
-                titleBlock
+                titleBlock(alignment: .leading)
                 headerActions
             }
         } else {
-            HStack(alignment: .top, spacing: 48) {
+            let alone = viewModel.isConfirmedEmpty
+            // AnyLayout rather than an if/else: the children keep their identity across the switch,
+            // so the move animates and a focused Play button stays focused. Two branches rebuild them.
+            let layout = alone
+                ? AnyLayout(VStackLayout(alignment: .center, spacing: 24))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: 48))
+
+            layout {
                 coverImage
 
-                VStack(alignment: .leading, spacing: 16) {
-                    titleBlock
+                VStack(alignment: alone ? .center : .leading, spacing: 16) {
+                    titleBlock(alignment: alone ? .center : .leading)
                     headerActions
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: alone ? .center : .leading)
             }
+            .animation(.easeInOut(duration: 0.25), value: alone)
         }
     }
 
-    private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: 6) {
+    private func titleBlock(alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 6) {
             Text(album.name)
                 .font(.title2)
                 .fontWeight(.bold)
@@ -106,6 +127,7 @@ struct AlbumDetailView: View {
                     .foregroundStyle(.tertiary)
             }
         }
+        .multilineTextAlignment(alignment == .center ? .center : .leading)
     }
 
     @ViewBuilder
