@@ -320,6 +320,22 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 }
                 .background(alignment: .top) { tintCanvas }
             }
+            // The mark rides over the page, not inside the band, and this is the only reason why.
+            // Its dark shadow reaches about 18 pt past the ink (0.55 / r14 / y4), the tint canvas is
+            // an OPAQUE sibling drawn after the band, so as a band overlay that tail was painted
+            // over: the shadow ended in a single row exactly on the band's bottom bound, and that
+            // line is what read as a hard cutoff on backdrops with a bright bottom edge (Sodalite#98
+            // point 1). Measured on the reporter's screenshots: under the mark the last band row
+            // runs 2.8 to 4.4 levels below the page margin and the next row matches it to within
+            // 0.03, and the size of the step tracks the mark's own width (r = -0.93 across three
+            // titles). Both sides of the seam are portraitPalette.near by construction, so the
+            // shadow was the only thing that could draw a line there. Drawn last, it just fades out.
+            .overlay(alignment: .top) {
+                hero()
+                    .padding(.horizontal, metrics.rowInset)
+                    .frame(height: max(0, safeTop + bandHeight - 12), alignment: .bottom)
+                    .allowsHitTesting(false)
+            }
         }
         // Both edges: the band is the top chrome, and the canvas has to reach past the home indicator
         // or the page ends on a bright line where the scrim stops and the base black begins.
@@ -361,11 +377,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             )
             .frame(height: 150)
             .allowsHitTesting(false)
-        }
-        .overlay(alignment: .bottom) {
-            hero()
-                .padding(.horizontal, metrics.rowInset)
-                .padding(.bottom, 12)
         }
         // Rubber-band overscroll pulls the band down and would uncover the base black above it, the
         // same hole the trailing filler closes at the other end (Sodalite discussion #98, point 6).
