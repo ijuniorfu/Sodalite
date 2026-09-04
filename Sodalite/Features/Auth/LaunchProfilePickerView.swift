@@ -278,9 +278,23 @@ struct LaunchProfilePickerView: View {
 
     private func select(_ user: RememberedUser) {
         // Reprompt context, active profile tapped: continue as current, same as a Menu dismiss.
-        // Nothing is activated, so the Guardian gate does not apply (it still gates real switches).
+        // Nothing is activated, so an open or locked-in profile continues free, as before. An
+        // entry-locked one does not: the reprompt asks because the person at the TV may have
+        // changed, and waving the last active card through is the one way in that lock is for.
+        // Legitimate exits stay open, their own card is a normal free select, and the pad offers
+        // recovery.
         if context == .reprompt, user.id == activeSessionUserID {
-            onFinished?()
+            guard dependencies.parentalGateRequired(forActivatingUserID: user.id,
+                                                    serverID: server.id,
+                                                    isColdStart: false) else {
+                onFinished?()
+                return
+            }
+            let reason = dependencies.parentalGateReason(forActivatingUserID: user.id,
+                                                         serverID: server.id)
+            Task {
+                if await dependencies.parentalGate.challenge(reason: reason) { onFinished?() }
+            }
             return
         }
         // Cold-start picker context: an entry-locked profile always costs the PIN, an open one

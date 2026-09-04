@@ -53,6 +53,18 @@ struct ParentalGatePolicyTests {
             targetRole: .pinToEnter, activeRole: .pinToEnter, isColdStart: false))
     }
 
+    /// The reprompt's "continue as current" taps the ACTIVE card, so target and active are the same
+    /// profile. Only the entry-locked reading may cost the PIN there; the other two continue free,
+    /// exactly as they did before #105.
+    @Test func continuingAsTheCurrentProfileIsGatedOnlyWhenItIsEntryLocked() {
+        #expect(ParentalGatePolicy.gateRequiredForActivating(
+            targetRole: .pinToEnter, activeRole: .pinToEnter, isColdStart: false))
+        #expect(ParentalGatePolicy.gateRequiredForActivating(
+            targetRole: .open, activeRole: .open, isColdStart: false) == false)
+        #expect(ParentalGatePolicy.gateRequiredForActivating(
+            targetRole: .pinToLeave, activeRole: .pinToLeave, isColdStart: false) == false)
+    }
+
     // MARK: prompt copy
 
     @Test func entryLockedTargetGetsItsOwnPrompt() {
