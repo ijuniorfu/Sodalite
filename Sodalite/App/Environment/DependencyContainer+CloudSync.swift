@@ -276,7 +276,8 @@ extension DependencyContainer {
         case .parentalControls:
             return .parentalControls(ParentalControlsSettingsPayload(
                 updatedAt: stamp,
-                protectedProfileIDs: stores.parentalControls.protectedProfileIDs.sorted()
+                protectedProfileIDs: stores.parentalControls.protectedProfileIDs.sorted(),
+                entryLockedProfileIDs: stores.parentalControls.entryLockedProfileIDs.sorted()
             ))
         case .trackMemory:
             return .trackMemory(TrackMemoryPayload(
@@ -378,6 +379,7 @@ extension DependencyContainer {
             seerrNotificationPreferences.notifyPendingRequests = s.notifyPendingRequests
         case .parentalControls(let p):
             parentalControlsPreferences.protectedProfileIDs = Set(p.protectedProfileIDs)
+            parentalControlsPreferences.entryLockedProfileIDs = Set(p.entryLockedProfileIDs)
         case .trackMemory(let t):
             trackSelectionMemory.replaceAll(t.entries)
         case .spoilerReveals(let s):
