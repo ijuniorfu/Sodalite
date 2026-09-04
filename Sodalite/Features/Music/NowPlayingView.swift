@@ -111,12 +111,12 @@ private struct NowPlayingContent: View {
         // Reveal triggers. Focus is the load-bearing one: `.onMoveCommand` only fires when NO focusable
         // view consumes the directional move, and this screen is nothing but focusable views, so the
         // focus engine would eat almost every swipe. A swipe that moves focus lands here instead.
-        .onChange(of: transportFocus) { _, _ in revealChrome() }
-        .onChange(of: queueFocus) { _, _ in revealChrome() }
+        .onChange(of: transportFocus) { _, _ in noteChromeInteraction() }
+        .onChange(of: queueFocus) { _, _ in noteChromeInteraction() }
         // Scrub focus catches ENTRY only; scrubProgress keeps a pan that continues on an already
         // focused scrubber counting for its whole duration.
-        .onChange(of: coordinator.isScrubbing) { _, _ in revealChrome() }
-        .onChange(of: coordinator.scrubProgress) { _, _ in revealChrome() }
+        .onChange(of: coordinator.isScrubbing) { _, _ in noteChromeInteraction() }
+        .onChange(of: coordinator.scrubProgress) { _, _ in noteChromeInteraction() }
         // A new track is news, and a pause raises the queue the same way it raises the video transport.
         .onChange(of: coordinator.currentItem?.id) { _, _ in revealChrome() }
         .onChange(of: coordinator.isPlaying) { _, _ in revealChrome() }
@@ -129,6 +129,20 @@ private struct NowPlayingContent: View {
     /// only ever the metadata over an empty list, and centering is the look this whole feature is after.
     private var showsQueueColumn: Bool {
         coordinator.queue.count > 1 && chromeRevealed
+    }
+
+    /// Activity reported by the chrome's OWN controls, which only restarts the countdown, never wakes.
+    ///
+    /// The distinction is load-bearing. Hiding the chrome deletes the views holding focus, and SwiftUI
+    /// answers that by writing nil into their `@FocusState`, which is indistinguishable at the binding
+    /// from the user moving focus. Waking on it meant the screen woke itself on the same runloop turn
+    /// it hid. While the chrome is down, focus changes are OUR doing; the only input that counts then
+    /// comes through `NowPlayingWakeSink`.
+    private func noteChromeInteraction() {
+        #if os(tvOS)
+        guard chromeRevealed else { return }
+        scheduleChromeHide()
+        #endif
     }
 
     /// Bring the chrome back and restart the idle countdown. Cheap enough to call on every pan delta.
@@ -370,7 +384,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isDisabled: !coordinator.hasPrevious
             ) {
-                revealChrome()
+                noteChromeInteraction()
                 coordinator.previous()
             }
 
@@ -381,7 +395,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isLarge: true
             ) {
-                revealChrome()
+                noteChromeInteraction()
                 coordinator.togglePlayPause()
             }
 
@@ -391,7 +405,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isDisabled: !coordinator.hasNext
             ) {
-                revealChrome()
+                noteChromeInteraction()
                 coordinator.next()
             }
         }
@@ -402,7 +416,7 @@ private struct NowPlayingContent: View {
     private var progressRow: some View {
         // Scrub FOCUS lives inside ScrubBar (the UIKit input layer reports it there); the pan itself
         // reaches the parent as scrubProgress. Both have to count as activity.
-        ScrubBar(coordinator: coordinator, onFocusChange: { _ in revealChrome() })
+        ScrubBar(coordinator: coordinator, onFocusChange: { _ in noteChromeInteraction() })
     }
 
     // MARK: - Queue list
@@ -422,7 +436,7 @@ private struct NowPlayingContent: View {
                             isPlaying: coordinator.isPlaying,
                             queueFocus: $queueFocus,
                             onSelect: {
-                                revealChrome()
+                                noteChromeInteraction()
                                 // Switch within the same queue, keeping the album/playlist context.
                                 coordinator.skip(toQueueIndex: index)
                             }
