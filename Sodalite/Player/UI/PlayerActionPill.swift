@@ -127,6 +127,14 @@ struct CountdownRingIcon: View {
     let diameter: CGFloat
 
     private var lineWidth: CGFloat { max(2, (diameter * 0.09).rounded()) }
+    /// SF Symbols centres `play.fill` on its LAYOUT box, and a right-pointing triangle carries its
+    /// mass at the base, so a box-centred glyph reads left of centre inside a ring. Apple's own
+    /// `play.circle.fill` puts the triangle's ink box at +0.033 of the disc diameter (measured off
+    /// the rendered symbol); ours landed at +0.008 on a device screenshot, least-squares circle fit
+    /// on the arc, so this closes the difference rather than inventing a taste value. Only with a
+    /// ring: without one there is no circle to be concentric with, and the skip pill's glyph beside
+    /// it is untouched.
+    private var glyphNudge: CGFloat { progress == nil ? 0 : diameter * 0.025 }
     /// Inside a ring the glyph has to clear the stroke. With no ring it takes the space the ring
     /// would have used, so a prompt with the countdown switched off reads like the skip pill beside
     /// it rather than like a shrunken one.
@@ -143,6 +151,7 @@ struct CountdownRingIcon: View {
             }
             Image(systemName: "play.fill")
                 .font(.system(size: glyphSize))
+                .offset(x: glyphNudge)
         }
         .frame(width: diameter, height: diameter)
     }

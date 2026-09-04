@@ -98,6 +98,19 @@ struct NextEpisodePillTests {
         #expect(NextEpisodeCountdown.ringProgress(remaining: 30, total: 10) == 1)
     }
 
+    /// `play.fill` is centred on its layout box, so inside a ring it reads left of centre: a
+    /// right-pointing triangle's mass sits at its base. Measured against Apple's own
+    /// `play.circle.fill`, whose triangle box sits at +0.033 of the disc diameter, ours was at
+    /// +0.008 on the device. The nudge closes that, and only that, so a value outside this band is
+    /// somebody retuning by eye rather than against the symbol.
+    @Test func theRingGlyphIsNudgedOffItsLayoutBox() throws {
+        let pill = try sourceFile("Sodalite/Player/UI/PlayerActionPill.swift")
+        #expect(pill.contains("diameter * 0.025"))
+        #expect(pill.contains(".offset(x: glyphNudge)"))
+        // Without a ring the glyph stays as SF ships it, matching the skip pill beside it.
+        #expect(pill.contains("progress == nil ? 0 :"))
+    }
+
     // MARK: - One treatment, not two
 
     /// The point of the issue: both pills draw from one chrome. A second inline capsule in the
