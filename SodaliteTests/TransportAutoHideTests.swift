@@ -19,38 +19,35 @@ struct TransportAutoHideTests {
         #expect(!TransportAutoHide.raisesTransport(errorVisible: true, inputLocked: false))
     }
 
-    // MARK: - Music queue auto-hide (Sodalite#110)
+    // MARK: - Music Now Playing chrome auto-hide (Sodalite#110)
 
-    @Test("A paused music queue stays on screen")
-    func pausedQueueSurvivesTheTimer() {
-        #expect(TransportAutoHide.hidesQueue(isPlaying: false, queueCount: 12, queueHasFocus: false) == false)
-        #expect(TransportAutoHide.hidesQueue(isPlaying: true, queueCount: 12, queueHasFocus: false) == true)
+    @Test("Paused music keeps its chrome on screen")
+    func pausedChromeSurvivesTheTimer() {
+        #expect(TransportAutoHide.hidesMusicChrome(isPlaying: false, queueHasFocus: false) == false)
+        #expect(TransportAutoHide.hidesMusicChrome(isPlaying: true, queueHasFocus: false) == true)
     }
 
     @Test("A queue holding focus is never hidden out from under the user")
     func focusedQueueSurvivesTheTimer() {
-        #expect(!TransportAutoHide.hidesQueue(isPlaying: true, queueCount: 12, queueHasFocus: true))
+        #expect(!TransportAutoHide.hidesMusicChrome(isPlaying: true, queueHasFocus: true))
+        #expect(!TransportAutoHide.hidesMusicChrome(isPlaying: false, queueHasFocus: true))
     }
 
-    @Test("A single-track queue has nothing to hide, it is already centered")
-    func singleTrackQueueNeverHides() {
-        #expect(!TransportAutoHide.hidesQueue(isPlaying: true, queueCount: 1, queueHasFocus: false))
-        #expect(!TransportAutoHide.hidesQueue(isPlaying: true, queueCount: 0, queueHasFocus: false))
-        #expect(TransportAutoHide.hidesQueue(isPlaying: true, queueCount: 2, queueHasFocus: false))
-    }
-
-    @Test("The queue rule is the transport rule plus its own two conditions")
-    func queueRuleExtendsTheTransportRule() {
+    @Test("The chrome rule is the transport rule plus the focus clause, nothing else")
+    func chromeRuleExtendsTheTransportRule() {
         for playing in [true, false] {
-            for count in [0, 1, 2, 9] {
-                for focused in [true, false] {
-                    let expected = TransportAutoHide.hides(isPlaying: playing) && count > 1 && !focused
-                    #expect(TransportAutoHide.hidesQueue(isPlaying: playing,
-                                                         queueCount: count,
-                                                         queueHasFocus: focused) == expected)
-                }
+            for focused in [true, false] {
+                let expected = TransportAutoHide.hides(isPlaying: playing) && !focused
+                #expect(TransportAutoHide.hidesMusicChrome(isPlaying: playing,
+                                                           queueHasFocus: focused) == expected)
             }
         }
+    }
+
+    @Test("A single-track album fades its controls too, the queue count is the view's business")
+    func singleTrackAlbumStillHidesItsControls() {
+        // No queue rows means no queue focus, and that is the only extra clause the rule carries.
+        #expect(TransportAutoHide.hidesMusicChrome(isPlaying: true, queueHasFocus: false))
     }
 
     @Test("Both auto-hides count down on the same delay")

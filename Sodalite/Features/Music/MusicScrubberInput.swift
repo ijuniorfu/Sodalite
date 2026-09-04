@@ -8,9 +8,13 @@ import UIKit
 struct MusicScrubberInput: UIViewRepresentable {
     let coordinator: MusicPlaybackCoordinator
     @Binding var isFocused: Bool
+    /// Sodalite#110: while the Now Playing chrome is hidden this bar is invisible but still focusable,
+    /// so it still receives every press. Returns true when the press was spent waking the screen, which
+    /// means it must not also seek, scrub or toggle playback.
+    var wake: () -> Bool = { false }
 
     func makeCoordinator() -> Handler {
-        Handler(playback: coordinator, isFocused: $isFocused)
+        Handler(playback: coordinator, isFocused: $isFocused, wake: wake)
     }
 
     func makeUIView(context: Context) -> ScrubInputView {
@@ -21,6 +25,7 @@ struct MusicScrubberInput: UIViewRepresentable {
 
     func updateUIView(_ uiView: ScrubInputView, context: Context) {
         context.coordinator.playback = coordinator
+        context.coordinator.wake = wake
     }
 
     // MARK: - Gesture target (NSObject for @objc selectors)
@@ -28,28 +33,38 @@ struct MusicScrubberInput: UIViewRepresentable {
     final class Handler: NSObject {
         var playback: MusicPlaybackCoordinator
         let isFocused: Binding<Bool>
+        var wake: () -> Bool
         private var panStartFraction: Double = 0
+        /// A gesture the wake swallowed at `.began` has to stay swallowed: its later `.changed` events
+        /// would otherwise scrub from a `panStartFraction` that was never taken.
+        private var gestureConsumedByWake = false
 
-        init(playback: MusicPlaybackCoordinator, isFocused: Binding<Bool>) {
+        init(playback: MusicPlaybackCoordinator, isFocused: Binding<Bool>, wake: @escaping () -> Bool) {
             self.playback = playback
             self.isFocused = isFocused
+            self.wake = wake
         }
 
-        @objc func leftTapped() { playback.seekSkip(direction: -1) }
-        @objc func rightTapped() { playback.seekSkip(direction: 1) }
+        @objc func leftTapped() { guard !wake() else { return }; playback.seekSkip(direction: -1) }
+        @objc func rightTapped() { guard !wake() else { return }; playback.seekSkip(direction: 1) }
 
         @objc func leftHeld(_ g: UILongPressGestureRecognizer) { handleHold(g, direction: -1) }
         @objc func rightHeld(_ g: UILongPressGestureRecognizer) { handleHold(g, direction: 1) }
 
         private func handleHold(_ g: UILongPressGestureRecognizer, direction: Int) {
             switch g.state {
-            case .began: playback.beginContinuousSeek(direction: direction)
-            case .ended, .cancelled, .failed: playback.endContinuousSeek()
+            case .began:
+                gestureConsumedByWake = wake()
+                guard !gestureConsumedByWake else { return }
+                playback.beginContinuousSeek(direction: direction)
+            case .ended, .cancelled, .failed:
+                playback.endContinuousSeek()
             default: break
             }
         }
 
         @objc func selectTapped() {
+            guard !wake() else { return }
             if playback.isScrubbing {
                 playback.commitScrub()
             } else {
@@ -65,9 +80,12 @@ struct MusicScrubberInput: UIViewRepresentable {
             guard let view = g.view else { return }
             switch g.state {
             case .began:
+                gestureConsumedByWake = wake()
+                guard !gestureConsumedByWake else { return }
                 playback.scrubBegan()
                 panStartFraction = playback.scrubProgress
             case .changed:
+                guard !gestureConsumedByWake else { return }
                 let translation = g.translation(in: view).x
                 playback.scrub(toFraction: panStartFraction + Double(translation / Self.scrubTravelForFullTrack))
             default:

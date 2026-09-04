@@ -23,15 +23,17 @@ enum TransportAutoHide {
 
     static func hides(isPlaying: Bool) -> Bool { isPlaying }
 
-    /// The music Now Playing queue's auto-hide (Sodalite#110), asked at FIRE time for the same reason
-    /// `hides` is, plus one of its own: `queueHasFocus`. The queue rows are focusable, so a hide that
-    /// fired while the user sat on one would delete the focused view and let the focus engine drop the
-    /// user somewhere arbitrary. Answering at fire time means the rule sees where focus actually IS,
-    /// not where it was five seconds ago. `queueCount > 1` is the same condition the queue column
-    /// already draws itself under, restated here so the timer never schedules work for a layout that
-    /// is centered anyway.
-    static func hidesQueue(isPlaying: Bool, queueCount: Int, queueHasFocus: Bool) -> Bool {
-        hides(isPlaying: isPlaying) && queueCount > 1 && !queueHasFocus
+    /// The music Now Playing chrome's auto-hide (Sodalite#110): queue, transport and scrubber together,
+    /// leaving artwork and title. Asked at FIRE time for the same reason `hides` is, plus one of its
+    /// own: `queueHasFocus`. The queue rows are focusable, so a hide that fired while the user sat on
+    /// one would delete the focused view and let the focus engine drop the user somewhere arbitrary.
+    /// Answering at fire time means the rule sees where focus actually IS, not where it was five
+    /// seconds ago. The transport needs no such clause: it stays in the hierarchy at zero opacity
+    /// precisely so it keeps holding focus, which is what a swipe has to move for the chrome to come
+    /// back at all. The queue COUNT is not in here either; a single-track album has no queue column to
+    /// hide but the same controls to fade, and that is the view's condition to draw, not this rule's.
+    static func hidesMusicChrome(isPlaying: Bool, queueHasFocus: Bool) -> Bool {
+        hides(isPlaying: isPlaying) && !queueHasFocus
     }
 
     static func raisesTransport(errorVisible: Bool, inputLocked: Bool) -> Bool {

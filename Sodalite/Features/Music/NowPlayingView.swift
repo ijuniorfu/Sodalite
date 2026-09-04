@@ -33,12 +33,19 @@ private struct NowPlayingContent: View {
     /// its own look, but only the parent can refuse to delete the row the user is standing on.
     @FocusState private var queueFocus: String?
 
-    /// tvOS only: the queue column's idle auto-hide. It starts revealed and stays revealed forever on
-    /// every other platform, where nothing ever schedules the timer.
-    @State private var queueRevealed = true
-    @State private var queueHideTask: Task<Void, Never>?
+    /// tvOS only: the idle auto-hide for the whole chrome (queue, transport, scrubber). It starts
+    /// revealed and stays revealed forever on every other platform, where nothing schedules the timer.
+    @State private var chromeRevealed = true
+    @State private var chromeHideTask: Task<Void, Never>?
 
-    private static let queueSwap = Animation.easeInOut(duration: 0.35)
+    private static let chromeSwap = Animation.easeInOut(duration: 0.35)
+
+    /// Room a focused queue row needs on each side. A `ScrollView` clips to its own bounds, and a row
+    /// fills the column exactly, so `QueueRow`'s focus `scaleEffect(1.015)` pushed its left edge, tinted
+    /// stroke and shadow straight into that clip. Inset the column's content instead of widening the
+    /// scroll area: the header stays aligned with the rows, which a negative padding on the ScrollView
+    /// alone would have broken. 20pt covers the ~8pt overhang plus the shadow's blur.
+    private static let focusOverhang: CGFloat = 20
 
     var body: some View {
         ZStack {
@@ -85,65 +92,79 @@ private struct NowPlayingContent: View {
         }
         .onAppear {
             transportFocus = .playPause
-            scheduleQueueHide()
+            scheduleChromeHide()
         }
         // The timer must not outlive the view.
         .onDisappear {
-            queueHideTask?.cancel()
+            chromeHideTask?.cancel()
         }
         // Reveal triggers. Focus is the load-bearing one: `.onMoveCommand` only fires when NO focusable
         // view consumes the directional move, and this screen is nothing but focusable views, so the
         // focus engine would eat almost every swipe. A swipe that moves focus lands here instead.
-        .onChange(of: transportFocus) { _, _ in revealQueue() }
-        .onChange(of: queueFocus) { _, _ in revealQueue() }
+        .onChange(of: transportFocus) { _, _ in revealChrome() }
+        .onChange(of: queueFocus) { _, _ in revealChrome() }
         // Scrub focus catches ENTRY only; scrubProgress keeps a pan that continues on an already
         // focused scrubber counting for its whole duration.
-        .onChange(of: coordinator.isScrubbing) { _, _ in revealQueue() }
-        .onChange(of: coordinator.scrubProgress) { _, _ in revealQueue() }
+        .onChange(of: coordinator.isScrubbing) { _, _ in revealChrome() }
+        .onChange(of: coordinator.scrubProgress) { _, _ in revealChrome() }
         // A new track is news, and a pause raises the queue the same way it raises the video transport.
-        .onChange(of: coordinator.currentItem?.id) { _, _ in revealQueue() }
-        .onChange(of: coordinator.isPlaying) { _, _ in revealQueue() }
+        .onChange(of: coordinator.currentItem?.id) { _, _ in revealChrome() }
+        .onChange(of: coordinator.isPlaying) { _, _ in revealChrome() }
     }
 
-    // MARK: - Queue auto-hide (Sodalite#110)
+    // MARK: - Chrome auto-hide (Sodalite#110)
 
     /// The two-column layout needs a queue worth showing. Gating it on `queue.count > 1` also centers a
     /// SINGLE-track album with the auto-hide idle, which is deliberate: that album's right column was
     /// only ever the metadata over an empty list, and centering is the look this whole feature is after.
     private var showsQueueColumn: Bool {
-        coordinator.queue.count > 1 && queueRevealed
+        coordinator.queue.count > 1 && chromeRevealed
     }
 
-    /// Bring the queue back and restart the idle countdown. Cheap enough to call on every pan delta.
-    private func revealQueue() {
+    /// Bring the chrome back and restart the idle countdown. Cheap enough to call on every pan delta.
+    private func revealChrome() {
         #if os(tvOS)
-        if !queueRevealed {
-            withAnimation(Self.queueSwap) { queueRevealed = true }
+        if !chromeRevealed {
+            withAnimation(Self.chromeSwap) { chromeRevealed = true }
         }
-        scheduleQueueHide()
+        scheduleChromeHide()
+        #endif
+    }
+
+    /// The gate every control activation goes through while the chrome can be hidden. Returns true when
+    /// the press was spent waking the screen, and the caller must then NOT also act on it: the transport
+    /// stays focusable behind zero opacity, so a Select on the invisible Play button would otherwise
+    /// pause the music the user was only trying to look at.
+    @discardableResult
+    private func wakeChrome() -> Bool {
+        #if os(tvOS)
+        let wasHidden = !chromeRevealed
+        revealChrome()
+        return wasHidden
+        #else
+        return false
         #endif
     }
 
     /// tvOS only. iPhone never reaches the two-column layout at all, and on iPad the reveal side of the
     /// deal does not exist: there is no focus engine, so the only ways back would be tapping a transport
-    /// button (which pauses) or dragging the scrubber (which seeks). A queue that hides itself with no
+    /// button (which pauses) or dragging the scrubber (which seeks). Chrome that hides itself with no
     /// harmless way to bring it back is a trap, and the request is for Apple Music's tvOS behaviour.
-    private func scheduleQueueHide() {
+    private func scheduleChromeHide() {
         #if os(tvOS)
-        queueHideTask?.cancel()
-        queueHideTask = Task { @MainActor in
+        chromeHideTask?.cancel()
+        chromeHideTask = Task { @MainActor in
             try? await Task.sleep(for: TransportAutoHide.idleDelay)
             guard !Task.isCancelled else { return }
-            hideQueueIfIdle()
+            hideChromeIfIdle()
         }
         #endif
     }
 
-    private func hideQueueIfIdle() {
-        guard TransportAutoHide.hidesQueue(isPlaying: coordinator.isPlaying,
-                                           queueCount: coordinator.queue.count,
-                                           queueHasFocus: queueFocus != nil) else { return }
-        withAnimation(Self.queueSwap) { queueRevealed = false }
+    private func hideChromeIfIdle() {
+        guard TransportAutoHide.hidesMusicChrome(isPlaying: coordinator.isPlaying,
+                                                 queueHasFocus: queueFocus != nil) else { return }
+        withAnimation(Self.chromeSwap) { chromeRevealed = false }
     }
 
     // MARK: - Layout
@@ -182,16 +203,26 @@ private struct NowPlayingContent: View {
                         trackMetadata(centered: true)
                             .transition(.opacity)
                     }
-                    transportRow
-                    progressRow
+                    // Faded, NOT removed. The transport is the only thing left holding focus once the
+                    // queue is gone, and a swipe that moves focus is what brings the chrome back; take
+                    // these out of the hierarchy and the focus engine has no target and no swipe to
+                    // read. `wakeChrome()` in each action keeps the invisible buttons from acting.
+                    VStack(spacing: 32) {
+                        transportRow
+                        progressRow
+                    }
+                    .opacity(chromeRevealed ? 1 : 0)
+                    .animation(Self.chromeSwap, value: chromeRevealed)
                 }
                 .frame(width: wideColumnWidth)
 
                 if showsQueueColumn {
                     VStack(alignment: .leading, spacing: 28) {
                         trackMetadata(centered: false)
+                            .padding(.horizontal, Self.focusOverhang)
                         ScrollView(.vertical, showsIndicators: false) {
                             queueList
+                                .padding(.horizontal, Self.focusOverhang)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -200,7 +231,7 @@ private struct NowPlayingContent: View {
             }
             .padding(.horizontal, contentHPadding)
             .padding(.vertical, contentVPadding)
-            .animation(Self.queueSwap, value: showsQueueColumn)
+            .animation(Self.chromeSwap, value: showsQueueColumn)
         }
     }
 
@@ -342,7 +373,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isDisabled: !coordinator.hasPrevious
             ) {
-                revealQueue()
+                guard !wakeChrome() else { return }
                 coordinator.previous()
             }
 
@@ -353,7 +384,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isLarge: true
             ) {
-                revealQueue()
+                guard !wakeChrome() else { return }
                 coordinator.togglePlayPause()
             }
 
@@ -363,7 +394,7 @@ private struct NowPlayingContent: View {
                 transportFocus: $transportFocus,
                 isDisabled: !coordinator.hasNext
             ) {
-                revealQueue()
+                guard !wakeChrome() else { return }
                 coordinator.next()
             }
         }
@@ -374,7 +405,9 @@ private struct NowPlayingContent: View {
     private var progressRow: some View {
         // Scrub FOCUS lives inside ScrubBar (the UIKit input layer reports it there); the pan itself
         // reaches the parent as scrubProgress. Both have to count as activity.
-        ScrubBar(coordinator: coordinator, onFocusChange: { _ in revealQueue() })
+        ScrubBar(coordinator: coordinator,
+                 onFocusChange: { _ in revealChrome() },
+                 wake: { wakeChrome() })
     }
 
     // MARK: - Queue list
@@ -394,7 +427,7 @@ private struct NowPlayingContent: View {
                             isPlaying: coordinator.isPlaying,
                             queueFocus: $queueFocus,
                             onSelect: {
-                                revealQueue()
+                                revealChrome()
                                 // Switch within the same queue, keeping the album/playlist context.
                                 coordinator.skip(toQueueIndex: index)
                             }
@@ -475,6 +508,8 @@ private struct TransportIconButton: View {
 private struct ScrubBar: View {
     let coordinator: MusicPlaybackCoordinator
     var onFocusChange: (Bool) -> Void = { _ in }
+    /// Returns true when the press only woke the chrome, so the input layer must swallow it.
+    var wake: () -> Bool = { false }
 
     @State private var isFocused = false
 
@@ -544,7 +579,7 @@ private struct ScrubBar: View {
         }
         #if os(tvOS)
         .overlay(
-            MusicScrubberInput(coordinator: coordinator, isFocused: $isFocused)
+            MusicScrubberInput(coordinator: coordinator, isFocused: $isFocused, wake: wake)
         )
         #endif
         .scaleEffect(isFocused ? 1.02 : 1.0)
