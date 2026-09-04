@@ -101984,157 +101984,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyžadovat PIN k opuštění chráněného profilu"
+            "value" : "Vyžadovat PIN pro otevření nebo opuštění vybraných profilů"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kræv en PIN-kode for at forlade en beskyttet profil"
+            "value" : "Kræv en PIN-kode for at åbne eller forlade valgte profiler"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PIN zum Verlassen eines geschützten Profils verlangen"
+            "value" : "PIN zum Öffnen oder Verlassen ausgewählter Profile verlangen"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Απαιτείται PIN για την έξοδο από προστατευμένο προφίλ"
+            "value" : "Απαιτείται PIN για το άνοιγμα ή την έξοδο από επιλεγμένα προφίλ"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Require a PIN to leave a protected profile"
+            "value" : "Require a PIN to open or to leave chosen profiles"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solicitar un PIN para salir de un perfil protegido"
+            "value" : "Solicitar un PIN para abrir o salir de los perfiles elegidos"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vaadi PIN-koodi suojatusta profiilista poistumiseen"
+            "value" : "Vaadi PIN-koodi valittujen profiilien avaamiseen tai niistä poistumiseen"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exiger un code PIN pour quitter un profil protégé"
+            "value" : "Exiger un code PIN pour ouvrir ou quitter les profils choisis"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zahtijevajte PIN za napuštanje zaštićenog profila"
+            "value" : "Zahtijevajte PIN za otvaranje ili napuštanje odabranih profila"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PIN-kód kérése a védett profilból való kilépéshez"
+            "value" : "PIN-kód kérése a kiválasztott profilok megnyitásához vagy elhagyásához"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Richiedi un PIN per uscire da un profilo protetto"
+            "value" : "Richiedi un PIN per aprire o uscire dai profili scelti"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保護されたプロファイルから出るときにPINを要求"
+            "value" : "選んだプロファイルを開くとき、または出るときにPINを要求"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "보호된 프로필을 벗어날 때 PIN 요구"
+            "value" : "선택한 프로필을 열거나 벗어날 때 PIN 요구"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Krev en PIN-kode for å forlate en beskyttet profil"
+            "value" : "Krev en PIN-kode for å åpne eller forlate valgte profiler"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vraag een pincode om een beveiligd profiel te verlaten"
+            "value" : "Vraag een pincode om gekozen profielen te openen of te verlaten"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wymagaj kodu PIN, aby opuścić chroniony profil"
+            "value" : "Wymagaj kodu PIN, aby otworzyć lub opuścić wybrane profile"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exigir um PIN para sair de um perfil protegido"
+            "value" : "Exigir um PIN para abrir ou sair dos perfis escolhidos"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exigir um PIN para sair de um perfil protegido"
+            "value" : "Exigir um PIN para abrir ou sair dos perfis escolhidos"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solicită un cod PIN pentru a părăsi un profil protejat"
+            "value" : "Solicită un cod PIN pentru a deschide sau a părăsi profilurile alese"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запрашивать PIN-код для выхода из защищённого профиля"
+            "value" : "Запрашивать PIN-код для входа в выбранные профили или выхода из них"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyžadovať PIN na opustenie chráneného profilu"
+            "value" : "Vyžadovať PIN na otvorenie alebo opustenie vybraných profilov"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kräv en PIN-kod för att lämna en skyddad profil"
+            "value" : "Kräv en PIN-kod för att öppna eller lämna valda profiler"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Korumalı bir profilden çıkmak için PIN iste"
+            "value" : "Seçilen profilleri açmak veya bunlardan çıkmak için PIN iste"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вимагати PIN-код для виходу із захищеного профілю"
+            "value" : "Вимагати PIN-код для відкриття вибраних профілів або виходу з них"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "离开受保护的配置文件时需要 PIN 码"
+            "value" : "打开或离开所选配置文件时需要 PIN 码"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "離開受保護的設定檔時需要 PIN 碼"
+            "value" : "開啟或離開所選設定檔時需要 PIN 碼"
           }
         }
       }
@@ -103910,6 +103910,167 @@
         }
       }
     },
+    "parental.pin.unlock.enterProfile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro otevření tohoto profilu zadejte PIN"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indtast PIN-kode for at åbne denne profil"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN eingeben, um dieses Profil zu öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εισαγάγετε το PIN για να ανοίξετε αυτό το προφίλ"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter PIN to open this profile"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el PIN para abrir este perfil"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anna PIN-koodi avataksesi tämän profiilin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez le code PIN pour ouvrir ce profil"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unesite PIN za otvaranje ovog profila"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add meg a PIN-kódot a profil megnyitásához"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inserisci il PIN per aprire questo profilo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このプロファイルを開くにはPINを入力"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 프로필을 열려면 PIN을 입력하세요"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skriv inn PIN-koden for å åpne denne profilen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voer de pincode in om dit profiel te openen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wprowadź PIN, aby otworzyć ten profil"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Digite o PIN para abrir este perfil"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduza o PIN para abrir este perfil"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introdu codul PIN pentru a deschide acest profil"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите PIN-код, чтобы открыть этот профиль"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadajte PIN na otvorenie tohto profilu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange PIN-koden för att öppna den här profilen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu profili açmak için PIN girin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введіть PIN-код, щоб відкрити цей профіль"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入 PIN 码以打开此配置文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入 PIN 碼以開啟此設定檔"
+          }
+        }
+      }
+    },
     "parental.pin.unlock.logout" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -104882,157 +105043,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyžadovat PIN k opuštění tohoto profilu"
+            "value" : "Jak se na tento profil vztahuje rodičovský PIN"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kræv PIN-koden for at forlade denne profil"
+            "value" : "Hvordan forælder-PIN-koden gælder for denne profil"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PIN zum Verlassen dieses Profils verlangen"
+            "value" : "Wie die Eltern-PIN für dieses Profil gilt"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Απαιτείται το PIN για έξοδο από αυτό το προφίλ"
+            "value" : "Πώς ισχύει το PIN κηδεμόνα για αυτό το προφίλ"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Require the PIN to leave this profile"
+            "value" : "How the Guardian PIN applies to this profile"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solicitar el PIN para salir de este perfil"
+            "value" : "Cómo se aplica el PIN de tutor a este perfil"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vaadi PIN-koodi tästä profiilista poistumiseen"
+            "value" : "Miten huoltajan PIN koskee tätä profiilia"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exiger le code PIN pour quitter ce profil"
+            "value" : "Comment le code PIN parental s'applique à ce profil"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zahtijevaj PIN za napuštanje ovog profila"
+            "value" : "Kako se PIN skrbnika primjenjuje na ovaj profil"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PIN-kód kérése a profilból való kilépéshez"
+            "value" : "Hogyan vonatkozik a szülői PIN erre a profilra"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Richiedi il PIN per uscire da questo profilo"
+            "value" : "Come si applica il PIN del tutore a questo profilo"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このプロファイルから出るときにPINを要求"
+            "value" : "このプロファイルへの保護者用PINの適用"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 프로필을 벗어날 때 PIN 요구"
+            "value" : "이 프로필에 보호자 PIN이 적용되는 방식"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Krev PIN-koden for å forlate denne profilen"
+            "value" : "Hvordan foresatt-PIN-koden gjelder for denne profilen"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vraag de pincode om dit profiel te verlaten"
+            "value" : "Hoe de ouderpincode voor dit profiel geldt"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wymagaj kodu PIN, aby opuścić ten profil"
+            "value" : "Jak PIN opiekuna dotyczy tego profilu"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exigir o PIN para sair deste perfil"
+            "value" : "Como o PIN do responsável se aplica a este perfil"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exigir o PIN para sair deste perfil"
+            "value" : "Como o PIN do responsável se aplica a este perfil"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Solicită codul PIN pentru a părăsi acest profil"
+            "value" : "Cum se aplică codul PIN tutore acestui profil"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Запрашивать PIN-код для выхода из этого профиля"
+            "value" : "Как родительский PIN-код применяется к этому профилю"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyžadovať PIN na opustenie tohto profilu"
+            "value" : "Ako sa rodičovský PIN vzťahuje na tento profil"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kräv PIN-koden för att lämna den här profilen"
+            "value" : "Hur förälder-PIN-koden gäller för den här profilen"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bu profilden çıkmak için PIN iste"
+            "value" : "Veli PIN'inin bu profile nasıl uygulandığı"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вимагати PIN-код для виходу з цього профілю"
+            "value" : "Як PIN опікуна застосовується до цього профілю"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "离开此配置文件时需要 PIN 码"
+            "value" : "家长 PIN 码对此配置文件的适用方式"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "離開此設定檔時需要 PIN 碼"
+            "value" : "家長 PIN 碼對此設定檔的適用方式"
           }
         }
       }
@@ -105194,6 +105355,489 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已保護"
+          }
+        }
+      }
+    },
+    "parental.profile.role.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otevřeno"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åben"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ανοικτό"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abierto"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvert"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvoreno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nyitott"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保護なし"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "열림"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åpen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otwarty"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aberto"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aberto"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deschis"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыт"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvorený"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açık"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкрито"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开放"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開放"
+          }
+        }
+      }
+    },
+    "parental.profile.role.pinToEnter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN pro vstup"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN for at åbne"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN zum Öffnen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN για είσοδο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN to Enter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN para entrar"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN avaamiseen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN pour ouvrir"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN za ulaz"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN a belépéshez"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN per entrare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開くにPIN"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "열 때 PIN"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN for å åpne"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pincode om te openen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN, aby wejść"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN para entrar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN para entrar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN pentru intrare"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN для входа"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN na vstup"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN för att öppna"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Girmek için PIN"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN для входу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入需 PIN"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進入需 PIN"
+          }
+        }
+      }
+    },
+    "parental.profile.role.pinToLeave" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN pro odchod"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN for at forlade"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN zum Verlassen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN για έξοδο"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN to Leave"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN para salir"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN poistumiseen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN pour quitter"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN za izlaz"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN a kilépéshez"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN per uscire"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出にPIN"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "나갈 때 PIN"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN for å forlate"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pincode om te verlaten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN, aby wyjść"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN para sair"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN para sair"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN pentru ieșire"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN для выхода"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN na odchod"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN för att lämna"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çıkmak için PIN"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PIN для виходу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离开需 PIN"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "離開需 PIN"
           }
         }
       }
@@ -105365,157 +106009,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chráněné profily vyžadují PIN k přepnutí, odhlášení nebo otevření nastavení"
+            "value" : "U každého profilu zvolte, zda je PIN potřeba k jeho otevření, nebo k odchodu z něj"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beskyttede profiler kræver PIN-koden for at skifte væk, logge ud eller åbne indstillinger"
+            "value" : "Vælg for hver profil, om PIN-koden kræves for at åbne den eller for at forlade den"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geschützte Profile benötigen die PIN zum Wechseln, Abmelden oder Öffnen der Einstellungen"
+            "value" : "Pro Profil festlegen, ob die PIN zum Öffnen oder zum Verlassen nötig ist"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Τα προστατευμένα προφίλ χρειάζονται το PIN για εναλλαγή, αποσύνδεση ή άνοιγμα ρυθμίσεων"
+            "value" : "Επιλέξτε ανά προφίλ αν χρειάζεται το PIN για να το ανοίξετε ή για να το εγκαταλείψετε"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protected profiles need the PIN to switch away, log out, or open settings"
+            "value" : "Choose per profile whether the PIN is needed to open it, or to leave it"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los perfiles protegidos necesitan el PIN para cambiar de perfil, cerrar sesión o abrir los ajustes"
+            "value" : "Elige en cada perfil si el PIN hace falta para abrirlo o para salir de él"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suojatut profiilit vaativat PIN-koodin profiilin vaihtoon, uloskirjautumiseen tai asetusten avaamiseen"
+            "value" : "Valitse profiilikohtaisesti, tarvitaanko PIN-koodi sen avaamiseen vai siitä poistumiseen"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les profils protégés nécessitent le code PIN pour en changer, se déconnecter ou ouvrir les réglages"
+            "value" : "Choisissez pour chaque profil si le code PIN est requis pour l'ouvrir ou pour le quitter"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaštićeni profili trebaju PIN za promjenu profila, odjavu ili otvaranje postavki"
+            "value" : "Za svaki profil odaberite je li PIN potreban za otvaranje ili za izlaz"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A védett profilok PIN-kódot igényelnek a profilváltáshoz, kijelentkezéshez vagy a beállítások megnyitásához"
+            "value" : "Profilonként add meg, hogy a PIN-kód a megnyitáshoz vagy a kilépéshez kell"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I profili protetti richiedono il PIN per cambiare profilo, disconnettersi o aprire le impostazioni"
+            "value" : "Scegli per ogni profilo se il PIN serve per aprirlo o per uscirne"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保護されたプロファイルでは、切り替え、サインアウト、設定を開くときにPINが必要です"
+            "value" : "プロファイルごとに、開くときにPINが必要か、出るときに必要かを選びます"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "보호된 프로필은 전환, 로그아웃 또는 설정을 열 때 PIN이 필요합니다"
+            "value" : "프로필마다 PIN이 열 때 필요한지, 나갈 때 필요한지 선택하세요"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beskyttede profiler krever PIN-koden for å bytte, logge ut eller åpne innstillinger"
+            "value" : "Velg per profil om PIN-koden kreves for å åpne den eller for å forlate den"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beveiligde profielen hebben de pincode nodig om te wisselen, uit te loggen of de instellingen te openen"
+            "value" : "Kies per profiel of de pincode nodig is om het te openen of om het te verlaten"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chronione profile wymagają kodu PIN, aby je przełączyć, wylogować się lub otworzyć ustawienia"
+            "value" : "Wybierz dla każdego profilu, czy PIN jest potrzebny do jego otwarcia, czy do wyjścia z niego"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os perfis protegidos exigem o PIN para trocar de perfil, sair ou abrir as configurações"
+            "value" : "Escolha em cada perfil se o PIN é necessário para abri-lo ou para sair dele"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os perfis protegidos exigem o PIN para mudar de perfil, terminar sessão ou abrir as definições"
+            "value" : "Escolha em cada perfil se o PIN é necessário para o abrir ou para sair dele"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profilurile protejate necesită codul PIN pentru a schimba profilul, a te deconecta sau a deschide setările"
+            "value" : "Alege pentru fiecare profil dacă este nevoie de codul PIN ca să îl deschizi sau ca să îl părăsești"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Для защищённых профилей нужен PIN-код, чтобы сменить профиль, выйти или открыть настройки"
+            "value" : "Для каждого профиля выберите, нужен ли PIN-код для входа в него или для выхода из него"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chránené profily vyžadujú PIN na prepnutie, odhlásenie alebo otvorenie nastavení"
+            "value" : "Pri každom profile zvoľte, či je PIN potrebný na jeho otvorenie alebo na odchod z neho"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skyddade profiler kräver PIN-koden för att byta, logga ut eller öppna inställningarna"
+            "value" : "Välj för varje profil om PIN-koden krävs för att öppna den eller för att lämna den"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Korumalı profiller başka profile geçmek, çıkış yapmak veya ayarları açmak için PIN gerektirir"
+            "value" : "Her profil için PIN'in profili açmak mı yoksa profilden çıkmak için mi gerektiğini seçin"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Захищені профілі потребують PIN-коду для перемикання, виходу або відкриття налаштувань"
+            "value" : "Для кожного профілю виберіть, чи потрібен PIN-код для його відкриття, чи для виходу з нього"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "受保护的配置文件需要 PIN 码才能切换、退出登录或打开设置"
+            "value" : "为每个配置文件选择:打开时需要 PIN 码,还是离开时需要"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "受保護的設定檔需要 PIN 碼才能切換、登出或開啟設定"
+            "value" : "為每個設定檔選擇:開啟時需要 PIN 碼,還是離開時需要"
           }
         }
       }
