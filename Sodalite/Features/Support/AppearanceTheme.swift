@@ -60,6 +60,17 @@ struct RGBColor: Equatable, Sendable {
         return (high + 0.05) / (low + 0.05)
     }
 
+    static let white = RGBColor(hex: 0xFFFFFF)
+    static let black = RGBColor(hex: 0x000000)
+
+    /// What stays legible drawn on top of this colour. The threshold is not a taste value: white
+    /// on a fill of relative luminance L scores 1.05 / (L + 0.05), which is exactly 3:1 at
+    /// L = 0.30. Below it the app keeps its white label, at or above it the glyph goes dark and
+    /// scores 7:1 or better, so the floor holds for any colour and not just today's catalog.
+    var legibleForeground: RGBColor {
+        relativeLuminance >= 0.30 ? .black : .white
+    }
+
     private var relativeLuminance: Double {
         func linear(_ value: Double) -> Double {
             value <= 0.04045
@@ -76,6 +87,10 @@ struct AccentPalette: Equatable, Sendable {
     let control: RGBColor
     let navigation: RGBColor
     let focus: RGBColor
+
+    /// What a label or glyph drawn on a `control` fill is painted in. Derived from the fill instead
+    /// of authored per preset, so a new accent cannot ship without one.
+    var foreground: RGBColor { control.legibleForeground }
 }
 
 enum AccentPreset: String, CaseIterable, Identifiable, Sendable {

@@ -7,6 +7,7 @@ struct LoginView: View {
     @State private var showQuickConnect = false
     @State private var showSuccess = false
     #if os(iOS)
+    @Environment(\.appearanceTheme) private var appearanceTheme
     @State private var promptServer: JellyfinServer?
     @State private var showAddURLDialog = false
     @State private var showAddURLSheet = false
@@ -98,7 +99,7 @@ struct LoginView: View {
                     } label: {
                         Text("multiServer.addURL.dialog.add", bundle: .main)
                             .font(.headline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(appearanceTheme.palette.foreground.color)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                             .background(.tint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
