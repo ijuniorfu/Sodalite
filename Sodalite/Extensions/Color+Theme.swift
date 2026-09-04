@@ -35,7 +35,8 @@ extension Color {
         /// otherwise sit below the rest of the app.
         static let focusFill = Color.white.opacity(0.15)
         /// Resting ground of a control whose focus state is the tint. This is the only thing white
-        /// at 0.12 means as a fill, so a new one at that level is either this or a mistake.
+        /// at 0.12 means as a FILL, so a new one at that level is either this or a mistake.
+        /// ``panelEdge`` shares the number and is a stroke; they are tuned separately on purpose.
         static let restFillStrong = Color.white.opacity(0.12)
         /// Resting or selected ground of a control whose focus state is white; also the static
         /// ground of a chip or panel that does not take focus at all.
@@ -44,11 +45,25 @@ extension Color {
         static let restFillFaint = Color.white.opacity(0.04)
 
         // MARK: Strokes
+        //
+        // Two edges, because a 1pt white hairline does two different jobs and only one of them can
+        // see the value it is given. Rendered over eight cases (`ImageRenderer` sheet, 2026-09-04):
+        // against bright content the stroke is invisible at every level between 0.08 and 0.18, so
+        // brightness there is free; against a panel it is visible throughout, so that is where the
+        // level is actually a decision.
 
-        /// 1pt outline on a control that is not focused (transport buttons, accent swatches,
-        /// poster badges). Only the dominant value is tokenised; the codebase also carries
-        /// outlines at 0.08, 0.12, 0.15 and 0.16 that nobody has picked between yet.
+        /// Edge around CONTENT the app cannot predict: a scrub thumbnail, an accent swatch, an
+        /// avatar, a badge on artwork. Bright, because its failure case is a dark subject on a dark
+        /// page, where this stroke is the only thing separating the two, and because the bright case
+        /// that would punish a bright stroke swallows it at any level anyway.
         static let hairline = Color.white.opacity(0.18)
+
+        /// Edge around a KNOWN dark or frosted panel. Quieter than `hairline`, but not as quiet as
+        /// the 0.08 three of these used to carry: a material lightens what is behind it, which
+        /// compresses a white stroke, and over video 0.08 came to a luminance step of 0.033 against
+        /// its own fill, which is nothing. This lands at 0.049 there and reads as an edge without
+        /// outlining the card.
+        static let panelEdge = Color.white.opacity(0.12)
 
         // MARK: Scrims
         //

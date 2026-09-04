@@ -208,7 +208,7 @@ struct AppearanceSettingsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 7))
                     .overlay {
                         RoundedRectangle(cornerRadius: 7)
-                            .stroke(.white.opacity(0.16), lineWidth: 1)
+                            .stroke(Color.Theme.hairline, lineWidth: 1)
                     }
                 }
             }

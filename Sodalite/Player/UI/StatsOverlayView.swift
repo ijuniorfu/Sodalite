@@ -174,7 +174,7 @@ struct StatsOverlayView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
-                .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.4), radius: 18, y: 6)
         .task {

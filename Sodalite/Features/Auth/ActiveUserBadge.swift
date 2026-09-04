@@ -57,7 +57,7 @@ struct ActiveUserBadge: View {
         // .ultraThinMaterial matches the detail-view frosted bubbles: more presence than plain white, lighter than .regularMaterial (read too dark).
         .background(Capsule().fill(.ultraThinMaterial))
         .overlay(
-            Capsule().strokeBorder(.white.opacity(0.12), lineWidth: 1)
+            Capsule().strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
         // Width-cap + right-anchor: long names truncate instead of growing left into the tab-bar pills.
@@ -87,7 +87,7 @@ struct ActiveUserBadge: View {
             }
         }
         .overlay(
-            Circle().strokeBorder(.white.opacity(0.15), lineWidth: 1)
+            Circle().strokeBorder(Color.Theme.hairline, lineWidth: 1)
         )
     }
 

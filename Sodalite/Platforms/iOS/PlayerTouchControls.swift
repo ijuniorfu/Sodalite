@@ -366,7 +366,7 @@ struct PlayerTouchControls: View {
             .frame(maxHeight: min(CGFloat(panelRows.count) * rowHeight, 280))
             .frame(maxWidth: hasThumbs ? (isPad ? 520 : 420) : (isPad ? 420 : 320))
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.12), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.Theme.panelEdge, lineWidth: 1))
             .padding(.bottom, isPad ? 150 : 120)
         }
         .transition(.opacity)

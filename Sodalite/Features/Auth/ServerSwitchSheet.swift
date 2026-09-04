@@ -98,7 +98,7 @@ private struct ServerRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -130,7 +130,7 @@ private struct AddServerRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
