@@ -336,7 +336,7 @@ struct PlayerOverlayView: View {
         // A portrait phone has less width than the stack wants; the pill hugs its label either way,
         // the frame only bounds the metadata line's truncation.
         let width = min(metrics.stackWidth, screen.width - marginX * 2)
-        return nextEpisodePillButton(for: episode, width: width, metrics: metrics)
+        return nextEpisodePillButton(for: episode, width: width, screen: screen, marginX: marginX, metrics: metrics)
             .position(
                 x: screen.width - width / 2 - marginX,
                 y: screen.height - metrics.stackHeight / 2 - marginY
@@ -350,7 +350,7 @@ struct PlayerOverlayView: View {
     }
 
     @ViewBuilder
-    private func nextEpisodePillButton(for episode: JellyfinItem, width: CGFloat, metrics: PlayerPillMetrics) -> some View {
+    private func nextEpisodePillButton(for episode: JellyfinItem, width: CGFloat, screen: CGSize, marginX: CGFloat, metrics: PlayerPillMetrics) -> some View {
         let pill = NextEpisodePill(
             title: nextEpisodeLabel(for: episode),
             metadata: nextEpisodeMetadata(for: episode),
@@ -358,6 +358,8 @@ struct PlayerOverlayView: View {
                 remaining: viewModel.isCountdownActive ? viewModel.nextEpisodeCountdown : 0,
                 total: viewModel.nextEpisodeCountdownTotal),
             width: width,
+            // The line may grow left across the whole usable width before it ever truncates.
+            metadataMaxWidth: max(width, screen.width - marginX * 2),
             metrics: metrics
         )
         #if os(iOS)

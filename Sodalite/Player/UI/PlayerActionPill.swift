@@ -201,13 +201,13 @@ enum NextEpisodeCountdown {
     }
 }
 
-/// The next-episode prompt: a fixed-chrome pill with the metadata line above it, both trailing
-/// aligned (Sodalite#103).
+/// The next-episode prompt: a fixed-chrome pill with the episode metadata on a line above it
+/// (Sodalite#103).
 ///
 /// The metadata is a separate label rather than pill content because it is the only part whose width
 /// varies per episode: folded into the label it would run past twice the width of the card it
 /// replaces on a long title, and change width every episode. Outside it, the pill stays one size and
-/// the title truncates.
+/// the line can be as long as the name it carries.
 ///
 /// Takes plain values, not a `JellyfinItem`, so the whole surface renders on a Mac.
 struct NextEpisodePill: View {
@@ -215,42 +215,96 @@ struct NextEpisodePill: View {
     /// `S2, E4 · Plates, plates, plates`, or nil for a movie reached through a shuffle queue.
     let metadata: String?
     let countdownProgress: Double?
-    /// Frame the stack is trailing-aligned in. Normally `metrics.stackWidth`; a portrait phone
-    /// clamps it to what is left beside the margins.
+    /// Frame the pill is trailing-aligned in. Normally `metrics.stackWidth`; a portrait phone clamps
+    /// it to what is left beside the margins.
     let width: CGFloat
+    /// The last resort for the metadata line: the usable width between the two screen margins. The
+    /// line grows LEFT into it rather than truncating, so the only thing that can still cut an
+    /// episode name off is the far edge of the screen.
+    let metadataMaxWidth: CGFloat
     var metrics: PlayerPillMetrics = .current
+
+    @State private var pillWidth: CGFloat = 0
+    @State private var lineWidth: CGFloat = 0
+
+    /// The line is centred on the BUTTON while it fits the button plus its overhang. Past that it
+    /// slides left instead of shrinking: the episode name is the part the viewer is reading, and
+    /// there is empty video to the left of the prompt where there is a screen edge to its right.
+    private var lineOffset: CGFloat {
+        let budget = pillWidth + metrics.metadataOverhang * 2
+        guard pillWidth > 0, lineWidth > budget else { return 0 }
+        return -(min(lineWidth, metadataMaxWidth) - budget) / 2
+    }
+
+    /// nil until the hidden copy has been measured, so the first frame lays out intrinsically rather
+    /// than collapsing the line to nothing.
+    private var lineFrameWidth: CGFloat? {
+        lineWidth > 0 ? min(lineWidth, metadataMaxWidth) : nil
+    }
 
     var body: some View {
         PlayerPillLabel(title: title, metrics: metrics) {
             CountdownRingIcon(progress: countdownProgress, diameter: metrics.ringDiameter)
         }
         .playerGlassPill(metrics: metrics)
-        // Centred on the PILL, not on the frame, and carried as an overlay so it cannot push the
-        // pill off its anchor: a stack would size to the wider of the two, and the pill would then
-        // drift away from the trailing margin by half the title's overhang, differently every
-        // episode. The overlay is proposed the pill's width, so the line centres over the button and
-        // truncates at its edges instead of reaching into the screen margin.
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: PillWidthKey.self, value: geo.size.width)
+            }
+        )
+        // Carried as an overlay rather than as a stack sibling so it cannot push the pill off its
+        // anchor: a stack sizes to the wider of the two, and the pill would drift away from the
+        // trailing margin by half the title's overhang, differently every episode. The two pills
+        // share that margin, which is the point of the issue.
         .overlay(alignment: .top) {
             if let metadata {
-                Text(metadata)
-                    .font(metrics.metadataFont)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    // The card put this text on a material; here it sits on the video itself, so it
-                    // carries its own separation. Tuned against a bright frame, where a plain white
-                    // line disappears (ImageRenderer sheet, 2026-09-04).
-                    .shadow(color: .black.opacity(0.75), radius: 6, y: 2)
-                    .frame(maxWidth: .infinity)
-                    // The overlay is proposed the PILL's width; negative padding widens that
-                    // proposal symmetrically, so the line still centres on the button but is no
-                    // longer bounded by it. See `metadataOverhang`.
-                    .padding(.horizontal, -metrics.metadataOverhang)
-                    .offset(y: -(metrics.metadataLineHeight + metrics.stackSpacing))
+                metadataLine(metadata)
             }
         }
+        .onPreferenceChange(PillWidthKey.self) { pillWidth = $0 }
+        .onPreferenceChange(MetadataWidthKey.self) { lineWidth = $0 }
         // Explicit height so the absolute `.position` in PlayerOverlayView keeps measuring the whole
         // prompt: the overlay draws outside the pill and contributes nothing to its intrinsic size.
         .frame(width: width, height: metrics.stackHeight, alignment: .bottomTrailing)
     }
+
+    private func metadataLine(_ metadata: String) -> some View {
+        Text(metadata)
+            .font(metrics.metadataFont)
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            // The card put this text on a material; here it sits on the video itself, so it carries
+            // its own separation. Tuned against a bright frame, where a plain white line disappears
+            // (ImageRenderer sheet, 2026-09-04).
+            .shadow(color: .black.opacity(0.75), radius: 6, y: 2)
+            .frame(width: lineFrameWidth)
+            // Hidden full-width copy in a background (a background never stretches its primary)
+            // measures the UNTRUNCATED line. Same trick GlassActionButton uses for its collapsing
+            // label, and the reason the visible copy can be given an exact width without ever
+            // measuring itself.
+            .background {
+                Text(metadata)
+                    .font(metrics.metadataFont)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .hidden()
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(key: MetadataWidthKey.self, value: geo.size.width)
+                        }
+                    )
+            }
+            .offset(x: lineOffset, y: -(metrics.metadataLineHeight + metrics.stackSpacing))
+    }
+}
+
+private struct PillWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}
+
+private struct MetadataWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }

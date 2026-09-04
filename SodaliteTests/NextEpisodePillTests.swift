@@ -119,10 +119,11 @@ struct NextEpisodePillTests {
         let pill = try sourceFile("Sodalite/Player/UI/PlayerActionPill.swift")
         #expect(pill.contains(".overlay(alignment: .top)"))
         #expect(pill.contains("alignment: .bottomTrailing"))
-        // Centred on a pill that is flush against the margin, the line would otherwise be bounded by
-        // the pill: 266pt of title against the 420pt the trailing-aligned version had. The overhang
-        // buys that back without letting the line into the margin, so it stays half of it.
-        #expect(pill.contains(".padding(.horizontal, -metrics.metadataOverhang)"))
+        // An episode name is not shortened to keep the line centred. It centres on the button while
+        // it fits the button plus its overhang, and slides LEFT past that, into empty video rather
+        // than into the screen edge. Only the far margin can still cut a name off.
+        #expect(pill.contains("private var lineOffset: CGFloat"))
+        #expect(pill.contains("min(lineWidth, metadataMaxWidth)"))
         for tier in tiers {
             #expect(tier.metrics.metadataOverhang * 2 <= tier.metrics.marginX,
                     "\(tier.name) overhang \(tier.metrics.metadataOverhang) against margin \(tier.metrics.marginX)")
