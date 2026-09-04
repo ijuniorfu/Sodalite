@@ -4,7 +4,8 @@ import SwiftUI
 
 /// Why the Guardian-PIN is being requested. Drives the prompt copy.
 enum PINReason: Equatable {
-    case switchProfile      // activate an unprotected profile
+    case switchProfile      // activate an open profile
+    case enterProfile       // activate a profile that is locked to enter
     case logout
     case serverManagement
     case openParentalSettings

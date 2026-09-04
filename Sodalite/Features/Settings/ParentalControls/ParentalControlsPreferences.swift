@@ -32,8 +32,6 @@ final class ParentalControlsPreferences {
         }
     }
 
-    var hasAnyProtectedProfile: Bool { !protectedProfileIDs.isEmpty }
-
     var hasAnyLockedProfile: Bool { !protectedProfileIDs.isEmpty || !entryLockedProfileIDs.isEmpty }
 
     static func compositeID(serverID: String, userID: String) -> String {

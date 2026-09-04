@@ -1116,10 +1116,10 @@ final class DependencyContainer {
     // MARK: Gate decisions
 
     /// Parental controls are engaged when a PIN is set AND at least one
-    /// remembered profile (on any known server) is marked protected.
+    /// remembered profile (on any known server) carries a lock role.
     func parentalControlsActive() -> Bool {
         guard isGuardianPINSet() else { return false }
-        return parentalControlsPreferences.hasAnyProtectedProfile
+        return parentalControlsPreferences.hasAnyLockedProfile
     }
 
     /// The (serverID, userID) of the active session, read from the
@@ -1131,24 +1131,35 @@ final class DependencyContainer {
         return (serverID, userID)
     }
 
-    /// Is the currently active session a protected profile?
-    func activeProfileIsProtected() -> Bool {
-        guard let id = activeSessionIdentity() else { return false }
-        return parentalControlsPreferences.isProtected(serverID: id.serverID, userID: id.userID)
+    /// The lock role of the active session, or `.open` when there is no session yet.
+    private func activeProfileRole() -> ProfileLockRole {
+        guard let id = activeSessionIdentity() else { return .open }
+        return parentalControlsPreferences.role(serverID: id.serverID, userID: id.userID)
     }
 
-    /// Whether activating the given target profile needs the Guardian-PIN.
-    /// Required when parental controls are active, the target is NOT
-    /// protected, and either we are at cold-start (no trusted session
-    /// yet) or the current session is itself a protected profile.
+    /// Is the currently active session a profile that is locked in?
+    func activeProfileIsProtected() -> Bool {
+        activeProfileRole() == .pinToLeave
+    }
+
+    /// Whether activating the given target profile needs the Guardian-PIN. The judgement itself
+    /// lives in `ParentalGatePolicy`; this resolves the two roles it decides on.
     func parentalGateRequired(forActivatingUserID userID: String,
                               serverID: String,
                               isColdStart: Bool) -> Bool {
         guard parentalControlsActive() else { return false }
-        if parentalControlsPreferences.isProtected(serverID: serverID, userID: userID) {
-            return false // entering a protected profile is always free
-        }
-        return isColdStart || activeProfileIsProtected()
+        return ParentalGatePolicy.gateRequiredForActivating(
+            targetRole: parentalControlsPreferences.role(serverID: serverID, userID: userID),
+            activeRole: activeProfileRole(),
+            isColdStart: isColdStart
+        )
+    }
+
+    /// Which prompt the PIN pad shows for this activation.
+    func parentalGateReason(forActivatingUserID userID: String, serverID: String) -> PINReason {
+        ParentalGatePolicy.reason(
+            forActivating: parentalControlsPreferences.role(serverID: serverID, userID: userID)
+        )
     }
 
     /// Whether a session-scoped escape action (logout, server management,
