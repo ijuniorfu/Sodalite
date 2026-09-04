@@ -17,6 +17,16 @@
 /// decision arrive from different publishers in no fixed order, and a raise skipped on a stale `true`
 /// would never be retried.
 enum TransportAutoHide {
+    /// The idle countdown both auto-hides run on. Five seconds because three hides mid-read on a long
+    /// title and ten reads as broken rather than deliberate.
+    static let idleDelay: Duration = .seconds(5)
+
+    /// Also the music Now Playing chrome's rule (Sodalite#110), asked at its fire time for the same
+    /// reason. That screen carries no extra clause of its own. It briefly had one, refusing to fire
+    /// while a queue row held focus, on the theory that hiding the focused view strands the user; in
+    /// practice that is where focus sits after any look at the queue, so the auto-hide simply never
+    /// fired again, which is how it was reported. The stranding is a job for the view, which keeps one
+    /// focusable sink alive behind the hidden chrome, not for a clause that trades one bug for another.
     static func hides(isPlaying: Bool) -> Bool { isPlaying }
 
     static func raisesTransport(errorVisible: Bool, inputLocked: Bool) -> Bool {

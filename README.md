@@ -175,6 +175,7 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 
 ### 🎵 Listen
 - **Music library**: browse your Jellyfin music by album and play it back through the same engine, with a native Now Playing screen, cover art, scrubbing and background playback
+- **Ambient Now Playing (Apple TV)**: after five seconds of quiet the queue and the transport step aside and leave the artwork and title centered on screen, the way Apple Music's Now Playing behaves. Any press or swipe brings them straight back
 
 ### 📨 Request what's missing
 - **Seerr integration**: browse trending and popular media right inside the app

@@ -1,7 +1,7 @@
 import Testing
 @testable import Sodalite
 
-@Suite("Transport auto-hide and paused visibility (Sodalite#93)")
+@Suite("Transport auto-hide and paused visibility (Sodalite#93, #110)")
 struct TransportAutoHideTests {
     @Test("A fired auto-hide keeps a paused transport on screen")
     func pausedTransportSurvivesTheTimer() {
@@ -17,6 +17,18 @@ struct TransportAutoHideTests {
     @Test("An error screen keeps the transport down so Menu still dismisses the player")
     func errorScreenKeepsTransportDown() {
         #expect(!TransportAutoHide.raisesTransport(errorVisible: true, inputLocked: false))
+    }
+
+    // MARK: - Music Now Playing chrome auto-hide (Sodalite#110)
+
+    @Test("The music chrome runs on the same two constants, not a second set")
+    func musicChromeSharesTheTransportRule() {
+        // Sodalite#110 briefly gave the music screen a rule of its own, refusing to fire while a queue
+        // row held focus. That is where focus sits after any look at the queue, so the auto-hide never
+        // fired again; the view keeps a focusable sink alive instead. Nothing is left to diverge.
+        #expect(TransportAutoHide.idleDelay == .seconds(5))
+        #expect(TransportAutoHide.hides(isPlaying: true))
+        #expect(!TransportAutoHide.hides(isPlaying: false))
     }
 
     @Test("The child lock keeps the transport down")
