@@ -150,6 +150,29 @@ struct AlbumHeaderCenteringTests {
         #expect(viewModel.canPlay)
     }
 
+    /// Hiding the dead controls left the page saying nothing at all about itself, so the empty
+    /// album names its state where the buttons were.
+    @Test("The empty album says so, in all 26 locales")
+    func theEmptyAlbumNamesItsState() throws {
+        let view = try sourceFile("Sodalite/Features/Music/AlbumDetailView.swift")
+        #expect(view.contains("} else if viewModel.isConfirmedEmpty {"))
+        #expect(view.contains(#"Text("album.detail.empty")"#))
+
+        let catalog = try JSONSerialization.jsonObject(
+            with: Data(contentsOf: repositoryFile("Sodalite/Localizable.xcstrings"))
+        ) as? [String: Any]
+        let strings = catalog?["strings"] as? [String: Any]
+        let entry = try #require(strings?["album.detail.empty"] as? [String: Any])
+        let localizations = try #require(entry["localizations"] as? [String: Any])
+
+        #expect(localizations.count == 26)
+        for (locale, value) in localizations {
+            let unit = (value as? [String: Any])?["stringUnit"] as? [String: Any]
+            #expect(unit?["state"] as? String == "translated", "\(locale) is not translated")
+            #expect((unit?["value"] as? String)?.isEmpty == false, "\(locale) is empty")
+        }
+    }
+
     // MARK: - Structure
 
     /// Centering has to move the title block's OWN alignment. `.multilineTextAlignment` alone
@@ -187,14 +210,15 @@ struct AlbumHeaderCenteringTests {
         #expect(coordinator.contains("guard !items.isEmpty else { return }"))
     }
 
+    private func repositoryFile(_ relativePath: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent(relativePath)
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
-        let repository = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        return try String(
-            contentsOf: repository.appendingPathComponent(relativePath),
-            encoding: .utf8
-        )
+        try String(contentsOf: repositoryFile(relativePath), encoding: .utf8)
     }
 }
 

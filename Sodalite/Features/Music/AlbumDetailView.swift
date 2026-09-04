@@ -142,6 +142,12 @@ struct AlbumDetailView: View {
                 .padding(.top, 8)
         } else if viewModel.canPlay {
             actionButtons
+        } else if viewModel.isConfirmedEmpty {
+            // In the header, not below it, so the centered column stays the whole page. A line under
+            // the header would put content back beside the cover and strand it again.
+            Text("album.detail.empty")
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
     }
 
