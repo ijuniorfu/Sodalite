@@ -31,7 +31,7 @@ struct SeasonTab: View {
     }
 
     private var tabBackground: Color {
-        if isFocused { return .white.opacity(0.12) }
+        if isFocused { return Color.Theme.focusFill }
         if isSelected { return Color.Theme.restFill }
         return .clear
     }
@@ -292,7 +292,7 @@ struct EpisodeSynopsisBox: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(.ultraThinMaterial)
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(isFocused ? .white.opacity(0.12) : .clear)
+                        .fill(isFocused ? Color.Theme.focusFill : .clear)
                 }
             )
             .overlay(

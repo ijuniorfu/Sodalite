@@ -626,7 +626,7 @@ private struct StatsSectionHighlight: ViewModifier {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isCurrent ? .white.opacity(0.12) : .clear)
+                    .fill(isCurrent ? Color.Theme.focusFill : .clear)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)

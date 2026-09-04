@@ -28,9 +28,14 @@ extension Color {
         // the lift comes from the colour rather than from the level. Reading `restFillStrong` as a
         // drifted `focusFill` is the mistake to avoid, they belong to different controls.
 
-        /// Focused ground of a control whose focus state is white.
+        /// Focused ground of a control. One value app-wide: six rows were written at 0.12 and read
+        /// as a quieter focus than every neighbour, which is the drift this token exists to end.
+        /// Also the ground of a highlight that only LOOKS focused, like the stats overlay's cursor,
+        /// which the focus engine never reaches (AVKit eats the arrow presses) and which would
+        /// otherwise sit below the rest of the app.
         static let focusFill = Color.white.opacity(0.15)
-        /// Resting ground of a control whose focus state is the tint.
+        /// Resting ground of a control whose focus state is the tint. This is the only thing white
+        /// at 0.12 means as a fill, so a new one at that level is either this or a mistake.
         static let restFillStrong = Color.white.opacity(0.12)
         /// Resting or selected ground of a control whose focus state is white; also the static
         /// ground of a chip or panel that does not take focus at all.
