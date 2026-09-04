@@ -108,16 +108,16 @@ private struct NowPlayingContent: View {
         .onDisappear {
             chromeHideTask?.cancel()
         }
-        // Reveal triggers. Focus is the load-bearing one: `.onMoveCommand` only fires when NO focusable
-        // view consumes the directional move, and this screen is nothing but focusable views, so the
-        // focus engine would eat almost every swipe. A swipe that moves focus lands here instead.
+        // Activity from the chrome's own controls: these keep the countdown alive while it is up, they
+        // do NOT wake it. Waking is `NowPlayingWakeSink`'s job, for the reason its own doc gives.
         .onChange(of: transportFocus) { _, _ in noteChromeInteraction() }
         .onChange(of: queueFocus) { _, _ in noteChromeInteraction() }
         // Scrub focus catches ENTRY only; scrubProgress keeps a pan that continues on an already
         // focused scrubber counting for its whole duration.
         .onChange(of: coordinator.isScrubbing) { _, _ in noteChromeInteraction() }
         .onChange(of: coordinator.scrubProgress) { _, _ in noteChromeInteraction() }
-        // A new track is news, and a pause raises the queue the same way it raises the video transport.
+        // Playback, not UI: a new track is news, and a pause raises the chrome the same way it raises the
+        // video transport. These two are the only wakes that do not come through the sink.
         .onChange(of: coordinator.currentItem?.id) { _, _ in revealChrome() }
         .onChange(of: coordinator.isPlaying) { _, _ in revealChrome() }
     }
