@@ -43,6 +43,13 @@ struct TransportBar: View {
     /// Label of the skippable segment (intro or recap) at the leftmost slot, nil when there is nothing
     /// to skip; the floating glass version is suppressed while the transport is open.
     let skipSegmentLabel: String?
+    /// Label of the next-episode prompt while it is up, nil otherwise. With the transport open the
+    /// floating pill is suppressed and the prompt lives here instead, so Select keeps meaning what
+    /// the focused control says it means (Sodalite#103).
+    let nextEpisodeLabel: String?
+    /// Remaining fraction of the autoplay countdown, nil when none is running. The countdown does
+    /// not stop when the transport opens, so it has to stay visible somewhere.
+    let nextEpisodeCountdownProgress: Double?
     /// Current season's episodes; button suppressed when count <= 1.
     let seasonEpisodes: [JellyfinItem]
     let activeEpisodeID: String?
@@ -92,6 +99,18 @@ struct TransportBar: View {
                         persistsLabel: false,
                         dropdown: [],
                         isOpen: false
+                    )
+                }
+
+                if let nextEpisodeLabel {
+                    trackButton(
+                        label: nextEpisodeLabel,
+                        icon: "play.fill",
+                        isFocused: controlsFocus == .nextEpisodeButton,
+                        persistsLabel: true,
+                        dropdown: [],
+                        isOpen: false,
+                        countdownProgress: nextEpisodeCountdownProgress
                     )
                 }
 
@@ -552,7 +571,7 @@ struct TransportBar: View {
 
     // MARK: - Track Button + Dropdown
 
-    private func trackButton(label: String, icon: String, isFocused: Bool, persistsLabel: Bool, dropdown: [DropdownItem], isOpen: Bool) -> some View {
+    private func trackButton(label: String, icon: String, isFocused: Bool, persistsLabel: Bool, dropdown: [DropdownItem], isOpen: Bool, countdownProgress: Double? = nil) -> some View {
         VStack(spacing: 6) {
             if isOpen {
                 PlayerTrackDropdownList(items: dropdown, chapterThumbnail: chapterThumbnail)
@@ -562,7 +581,8 @@ struct TransportBar: View {
                 label: label,
                 icon: icon,
                 showsLabel: persistsLabel || isFocused,
-                isFocused: isFocused
+                isFocused: isFocused,
+                countdownProgress: countdownProgress
             )
         }
     }

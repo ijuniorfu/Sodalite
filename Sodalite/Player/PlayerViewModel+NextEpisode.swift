@@ -115,6 +115,7 @@ extension PlayerViewModel {
         }
 
         nextEpisodeCountdown = max(1, seconds)
+        nextEpisodeCountdownTotal = nextEpisodeCountdown
         isCountdownActive = true
         nextEpisodeTimer?.cancel()
         LogTap.shared.note("[NextEp] countdown_start from=\(nextEpisodeCountdown)s nextId=\(nextEpisode?.id ?? "nil")")

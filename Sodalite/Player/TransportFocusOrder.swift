@@ -7,6 +7,7 @@ extension PlayerViewModel {
     /// Live has its own two-button row (LiveTransportBar) and does not use this.
     static func transportFocusOrder(
         hasSkippableSegment: Bool,
+        hasNextEpisodePrompt: Bool,
         episodeCount: Int,
         chapterCount: Int,
         hasAudioTracks: Bool,
@@ -16,6 +17,9 @@ extension PlayerViewModel {
     ) -> [ControlsFocus] {
         var order: [ControlsFocus] = [.restartButton]
         if hasSkippableSegment { order.append(.skipSegmentButton) }
+        // Next to the skip button on purpose: both are "press once to move forward", and the two
+        // trade places across an episode seam (Sodalite#103).
+        if hasNextEpisodePrompt { order.append(.nextEpisodeButton) }
         if episodeCount > 1 { order.append(.episodeButton) }
         if chapterCount > 1 { order.append(.chapterButton) }
         if hasAudioTracks { order.append(.audioButton) }
@@ -53,6 +57,7 @@ extension PlayerViewModel {
     var transportFocusOrder: [ControlsFocus] {
         Self.transportFocusOrder(
             hasSkippableSegment: activeSkipSegment != nil,
+            hasNextEpisodePrompt: showNextEpisodeOverlay && nextEpisode != nil,
             episodeCount: seasonEpisodes.count,
             chapterCount: chapters.count,
             hasAudioTracks: !player.audioTracks.isEmpty,

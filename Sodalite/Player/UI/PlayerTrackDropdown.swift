@@ -33,6 +33,9 @@ struct TransportTrackLabel: View {
     let icon: String
     let showsLabel: Bool
     let isFocused: Bool
+    /// Replaces the leading glyph with the autoplay countdown ring (Sodalite#103). Sized to the
+    /// glyph it stands in for, so the chip keeps the height of every other chip in the row.
+    var countdownProgress: Double? = nil
 
     /// Measured intrinsic text width (leading gap baked in); the visible copy animates 0→this.
     @State private var labelWidth: CGFloat = 0
@@ -54,8 +57,14 @@ struct TransportTrackLabel: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Image(systemName: icon)
-                .font(.callout)
+            if let countdownProgress {
+                CountdownRingIcon(
+                    progress: countdownProgress,
+                    diameter: UIFont.preferredFont(forTextStyle: .callout).lineHeight)
+            } else {
+                Image(systemName: icon)
+                    .font(.callout)
+            }
 
             labelInner
                 .frame(width: labelFrameWidth, alignment: .leading)
