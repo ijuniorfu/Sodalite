@@ -30,7 +30,7 @@ struct SeerrEpisodeCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack {
-                Color(white: 0.1)
+                Color.Theme.surface
                     .frame(width: width, height: imageHeight)
 
                 if let url = SeerrImageURL.backdrop(path: episode.stillPath, size: .w780) {

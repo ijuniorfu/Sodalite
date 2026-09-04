@@ -302,7 +302,7 @@ private struct SeasonCheckboxRow: View {
             RoundedRectangle(cornerRadius: 14)
                 .fill(focused
                       ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18))
-                      : AnyShapeStyle(Color.white.opacity(0.08)))
+                      : AnyShapeStyle(Color.Theme.restFill))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
@@ -342,7 +342,7 @@ private struct EditPickerRow<Option: Identifiable & Equatable>: View {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(focused
                           ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18))
-                          : AnyShapeStyle(Color.white.opacity(0.08)))
+                          : AnyShapeStyle(Color.Theme.restFill))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)

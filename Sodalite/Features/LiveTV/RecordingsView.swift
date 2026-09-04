@@ -191,7 +191,7 @@ private struct RecordingCard: View {
                 AsyncCachedImage(url: imageURL) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
-                    Rectangle().fill(Color.white.opacity(0.08))
+                    Rectangle().fill(Color.Theme.restFill)
                 }
                 .frame(height: imageHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -206,7 +206,7 @@ private struct RecordingCard: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(Capsule().fill(Color.red.opacity(0.85)))
+                        .background(Capsule().fill(Color.Theme.recording.opacity(0.85)))
                         .padding(8)
                 }
             }
@@ -248,7 +248,7 @@ private struct TimerRow: View {
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: isSeries ? "record.circle.fill" : "record.circle")
-                .foregroundStyle(.red)
+                .foregroundStyle(Color.Theme.recording)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline)
                 if let subtitle {
@@ -261,7 +261,7 @@ private struct TimerRow: View {
                 .foregroundStyle(focused ? Color.black : .white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(focused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.white.opacity(0.12))))
+                .background(Capsule().fill(focused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.Theme.restFillStrong)))
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 20)

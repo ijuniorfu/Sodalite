@@ -205,7 +205,7 @@ struct LiveTransportBar: View {
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(viewModel.isAtLiveEdge ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.white.opacity(0.12)))
+                    .fill(viewModel.isAtLiveEdge ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.Theme.restFillStrong))
             )
     }
 
@@ -228,7 +228,7 @@ struct LiveTransportBar: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                        .strokeBorder(Color.Theme.hairline, lineWidth: 1)
                 )
                 .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
                 .position(x: clampedX, y: cardHeight / 2)

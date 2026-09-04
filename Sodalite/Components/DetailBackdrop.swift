@@ -214,7 +214,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                                     .padding(.bottom, 10)
                             }
                         }
-                        .background(Color.black.opacity(0.55))
+                        .background(Color.Theme.scrim)
                     }
                     // iPhone landscape: do NOT force the first page to viewport height. In the short
                     // landscape viewport the content overflows, the panel scrim bleeds past the fold and
@@ -241,10 +241,10 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.black.opacity(0.55))
+                .background(Color.Theme.scrim)
 
                 // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.black.opacity(0.55)
+                Color.Theme.scrim
                     .frame(minHeight: trailingFiller)
                     .overlay(alignment: .bottom) {
                         // Rubber-band overscroll pulls the content clear of the bottom edge and would
@@ -254,7 +254,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         // no scroll travel of its own. Reading the overscroll from scroll geometry and
                         // sizing a fixed band instead does not work, the state update never reaches the
                         // overlay while the drag is in flight (measured, height stayed 0).
-                        Color.black.opacity(0.55)
+                        Color.Theme.scrim
                             .frame(height: 600)
                             .offset(y: 600)
                             .allowsHitTesting(false)

@@ -279,7 +279,7 @@ struct TransportBar: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                        .strokeBorder(Color.Theme.hairline, lineWidth: 1)
                 )
                 .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
 

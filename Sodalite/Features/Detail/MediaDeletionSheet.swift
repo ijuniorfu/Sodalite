@@ -309,7 +309,7 @@ private struct BoolPillRow: View {
         // Background + stroke read `.tint` from the environment (SodaliteApp's WindowGroup .tint(effectiveTint(...))). Never Color.accentColor: that reads the static AccentColor asset (hard-coded blue), not the per-session tint.
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(focused ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18)) : AnyShapeStyle(Color.white.opacity(0.08)))
+                .fill(focused ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.18)) : AnyShapeStyle(Color.Theme.restFill))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)

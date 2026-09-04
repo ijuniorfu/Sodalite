@@ -94,7 +94,7 @@ private struct ServerRow: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
-        .background(focused ? Color.white.opacity(0.15) : Color.clear)
+        .background(focused ? Color.Theme.focusFill : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -126,7 +126,7 @@ private struct AddServerRow: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
-        .background(focused ? Color.white.opacity(0.15) : Color.clear)
+        .background(focused ? Color.Theme.focusFill : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)

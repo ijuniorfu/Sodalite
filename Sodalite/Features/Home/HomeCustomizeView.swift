@@ -81,7 +81,7 @@ struct HomeCustomizeView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(
-                        Capsule().fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
+                        Capsule().fill(isFocused ? Color.Theme.focusFill : .white.opacity(0.05))
                     )
             }
         }

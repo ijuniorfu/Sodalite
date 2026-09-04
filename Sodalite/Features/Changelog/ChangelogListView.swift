@@ -101,7 +101,7 @@ private struct HighlightRow: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(isFocused ? .white.opacity(0.15) : .white.opacity(0.05))
+                .fill(isFocused ? Color.Theme.focusFill : .white.opacity(0.05))
         )
         // Same SettingsTileButtonStyle accent-tint stroke + lift.
         .overlay(

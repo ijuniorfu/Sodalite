@@ -62,7 +62,7 @@ struct GenreBar: View {
             }
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.08))
+                    Capsule().fill(Color.Theme.restFill)
                     Capsule()
                         .fill(.tint)
                         .frame(width: max(8, geo.size.width * fraction))

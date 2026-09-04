@@ -211,7 +211,7 @@ struct GlassButtonStyle: ButtonStyle {
     private var backgroundFill: AnyShapeStyle {
         if effectivelyProminent {
             if isDestructive {
-                return AnyShapeStyle(Color.red.opacity(isFocused ? 0.9 : 0.7))
+                return AnyShapeStyle(Color.Theme.destructive.opacity(isFocused ? 0.9 : 0.7))
             }
             return AnyShapeStyle(TintShapeStyle.tint.opacity(isFocused ? 0.9 : 0.7))
         }

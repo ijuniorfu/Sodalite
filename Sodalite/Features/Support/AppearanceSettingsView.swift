@@ -185,7 +185,7 @@ struct AppearanceSettingsView: View {
                     Circle()
                         .fill(effectiveTheme.palette.control.color)
                         .frame(width: 36, height: 36)
-                        .overlay(Circle().stroke(.white.opacity(0.18), lineWidth: 1))
+                        .overlay(Circle().stroke(Color.Theme.hairline, lineWidth: 1))
                 }
             }
             .buttonStyle(SettingsTileButtonStyle())

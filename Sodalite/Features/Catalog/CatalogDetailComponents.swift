@@ -47,7 +47,7 @@ struct CatalogSeasonTab: View {
         if let status = availabilityStatus {
             return AnyShapeStyle(status.color.opacity(0.18))
         }
-        return AnyShapeStyle(.white.opacity(0.08))
+        return AnyShapeStyle(Color.Theme.restFill)
     }
 }
 
@@ -130,7 +130,7 @@ struct CatalogPickerSheet: View {
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 18)
                                 .frame(maxWidth: .infinity)
-                                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                                .background(Color.Theme.restFill, in: RoundedRectangle(cornerRadius: 12))
                             }
                             .buttonStyle(CatalogPickerButtonStyle())
                             .focused($focusedID, equals: option.id)
@@ -203,7 +203,7 @@ struct CatalogMultiSelectSheet: View {
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 18)
                                 .frame(maxWidth: .infinity)
-                                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                                .background(Color.Theme.restFill, in: RoundedRectangle(cornerRadius: 12))
                             }
                             .buttonStyle(CatalogPickerButtonStyle())
                             .focused($focusedID, equals: option.id)

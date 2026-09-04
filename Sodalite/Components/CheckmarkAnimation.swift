@@ -9,14 +9,14 @@ struct CheckmarkAnimation: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(.green.opacity(0.15))
+                .fill(Color.Theme.success.opacity(0.15))
                 .frame(width: 120, height: 120)
                 .scaleEffect(circleScale)
                 .opacity(circleOpacity)
 
             Circle()
                 .trim(from: 0, to: trimEnd)
-                .stroke(.green, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                .stroke(Color.Theme.success, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                 .frame(width: 120, height: 120)
                 .rotationEffect(.degrees(-90))
 
@@ -26,7 +26,7 @@ struct CheckmarkAnimation: View {
                 path.addLine(to: CGPoint(x: 85, y: 42))
             }
             .trim(from: 0, to: trimEnd)
-            .stroke(.green, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+            .stroke(Color.Theme.success, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
             .frame(width: 120, height: 120)
             .opacity(checkOpacity)
         }

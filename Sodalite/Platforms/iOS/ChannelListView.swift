@@ -300,7 +300,7 @@ private struct ChannelScheduleSheet: View {
                             }
                             Spacer(minLength: 0)
                             if model.timers.hasTimer(programID: program.id) {
-                                Image(systemName: "record.circle").foregroundStyle(.red)
+                                Image(systemName: "record.circle").foregroundStyle(Color.Theme.recording)
                             }
                         }
                     }

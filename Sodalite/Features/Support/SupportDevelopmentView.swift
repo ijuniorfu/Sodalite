@@ -473,7 +473,7 @@ private struct SupporterPackRow: View {
             .labelStyle(.titleAndIcon)
             .font(.body)
             .fontWeight(.semibold)
-            .foregroundStyle(.green)
+            .foregroundStyle(Color.Theme.success)
         } else if isPurchasing {
             ProgressView()
         } else if let product {

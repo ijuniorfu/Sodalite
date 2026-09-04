@@ -261,7 +261,7 @@ private struct DiscoveredServerRow: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
-        .background(focused ? Color.white.opacity(0.15) : Color.white.opacity(0.04))
+        .background(focused ? Color.Theme.focusFill : Color.Theme.restFillFaint)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)

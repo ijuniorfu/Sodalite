@@ -27,7 +27,7 @@ struct CatalogAllRequestsView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 14)
-                    .background(Color.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 14))
+                    .background(Color.Theme.scrimHeavy, in: RoundedRectangle(cornerRadius: 14))
                     .padding(.bottom, 32)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -244,7 +244,7 @@ private struct FilterChip: View {
         .background(
             Capsule().fill(isSelected
                 ? AnyShapeStyle(TintShapeStyle.tint.opacity(0.65))
-                : AnyShapeStyle(Color.white.opacity(0.08)))
+                : AnyShapeStyle(Color.Theme.restFill))
         )
         .overlay(
             Capsule().strokeBorder(.tint, lineWidth: 3)
