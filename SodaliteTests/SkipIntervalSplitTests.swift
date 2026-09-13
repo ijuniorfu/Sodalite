@@ -87,19 +87,17 @@ struct SkipIntervalSplitTests {
     // MARK: - CloudSync
 
     /// The container's own stores are what `collectSettingsPayload` reads, so the test drives those
-    /// and puts them back afterwards. `SettingsStores` cannot be assembled from outside.
-    private func playbackPayload(of container: DependencyContainer) -> PlaybackSettingsPayload {
+    /// and puts them back afterwards. `SettingsStores` cannot be assembled from outside. Nil rather
+    /// than a trap on the wrong case, so a payload reshuffle fails one test instead of the bundle.
+    private func playbackPayload(of container: DependencyContainer) -> PlaybackSettingsPayload? {
         guard case .playback(let payload) = container.collectSettingsPayload(
             .playback, stamp: .distantPast
-        ) else {
-            Issue.record("collect returned the wrong payload case")
-            fatalError("unreachable")
-        }
+        ) else { return nil }
         return payload
     }
 
     @Test("both directions travel, and the pre-split field still carries the forward one")
-    func thePayloadCarriesBothAndTheOldField() {
+    func thePayloadCarriesBothAndTheOldField() throws {
         let container = DependencyContainer(keychainService: InMemoryKeychain())
         let store = container.playbackPreferences
         let original = (store.skipForwardSeconds, store.skipBackwardSeconds)
@@ -107,7 +105,7 @@ struct SkipIntervalSplitTests {
         store.skipForwardSeconds = 30
         store.skipBackwardSeconds = 5
 
-        let payload = playbackPayload(of: container)
+        let payload = try #require(playbackPayload(of: container))
 
         #expect(payload.skipForwardSeconds == 30)
         #expect(payload.skipBackwardSeconds == 5)
@@ -120,7 +118,7 @@ struct SkipIntervalSplitTests {
     /// payload: the sender is stating that both of its jumps are `skipIntervalSeconds` long. So it
     /// applies to both rather than leaving the local values alone.
     @Test("a payload from a build with one interval sets both directions to it")
-    func anOlderPayloadSpeaksForBothDirections() {
+    func anOlderPayloadSpeaksForBothDirections() throws {
         let container = DependencyContainer(keychainService: InMemoryKeychain())
         let store = container.playbackPreferences
         let original = (store.skipForwardSeconds, store.skipBackwardSeconds)
@@ -128,7 +126,7 @@ struct SkipIntervalSplitTests {
         store.skipForwardSeconds = 15
         store.skipBackwardSeconds = 5
 
-        var payload = playbackPayload(of: container)
+        var payload = try #require(playbackPayload(of: container))
         payload.skipIntervalSeconds = 30
         payload.skipForwardSeconds = nil
         payload.skipBackwardSeconds = nil
@@ -139,13 +137,13 @@ struct SkipIntervalSplitTests {
     }
 
     @Test("a payload that names both directions wins over the pre-split field")
-    func anewerPayloadKeepsTheDirectionsApart() {
+    func anewerPayloadKeepsTheDirectionsApart() throws {
         let container = DependencyContainer(keychainService: InMemoryKeychain())
         let store = container.playbackPreferences
         let original = (store.skipForwardSeconds, store.skipBackwardSeconds)
         defer { (store.skipForwardSeconds, store.skipBackwardSeconds) = original }
 
-        var payload = playbackPayload(of: container)
+        var payload = try #require(playbackPayload(of: container))
         payload.skipIntervalSeconds = 30
         payload.skipForwardSeconds = 30
         payload.skipBackwardSeconds = 5
