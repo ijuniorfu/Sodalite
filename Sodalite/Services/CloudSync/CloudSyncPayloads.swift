@@ -193,6 +193,10 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     /// nil from a build without poster badges (Sodalite#79); false is the same as absent here,
     /// the badges are opt-in, so a plain default carries no risk of overriding an opinion.
     var showPosterBadges: Bool
+    /// nil from a build without the detail-page pills (Sodalite#145). Defaults to TRUE, not false:
+    /// absent means "that build had no opinion", and true is what a fresh install picks, so an older
+    /// sender cannot quietly turn the pills off on every other device.
+    var showDetailBadges: Bool
     /// nil from a build without the Top Shelf switch. Defaults to TRUE, not false: absent means
     /// "that build had no opinion", and the row was on for everyone before the switch existed.
     var showTopShelfRow: Bool
@@ -229,6 +233,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerHideEpisodes: Bool = true,
         spoilerHideMovies: Bool = false,
         showPosterBadges: Bool = false,
+        showDetailBadges: Bool = true,
         showTopShelfRow: Bool = true,
         topShelfImage: String = "thumb",
         showLibraryNames: Bool = false,
@@ -250,6 +255,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         self.spoilerHideEpisodes = spoilerHideEpisodes
         self.spoilerHideMovies = spoilerHideMovies
         self.showPosterBadges = showPosterBadges
+        self.showDetailBadges = showDetailBadges
         self.showTopShelfRow = showTopShelfRow
         self.topShelfImage = topShelfImage
         self.showLibraryNames = showLibraryNames
@@ -273,6 +279,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         case spoilerHideEpisodes
         case spoilerHideMovies
         case showPosterBadges
+        case showDetailBadges
         case showTopShelfRow
         case topShelfImage
         case showLibraryNames
@@ -301,6 +308,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerHideEpisodes = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideEpisodes) ?? true
         spoilerHideMovies = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideMovies) ?? false
         showPosterBadges = try values.decodeIfPresent(Bool.self, forKey: .showPosterBadges) ?? false
+        showDetailBadges = try values.decodeIfPresent(Bool.self, forKey: .showDetailBadges) ?? true
         showTopShelfRow = try values.decodeIfPresent(Bool.self, forKey: .showTopShelfRow) ?? true
         topShelfImage = try values.decodeIfPresent(String.self, forKey: .topShelfImage) ?? "thumb"
         showLibraryNames = try values.decodeIfPresent(Bool.self, forKey: .showLibraryNames) ?? false
@@ -325,6 +333,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(spoilerHideEpisodes, forKey: .spoilerHideEpisodes)
         try values.encode(spoilerHideMovies, forKey: .spoilerHideMovies)
         try values.encode(showPosterBadges, forKey: .showPosterBadges)
+        try values.encode(showDetailBadges, forKey: .showDetailBadges)
         try values.encode(showTopShelfRow, forKey: .showTopShelfRow)
         try values.encode(topShelfImage, forKey: .topShelfImage)
         try values.encode(showLibraryNames, forKey: .showLibraryNames)

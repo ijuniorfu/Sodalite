@@ -392,6 +392,7 @@
 		57A9A1D192DFD61243EE1AD8 /* PosterBadgeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB05864EA1D0988DF5BF302 /* PosterBadgeMetrics.swift */; };
 		57BFD4311521443D0BD154B8 /* DiscoveryProbeRaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E3BF97D18324FFA9D4E64D /* DiscoveryProbeRaceTests.swift */; };
 		57FF673743802E78AB3CBB72 /* ServerURLSlotRetentionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B942F0FB15F6423EDCD17B /* ServerURLSlotRetentionTests.swift */; };
+		5812238EB789E282D7AB9400 /* FormatBadgeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A3733E54C8B83503AFBE52 /* FormatBadgeRow.swift */; };
 		588843BE91C735C672414477 /* Color+Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C2FBEBB8926214D1253EA10 /* Color+Theme.swift */; };
 		5939CD9349B214F8A1020362 /* TransportBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8915E7229A24538FA098A0D /* TransportBar.swift */; };
 		594ADC4066CA72A3A6C79F27 /* ParentalGatePresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B8AEB0E494D1AB61C2798D /* ParentalGatePresenterTests.swift */; };
@@ -1093,6 +1094,7 @@
 		F74FDF2DD75F0066DA3F366D /* CloudSyncForwardCompatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CEF15F18D201FFB609B9CE8 /* CloudSyncForwardCompatTests.swift */; };
 		F79D26C973ABE2B9E5DDF233 /* DualURLPromptLatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56D9C510CDDF570489238BA /* DualURLPromptLatchTests.swift */; };
 		F7A17C86FD188DFF1D987AFA /* GuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4B143BEE303D1937555CAA /* GuideView.swift */; };
+		F8269222811EB1E16C2ADD61 /* FormatBadgeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A3733E54C8B83503AFBE52 /* FormatBadgeRow.swift */; };
 		F84B94313F04FF055F793D2A /* VersionSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34C144B91C4F910BBA6F5643 /* VersionSelectionTests.swift */; };
 		F8BB863B478B81BFA7DA5750 /* KeyboardTransportStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D4F586D7E43FDC42308F7F /* KeyboardTransportStateTests.swift */; };
 		F8FD3ECD42DC8A9716C32369 /* FocusChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284831FCD3090BFDC463416A /* FocusChromeTests.swift */; };
@@ -1620,6 +1622,7 @@
 		A25219B214ACC7583A8F9CC2 /* SeerrPerson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrPerson.swift; sourceTree = "<group>"; };
 		A2B5EC01B133010A8DEF1159 /* MusicPlaybackCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlaybackCoordinator.swift; sourceTree = "<group>"; };
 		A3116EDEDD1564A47A461A91 /* PlayerLoadingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLoadingIndicator.swift; sourceTree = "<group>"; };
+		A3A3733E54C8B83503AFBE52 /* FormatBadgeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatBadgeRow.swift; sourceTree = "<group>"; };
 		A4001613D7E44F6797CCE86F /* ServerDiscoveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerDiscoveryService.swift; sourceTree = "<group>"; };
 		A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSettingsView.swift; sourceTree = "<group>"; };
 		A62F1DBB63B1D0EDCBAA87A2 /* AppearanceTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceTheme.swift; sourceTree = "<group>"; };
@@ -1953,6 +1956,7 @@
 				C0AB08ED3A8353A0C245C2DD /* FlowLayout.swift */,
 				C631A6EC153641E1CAF0F5A3 /* FocusableCard.swift */,
 				5175FE305BAC890D98161B48 /* FocusResponse.swift */,
+				A3A3733E54C8B83503AFBE52 /* FormatBadgeRow.swift */,
 				7501601A2864C83A34FEEB88 /* HorizontalMediaRow.swift */,
 				25616C805E9164F8CE0B0F61 /* ImageLoadLadder.swift */,
 				FC2D2345AE7229DA9886E005 /* ImagePayload.swift */,
@@ -3286,6 +3290,7 @@
 				0DED47FEB2C657663A21953E /* FocusResponse.swift in Sources */,
 				9FBB2EF8013CC55EA333152B /* FocusableCard.swift in Sources */,
 				53EF5C6C854FE81AE1809B4A /* ForcedSubtitleFallback.swift in Sources */,
+				F8269222811EB1E16C2ADD61 /* FormatBadgeRow.swift in Sources */,
 				811FD08A20D77820D6848B92 /* GenreFilter.swift in Sources */,
 				5660BB884247FC00820E5B0E /* GlassActionButton.swift in Sources */,
 				D22B52A7471C7AB924B4B5A6 /* GlassBackground.swift in Sources */,
@@ -3978,6 +3983,7 @@
 				8DAA6C2DDB0ED4B1E3F1CB52 /* FocusResponse.swift in Sources */,
 				747905DEE82B08A96EFD7B22 /* FocusableCard.swift in Sources */,
 				BF7319388D6CDBB27B410818 /* ForcedSubtitleFallback.swift in Sources */,
+				5812238EB789E282D7AB9400 /* FormatBadgeRow.swift in Sources */,
 				32E90092EF199E8EF002F0DE /* GenreFilter.swift in Sources */,
 				A4D535231D2DEAF8FD49722B /* GlassActionButton.swift in Sources */,
 				D601261EBA6F4571F9D2B138 /* GlassBackground.swift in Sources */,

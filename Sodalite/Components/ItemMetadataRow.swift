@@ -8,7 +8,10 @@ import SwiftUI
 struct ItemMetadataRow: View {
     let item: JellyfinItem
     var showRuntime: Bool = true
-    var extraContent: (() -> AnyView)?
+    /// Segments appended after the built-in ones. A list rather than a closure so a caller with
+    /// nothing to add adds nothing: a closure handing back an EmptyView is still a segment, and the
+    /// row put a separator in front of it, leaving the line ending on a dot with nothing behind it.
+    var extras: [AnyView] = []
 
     @Environment(\.dependencies) private var dependencies
 
@@ -74,9 +77,7 @@ struct ItemMetadataRow: View {
             ))
         }
 
-        if let extra = extraContent {
-            out.append(extra())
-        }
+        out.append(contentsOf: extras)
 
         return out
     }
