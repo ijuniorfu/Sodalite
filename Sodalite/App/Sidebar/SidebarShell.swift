@@ -27,25 +27,25 @@ struct SidebarShell<Content: View>: View {
         // A small gap, not the screens' own margin: most bring an 80pt screenHInset of their own,
         // but the Live TV guide draws flush and would otherwise touch the rail.
         HStack(spacing: chromeHidden ? 0 : SidebarMetrics.contentGap) {
-            SidebarRail(
-                tabs: tabs,
-                selectedTab: selectedTab,
-                isExpanded: focusIsInRail,
-                focus: $focus,
-                onSelect: { tab in
-                    // Select commits the tab and hands focus back to the content, so the rail
-                    // collapses in the same gesture.
-                    selectedTab = tab
-                    focus = nil
-                }
-            )
-            .padding(.leading, chromeHidden ? 0 : SidebarMetrics.railLeadingInset)
-            .frame(width: chromeHidden ? 0 : nil)
-            // Slides out to the left rather than shrinking in place, so a pushed screen reads as
-            // the rail stepping aside and the content growing into the space it leaves.
-            .offset(x: chromeHidden ? -(SidebarMetrics.collapsedWidth + SidebarMetrics.railLeadingInset) : 0)
-            .opacity(chromeHidden ? 0 : 1)
-            .disabled(chromeHidden)
+            // A transition rather than hand-rolled width, offset and opacity: those three describe
+            // the OUTGOING movement only, so the rail slid out to the left correctly and then came
+            // back in from the left as well. `.move(edge: .leading)` knows both directions.
+            if !chromeHidden {
+                SidebarRail(
+                    tabs: tabs,
+                    selectedTab: selectedTab,
+                    isExpanded: focusIsInRail,
+                    focus: $focus,
+                    onSelect: { tab in
+                        // Select commits the tab and hands focus back to the content, so the rail
+                        // collapses in the same gesture.
+                        selectedTab = tab
+                        focus = nil
+                    }
+                )
+                .padding(.leading, SidebarMetrics.railLeadingInset)
+                .transition(.move(edge: .leading).combined(with: .opacity))
+            }
 
             content(selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
