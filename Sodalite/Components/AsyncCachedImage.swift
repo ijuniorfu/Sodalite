@@ -122,42 +122,60 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
         loaded = nil
         retryOnActivate = false
         onLoadFailed?(false)
-        var sawTransientFailure = false
 
-        for attempt in 0..<imageLoadAttemptLimit {
-            var sawIncompletePayload = false
-            sawTransientFailure = false
-            for candidate in [url, fallbackURL] {
-                switch await loadImage(from: candidate, attempt: attempt) {
-                case .image(let image):
-                    loaded = image
-                    onImageLoaded?(image)
-                    return
-                case .incompletePayload:
-                    // Both flags: another try right now, and one more when the scene comes back,
-                    // because a resize that is still being written finishes on its own.
-                    sawIncompletePayload = true
-                    sawTransientFailure = true
-                case .transientFailure:
-                    sawTransientFailure = true
-                case .noImage:
-                    break
-                }
+        let result = await ImageLoadLadder.run(
+            candidates: [url, fallbackURL],
+            attemptLimit: imageLoadAttemptLimit,
+            retryDelayMilliseconds: imageLoadRetryDelayMilliseconds,
+            perAttempt: { candidate, attempt in
+                await loadImage(from: candidate, attempt: attempt)
+            },
+            onOutcome: { attempt, candidate, outcome in
+                // Silent on the ordinary case, a first-pass hit, so the ring buffer is not flooded
+                // by every poster on a Home screen (Sodalite#123).
+                guard !(attempt == 0 && outcome.isImage) else { return }
+                LogTap.shared.note(
+                    "[Image] attempt \(attempt + 1)/\(imageLoadAttemptLimit)"
+                        + " \(outcome.diagnosticName) \(Self.imageKind(candidate))"
+                        + " \(Self.itemTail(candidate))"
+                )
+            },
+            sleep: { milliseconds in
+                try await Task.sleep(for: .milliseconds(milliseconds))
             }
-            // Only a payload that stopped in the middle is worth another try right away: the server
-            // is still writing the file it just handed us, and it is whole a moment later. A 404 and
-            // a body that is not an image read the same on every attempt, and a lost connection is
-            // what `retryOnActivate` is for.
-            guard sawIncompletePayload, attempt + 1 < imageLoadAttemptLimit else { break }
-            do {
-                try await Task.sleep(for: .milliseconds(imageLoadRetryDelayMilliseconds << attempt))
-            } catch {
-                return
-            }
+        )
+
+        switch result {
+        case .image(let image):
+            loaded = image
+            onImageLoaded?(image)
+        case .exhausted(let armSceneRetry):
+            retryOnActivate = armSceneRetry
+            onLoadFailed?(true)
+        case .cancelled:
+            // Nothing was decided, so nothing is reported: painting a failure here would put the
+            // text title up for a load that never finished being asked.
+            break
         }
+    }
 
-        retryOnActivate = sawTransientFailure
-        onLoadFailed?(true)
+    /// "Logo", "Backdrop", "Primary": the segment after /Images/, which is what a reader of the
+    /// diagnostic log is actually looking for.
+    nonisolated private static func imageKind(_ url: URL?) -> String {
+        guard let parts = url?.pathComponents,
+              let index = parts.firstIndex(of: "Images"),
+              index + 1 < parts.count
+        else { return "?" }
+        return parts[index + 1]
+    }
+
+    /// Last six of the item id: enough to tell two logos apart in the log, short enough to read.
+    nonisolated private static func itemTail(_ url: URL?) -> String {
+        guard let parts = url?.pathComponents,
+              let index = parts.firstIndex(of: "Items"),
+              index + 1 < parts.count
+        else { return "" }
+        return String(parts[index + 1].suffix(6))
     }
 
     @MainActor
@@ -204,20 +222,6 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
             return .transientFailure
         }
     }
-}
-
-/// What one candidate URL came back as. Not a bool: "nothing arrived", "the connection dropped" and
-/// "a whole transfer that carried only the front of an image" each want a different second try.
-private enum ImageLoadOutcome {
-    case image(UIImage)
-    /// A complete HTTP response whose body is not a complete image. The server is mid-write, so the
-    /// next attempt is likely to get the whole thing.
-    case incompletePayload
-    /// Connection-level (an offline blip, an unanswered local-network prompt). Worth retrying when
-    /// the scene comes back.
-    case transientFailure
-    /// A 404, a body that is not an image at all, or a cancelled task. Retrying changes nothing.
-    case noImage
 }
 
 extension AsyncCachedImage where Placeholder == ProgressView<EmptyView, EmptyView> {
