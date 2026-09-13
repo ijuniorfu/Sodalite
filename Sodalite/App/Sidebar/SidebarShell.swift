@@ -15,7 +15,9 @@ struct SidebarShell<Content: View>: View {
     @FocusState private var focus: SidebarFocus?
     /// Mirrors the focus so the animation has something to compare, and so the Menu policy can ask
     /// where focus is without reading `@FocusState` mid-update.
-    @State private var focusIsInRail = true
+    /// Starts false: the app opens on the content, the way it does with the top bar.
+    @State private var focusIsInRail = false
+    @Namespace private var shellFocus
     /// Raised by a pushed screen that wants the navigation out of the way (Settings sub-screens,
     /// the licence reader, Home's customiser). The rail then has to go, but NOT by taking a
     /// different branch: that rebuilds the content and the pushed screen's own stack goes with it.
@@ -49,19 +51,15 @@ struct SidebarShell<Content: View>: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .environment(\.shellPaysLeadingInset, !chromeHidden)
                 .focusSectionCompat()
+                // The shell opens on the content, not on the rail, which is what the top bar does.
+                .prefersDefaultFocus(true, in: shellFocus)
                 .onPreferenceChange(ShellChromeHiddenKey.self) { hidden in
                     chromeHidden = hidden
                 }
         }
         .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: focusIsInRail)
-        .onChange(of: focus) { oldValue, newValue in
+        .onChange(of: focus) { _, newValue in
             focusIsInRail = newValue != nil
-            // Entering the rail from the content lands wherever the geometry points, which is
-            // whichever row happens to share the y position of the card left behind. Correct it
-            // to the selected tab, but ONLY on entry: while walking the rail, focus is the point.
-            if oldValue == nil, let newValue, newValue != .item(selectedTab) {
-                focus = .item(selectedTab)
-            }
         }
         // Menu is ours only while the rail is on screen. On a pushed screen the navigation stack
         // owns it, and an installed handler would swallow the press that should pop the screen,
@@ -78,7 +76,7 @@ struct SidebarShell<Content: View>: View {
                 break
             }
         }
-        .defaultFocus($focus, .item(selectedTab))
+        .focusScope(shellFocus)
     }
 }
 #endif

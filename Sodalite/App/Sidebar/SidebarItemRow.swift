@@ -55,7 +55,10 @@ struct SidebarItemRow: View {
             RoundedRectangle(cornerRadius: SidebarMetrics.cornerRadius)
                 .fill(state.fill)
         )
-        .focusable(true)
+        // Only the selected row is reachable while the rail is cold. Focus arriving from the content
+        // lands geometrically, so anything else here means the viewer sees it land on the wrong row
+        // and jump. Correcting it afterwards is visible as a blink; refusing it is not.
+        .focusable(isExpanded || isSelected)
         .focused($focus, equals: .item(tab))
         // The house helper for a Select press on a focusable row, focus-gated like every other one.
         .stableTap(isFocused: isFocused) {
