@@ -37,6 +37,10 @@ private struct DetailCoverHost<Content: View>: View {
                 #endif
         }
         .environment(\.detailCoverStack, stack)
+        // A track started from the album page inside this cover has to be presented BY this cover:
+        // the router is the same hosting controller under the sidebar, and its cover was refused
+        // until this one went away (Sodalite#140).
+        .nowPlayingCoverHost()
         #if os(iOS)
         .pausesAppBackgroundMotion()
         #else

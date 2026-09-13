@@ -31,9 +31,10 @@ final class MusicPlaybackCoordinator {
     private(set) var currentTime: Double = 0
     private(set) var duration: Double = 0
 
-    /// Bumped to request the fullscreen Now-Playing screen (track tap, card tap). AppRouter watches
-    /// this and drives the `fullScreenCover` (cover state lives there).
-    private(set) var nowPlayingPresentationRequest: Int = 0
+    /// Whether the fullscreen Now-Playing screen is up, and which view presents it. Shared rather
+    /// than router-local: with the sidebar the router cannot present over an album cover, so the
+    /// cover hosts the player itself (see NowPlayingPresentation).
+    let nowPlayingPresentation = NowPlayingPresentation()
 
     // MARK: - Scrubbing (see +Scrubbing)
 
@@ -126,9 +127,9 @@ final class MusicPlaybackCoordinator {
         startLoadingCurrent()
     }
 
-    /// Ask AppRouter to present the fullscreen Now-Playing screen (the card resumes, not restarts).
+    /// Put the fullscreen Now-Playing screen on screen (the card resumes, not restarts).
     func requestNowPlayingPresentation() {
-        nowPlayingPresentationRequest += 1
+        nowPlayingPresentation.present()
     }
 
     func togglePlayPause() {
