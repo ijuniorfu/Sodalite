@@ -54,7 +54,13 @@ struct SidebarShell<Content: View>: View {
                 // The shell opens on the content, not on the rail, which is what the top bar does.
                 .prefersDefaultFocus(true, in: shellFocus)
                 .onPreferenceChange(ShellChromeHiddenKey.self) { hidden in
-                    chromeHidden = hidden
+                    // withAnimation, not .animation(value:): the width the screens below react to
+                    // arrives through the environment, and a modifier up here does not catch that
+                    // propagation. Inside an explicit transaction every margin moves with the rail
+                    // instead of snapping while the rail slides.
+                    withAnimation(.easeInOut(duration: SidebarMetrics.expandDuration)) {
+                        chromeHidden = hidden
+                    }
                 }
         }
         // ONE opt-out, for the whole shell. On a child alone it does not work: the HStack still
@@ -63,10 +69,7 @@ struct SidebarShell<Content: View>: View {
         // the simulator: 38pt on the left against 120 on the right.
         .ignoresSafeArea(edges: .leading)
         .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: focusIsInRail)
-        // Without this the rail simply vanishes on a push and the content jumps to its new width.
-        // Animating the same value on the shell carries the rail, the width and every screen margin
-        // that depends on it through one movement.
-        .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: chromeHidden)
+
         .onChange(of: focus) { _, newValue in
             focusIsInRail = newValue != nil
         }
