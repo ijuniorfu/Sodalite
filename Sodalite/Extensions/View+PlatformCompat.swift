@@ -231,7 +231,7 @@ private struct ScreenContentInset: ViewModifier {
             //
             // Reduced, NOT removed: a focused row grows, and SwiftUI clips it at the container's
             // edge, so zero here cut the left side off the selected settings card.
-            .padding(.leading, shellPaysLeading ? SidebarMetrics.focusGrowthMargin : m.screenHInset)
+            .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : m.screenHInset)
             .padding(.trailing, m.screenHInset)
             .padding(.vertical, m.screenVInset)
     }

@@ -22,7 +22,7 @@ struct HorizontalMediaRow: View {
     private var rowInset: CGFloat { inset ?? metrics.rowInset }
     /// With the sidebar beside the content (Sodalite#140) the rail and its gap ARE the left margin,
     /// so the row keeps only enough room for a focused card to grow into.
-    private var leadingInset: CGFloat { shellPaysLeading ? SidebarMetrics.focusGrowthMargin : rowInset }
+    private var leadingInset: CGFloat { shellPaysLeading ? SidebarMetrics.contentLeading : rowInset }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

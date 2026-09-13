@@ -34,14 +34,24 @@ struct SidebarMetricsTests {
         #expect(SidebarMetrics.labelWidthBudget < 13 * 48 * 0.5)
     }
 
-    /// Zero here shipped once and cut the left edge off the focused settings card: focus scales a
-    /// row up and SwiftUI clips it at the container's edge, so the margin a screen keeps has to be
-    /// big enough for that growth.
-    @Test("the margin a screen keeps is never zero, because focus grows into it")
-    func focusGrowthMarginIsNotZero() {
-        #expect(SidebarMetrics.focusGrowthMargin > 0)
-        // A 260pt card at the focus scale grows about 8pt per side; the margin covers it.
-        #expect(SidebarMetrics.focusGrowthMargin >= 260 * 0.06 / 2)
+    /// The eye checks whether the gap from the screen edge to the rail matches the gap from the
+    /// rail to the content. Two numbers drifting apart is what "the spacing is off" means here.
+    @Test("the content sits as far from the rail as the rail sits from the screen edge")
+    func theTwoGapsMatch() {
+        #expect(SidebarMetrics.contentLeading == SidebarMetrics.railLeadingInset)
+        // The shell adds nothing on top, so that symmetry is the whole distance.
+        #expect(SidebarMetrics.contentGap == 0)
+    }
+
+    /// 16pt shipped once and still clipped the focused settings card. A settings tile is
+    /// screen-wide and FocusResponse.tile scales it 1.03, so it grows far more per side than a
+    /// media card does, and the leading margin is what it grows into.
+    @Test("the leading margin swallows the focus lift of a screen-wide tile")
+    func marginCoversTheWidestFocusLift() {
+        let tileScale: CGFloat = 1.03
+        let contentWidth: CGFloat = 1920 - SidebarMetrics.railLeadingInset - SidebarMetrics.collapsedWidth
+        let growthPerSide = contentWidth * (tileScale - 1) / 2
+        #expect(SidebarMetrics.contentLeading >= growthPerSide)
     }
 
     @Test("expanding is the only thing that changes the width")

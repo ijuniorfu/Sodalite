@@ -15,7 +15,7 @@ struct LibraryRow: View {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.leading, shellPaysLeading ? SidebarMetrics.focusGrowthMargin : metrics.rowInset)
+                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
                 .padding(.trailing, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -26,7 +26,7 @@ struct LibraryRow: View {
                         }
                     }
                 }
-                .padding(.leading, shellPaysLeading ? SidebarMetrics.focusGrowthMargin : metrics.rowInset)
+                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
                 .padding(.trailing, metrics.rowInset)
                 .padding(.vertical, metrics.rowVerticalPadding)
             }

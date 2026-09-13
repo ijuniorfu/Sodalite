@@ -24,14 +24,18 @@ enum SidebarMetrics {
     /// 38pt from the edge). Staying outside it stacks 60 + inset and reads as a wide empty gutter.
     static let railLeadingInset: CGFloat = 40
 
-    /// Gap between rail and content. Small, because screens keep a focus-safe margin of their own
-    /// (`focusGrowthMargin`); this one exists for the Live TV guide, which draws flush and has none.
-    static let contentGap: CGFloat = 20
+    /// Zero: the content's own leading edge is the whole distance (`contentLeading`), so there is
+    /// one number to reason about instead of a shell gap plus whatever each screen brings.
+    static let contentGap: CGFloat = 0
 
-    /// What a screen keeps on its leading edge while the sidebar pays the rest of the margin.
-    /// Not zero: focus scales a row up and SwiftUI clips it at the container's edge, so the left
-    /// side of the focused settings card was being cut off.
-    static let focusGrowthMargin: CGFloat = 16
+    /// The leading edge of every screen while the sidebar is up, and deliberately the SAME number
+    /// as `railLeadingInset`: the gap from the screen edge to the rail then equals the gap from the
+    /// rail to the content, which is the symmetry the eye actually checks.
+    ///
+    /// It also has to swallow the focus lift, and that is why 16pt was not enough: a settings tile
+    /// is screen-wide and `FocusResponse.tile` scales it 1.03, so it grows about 25pt per side,
+    /// plus its shadow. A media card grows 8. The bigger of the two sets the number.
+    static var contentLeading: CGFloat { railLeadingInset }
     /// Gap between the icon column and the label.
     static let labelSpacing: CGFloat = 16
 

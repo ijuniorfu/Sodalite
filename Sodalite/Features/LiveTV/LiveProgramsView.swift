@@ -138,6 +138,7 @@ private struct ProgramCategoryRow: View {
     let onSelect: (JellyfinProgram) -> Void
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
 
     var body: some View {
@@ -145,7 +146,8 @@ private struct ProgramCategoryRow: View {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
+                .padding(.trailing, metrics.rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: metrics.itemSpacing) {
@@ -160,7 +162,8 @@ private struct ProgramCategoryRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
+                .padding(.trailing, metrics.rowInset)
                 .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
