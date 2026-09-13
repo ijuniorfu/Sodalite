@@ -206,6 +206,7 @@
 		2C54BD9F6735E01C6861B4EF /* MediaCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231D308F2B70E534C8F04447 /* MediaCard.swift */; };
 		2C5F393C4CC37B9432196A85 /* TopShelfAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F6727C1A1F0FB1F1E2C3AA /* TopShelfAPI.swift */; };
 		2C6A308A5C4E99433D79AE95 /* LiveRailLabels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E0D841BD4BA1B55994E038 /* LiveRailLabels.swift */; };
+		2C7493B58AD2AC442F6889A0 /* SidebarShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13ECD69CBBA5997B7200B3AE /* SidebarShell.swift */; };
 		2C80CC14F86F5D3C71E0485D /* LogTimestamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58BAF69E6381118A2FB11D35 /* LogTimestamp.swift */; };
 		2C90F9EF0CB58FE811A92914 /* SharedSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B21493210BDCF9D4114173B /* SharedSession.swift */; };
 		2D956879E36C2D076C01C270 /* SeerrCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78986EB0B976522A915FD22B /* SeerrCollection.swift */; };
@@ -583,6 +584,7 @@
 		81ECB5BE681882F45FC199FD /* PlayerViewModel+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C3D4639FA7277264A7D858 /* PlayerViewModel+Live.swift */; };
 		81F94693D5DEEC8DB8930088 /* SeerrMediaStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D44D64EE3E9EBE69B65698 /* SeerrMediaStatus.swift */; };
 		821A148868FEBE29EC8B8E6A /* SeerrAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE35BB1636B33A37F1CE90F5 /* SeerrAuthService.swift */; };
+		822EF88CD725F2D319A6FFE2 /* SidebarShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13ECD69CBBA5997B7200B3AE /* SidebarShell.swift */; };
 		82718D52B0B18494B92B9219 /* LicenseText-WTFPL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 51C8ACDBF478C0267CFAE44C /* LicenseText-WTFPL.txt */; };
 		831E282601D859F6DADDD4DD /* UserProfileImageURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15AEDC905956567B1DB3936F /* UserProfileImageURLTests.swift */; };
 		835F7B4A8DB91AFAEF35D098 /* CatalogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40D9293B1394983BF122589 /* CatalogViewModel.swift */; };
@@ -1213,6 +1215,7 @@
 		12D48C0E2F7E3BC442ECDDB4 /* LivePlayerLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePlayerLauncher.swift; sourceTree = "<group>"; };
 		13CBA535F5E1308F6F2B4EE8 /* PersonRouteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonRouteTests.swift; sourceTree = "<group>"; };
 		13D4F586D7E43FDC42308F7F /* KeyboardTransportStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTransportStateTests.swift; sourceTree = "<group>"; };
+		13ECD69CBBA5997B7200B3AE /* SidebarShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarShell.swift; sourceTree = "<group>"; };
 		143748079A977513B9EDF771 /* ServerDualURLCodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerDualURLCodableTests.swift; sourceTree = "<group>"; };
 		148C309E36E03E45474228FB /* ContentLogoBudget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLogoBudget.swift; sourceTree = "<group>"; };
 		14BCB912099E52F189D68C89 /* PlayerHostController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHostController.swift; sourceTree = "<group>"; };
@@ -2351,6 +2354,7 @@
 				E1ED651FA4E10DF6FB410894 /* SidebarItemState.swift */,
 				18AAF677978748A967A480D1 /* SidebarMetrics.swift */,
 				5E7DA37325C6DAACB5C42086 /* SidebarRail.swift */,
+				13ECD69CBBA5997B7200B3AE /* SidebarShell.swift */,
 			);
 			path = Sidebar;
 			sourceTree = "<group>";
@@ -3520,6 +3524,7 @@
 				A21E53A76E2221CB504EC15E /* SidebarItemState.swift in Sources */,
 				332028D2F7C4DCD65A627D30 /* SidebarMetrics.swift in Sources */,
 				3818BF86286DB840855AF0AA /* SidebarRail.swift in Sources */,
+				822EF88CD725F2D319A6FFE2 /* SidebarShell.swift in Sources */,
 				64913A8514DF05A048AE8406 /* SiriRemoteEdgeClick.swift in Sources */,
 				9E37FA39B6C864BBFD702D69 /* SiriRemoteSurfaceTracker.swift in Sources */,
 				AF30CA9DF8793B32973C7C66 /* SkipBackSubtitleWindow.swift in Sources */,
@@ -4195,6 +4200,7 @@
 				A1D97DE1DA105142D3BE41A8 /* SidebarItemState.swift in Sources */,
 				418C5AACE19F07785707BC70 /* SidebarMetrics.swift in Sources */,
 				0ABE88D856CE288F098EE2CE /* SidebarRail.swift in Sources */,
+				2C7493B58AD2AC442F6889A0 /* SidebarShell.swift in Sources */,
 				12597F3BFEA91B5C27EF0CE5 /* SiriRemoteEdgeClick.swift in Sources */,
 				30D13C36366BE66ED056016E /* SiriRemoteSurfaceTracker.swift in Sources */,
 				F0CD48A08028A8FBB61A7C1B /* SkipBackSubtitleWindow.swift in Sources */,
