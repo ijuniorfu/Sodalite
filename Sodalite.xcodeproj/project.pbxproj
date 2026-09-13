@@ -256,6 +256,7 @@
 		3818BF86286DB840855AF0AA /* SidebarRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7DA37325C6DAACB5C42086 /* SidebarRail.swift */; };
 		386E0F8F8EE6F5699360EC56 /* PendingRequestsBackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03A0444AD166BAEE0F237FBF /* PendingRequestsBackgroundRefresh.swift */; };
 		387878240BDDE410249A84A0 /* GuideGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E248152FCA9B2C490E641934 /* GuideGridViewController.swift */; };
+		39030A3285AEA29BF3D812CF /* SidebarProfileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB7991EF688676E7E9399CA /* SidebarProfileHeader.swift */; };
 		3982B4B94872D1437AF93345 /* CheckmarkAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD5596E5ED089CD31B3ADB8 /* CheckmarkAnimation.swift */; };
 		3A1FBDE9DC53F59B43C6C3C5 /* JellyfinEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */; };
 		3A22902EF39153941F953804 /* LiveProgramsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADAD381D4AEFEF97223E0EA /* LiveProgramsViewModel.swift */; };
@@ -759,6 +760,7 @@
 		ADC1401C54BF1AF9208D4F72 /* PlayerLockProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A49C90E145510D9212683F8 /* PlayerLockProgress.swift */; };
 		ADDE49DC5628AACFBA8C1FCF /* SeerrRequestFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25735BA0AC72D8D8AEE8984 /* SeerrRequestFilter.swift */; };
 		AE186C5C8DC0B9C1989FC7F3 /* CollectionGrouping.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB95370490A2D1F444028A11 /* CollectionGrouping.swift */; };
+		AE186F37D815281B1E00CE7C /* SidebarProfileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB7991EF688676E7E9399CA /* SidebarProfileHeader.swift */; };
 		AE3581664FF0028C5FA58C1B /* NextEpisodePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A458B9951731F51899E0F4B /* NextEpisodePolicyTests.swift */; };
 		AE4CFDA4655642AB94E5438B /* PlayerViewModel+SubtitleSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 038BBEAE0097DCB4283CD8BD /* PlayerViewModel+SubtitleSearch.swift */; };
 		AE90C481C858A3982B3523EB /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0608D8ACFF463F8E0B6556B8 /* LoginViewModel.swift */; };
@@ -1456,6 +1458,7 @@
 		6F108CEF8820921CE2B80A2A /* ItemMetadataRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemMetadataRow.swift; sourceTree = "<group>"; };
 		6F1459E3CC3E393249DCF146 /* CloudSyncSessionRetentionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncSessionRetentionTests.swift; sourceTree = "<group>"; };
 		6F4E0F9206D8B25B7535B9E5 /* LogTimestampTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogTimestampTests.swift; sourceTree = "<group>"; };
+		6FB7991EF688676E7E9399CA /* SidebarProfileHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarProfileHeader.swift; sourceTree = "<group>"; };
 		6FE3B2C744AB8F33AB66F94E /* ProfilePINTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePINTests.swift; sourceTree = "<group>"; };
 		701C10265C5C32AA946482DC /* AsyncCachedImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncCachedImage.swift; sourceTree = "<group>"; };
 		70AEC623687A44C3603ED57F /* SiriRemoteEdgeClickTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriRemoteEdgeClickTests.swift; sourceTree = "<group>"; };
@@ -2353,6 +2356,7 @@
 				543C12D37199F6A551DE517A /* SidebarItemRow.swift */,
 				E1ED651FA4E10DF6FB410894 /* SidebarItemState.swift */,
 				18AAF677978748A967A480D1 /* SidebarMetrics.swift */,
+				6FB7991EF688676E7E9399CA /* SidebarProfileHeader.swift */,
 				5E7DA37325C6DAACB5C42086 /* SidebarRail.swift */,
 				13ECD69CBBA5997B7200B3AE /* SidebarShell.swift */,
 			);
@@ -3523,6 +3527,7 @@
 				8B82DF3918BA8D42B4E5C55C /* SidebarItemRow.swift in Sources */,
 				A21E53A76E2221CB504EC15E /* SidebarItemState.swift in Sources */,
 				332028D2F7C4DCD65A627D30 /* SidebarMetrics.swift in Sources */,
+				39030A3285AEA29BF3D812CF /* SidebarProfileHeader.swift in Sources */,
 				3818BF86286DB840855AF0AA /* SidebarRail.swift in Sources */,
 				822EF88CD725F2D319A6FFE2 /* SidebarShell.swift in Sources */,
 				64913A8514DF05A048AE8406 /* SiriRemoteEdgeClick.swift in Sources */,
@@ -4199,6 +4204,7 @@
 				227911E5899BCF2DA8E70F97 /* SidebarItemRow.swift in Sources */,
 				A1D97DE1DA105142D3BE41A8 /* SidebarItemState.swift in Sources */,
 				418C5AACE19F07785707BC70 /* SidebarMetrics.swift in Sources */,
+				AE186F37D815281B1E00CE7C /* SidebarProfileHeader.swift in Sources */,
 				0ABE88D856CE288F098EE2CE /* SidebarRail.swift in Sources */,
 				2C7493B58AD2AC442F6889A0 /* SidebarShell.swift in Sources */,
 				12597F3BFEA91B5C27EF0CE5 /* SiriRemoteEdgeClick.swift in Sources */,

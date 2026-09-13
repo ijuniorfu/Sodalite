@@ -24,10 +24,10 @@ enum SidebarMetrics {
     /// 38pt from the edge). Staying outside it stacks 60 + inset and reads as a wide empty gutter.
     static let railLeadingInset: CGFloat = 40
 
-    /// Breathing room between the rail and the content. Not zero: most screens bring their own
-    /// 80pt `screenHInset`, but the Live TV guide draws its channel column flush, and against a
-    /// zero gap it touched the rail.
-    static let contentGap: CGFloat = 28
+    /// The ONLY gap between rail and content: screens hand their leading `screenHInset` back while
+    /// the sidebar is up (see `shellPaysLeadingInset`), so this one number has to work both for a
+    /// screen that brought its own margin and for the Live TV guide, which draws flush.
+    static let contentGap: CGFloat = 44
     /// Gap between the icon column and the label.
     static let labelSpacing: CGFloat = 16
 

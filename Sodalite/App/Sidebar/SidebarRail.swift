@@ -25,8 +25,7 @@ struct SidebarRail: View {
 
     var body: some View {
         VStack(alignment: isExpanded ? .leading : .center, spacing: SidebarMetrics.itemSpacing) {
-            ActiveUserBadge()
-                .padding(.vertical, SidebarMetrics.itemVerticalPadding)
+            SidebarProfileHeader(isExpanded: isExpanded)
 
             ForEach(browsingTabs, id: \.self) { tab in
                 SidebarItemRow(

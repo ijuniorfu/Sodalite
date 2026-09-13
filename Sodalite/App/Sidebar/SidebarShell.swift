@@ -47,6 +47,7 @@ struct SidebarShell<Content: View>: View {
 
             content(selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .environment(\.shellPaysLeadingInset, !chromeHidden)
                 .focusSectionCompat()
                 .onPreferenceChange(ShellChromeHiddenKey.self) { hidden in
                     chromeHidden = hidden

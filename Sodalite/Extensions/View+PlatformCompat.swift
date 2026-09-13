@@ -220,10 +220,28 @@ extension View {
 
 private struct ScreenContentInset: ViewModifier {
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
+
     func body(content: Content) -> some View {
         let m = LayoutMetrics.current(hSizeClass)
         return content
-            .padding(.horizontal, m.screenHInset)
+            // The 80pt leading margin is for a shell whose navigation sits ABOVE the content. With
+            // the sidebar beside it (Sodalite#140), the rail plus its gap is that margin, and
+            // charging it twice pushes the first card a fifth of the screen inwards.
+            .padding(.leading, shellPaysLeading ? 0 : m.screenHInset)
+            .padding(.trailing, m.screenHInset)
             .padding(.vertical, m.screenVInset)
+    }
+}
+
+private struct ShellPaysLeadingInsetKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Set by the sidebar shell on its content: the leading margin is already accounted for.
+    var shellPaysLeadingInset: Bool {
+        get { self[ShellPaysLeadingInsetKey.self] }
+        set { self[ShellPaysLeadingInsetKey.self] = newValue }
     }
 }
