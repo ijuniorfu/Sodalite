@@ -11,11 +11,18 @@ enum SidebarMetrics {
     static let itemVerticalPadding: CGFloat = 14
     static let horizontalPadding: CGFloat = 20
     static let cornerRadius: CGFloat = 16
-    static let panelCornerRadius: CGFloat = 28
 
-    static let collapsedWidth: CGFloat = 90
+    /// The collapsed row is square around its icon: the same padding on all four sides, so the
+    /// focus pill reads as a tile rather than a stretched capsule, and the rail costs the content
+    /// no more width than the icon actually needs.
+    static func itemHorizontalPadding(isExpanded: Bool) -> CGFloat {
+        isExpanded ? horizontalPadding : itemVerticalPadding
+    }
+
+    static var collapsedWidth: CGFloat { iconColumn + itemHorizontalPadding(isExpanded: false) * 2 }
     /// A cap, not a promise: labels are `lineLimit(1)`, and 26 locales include longer compounds.
-    static let expandedWidth: CGFloat = 300
+    /// 360 rather than 300 because German ("Einstellungen") overran the narrower rail on device.
+    static let expandedWidth: CGFloat = 360
 
     /// Matches the scrim in `menuPresentation`, the app's other "a panel arrives" curve.
     static let expandDuration: Double = 0.35

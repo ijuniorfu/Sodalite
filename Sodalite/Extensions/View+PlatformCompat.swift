@@ -191,6 +191,18 @@ extension View {
         #endif
     }
 
+    /// Same, but installable and removable without changing the view's type. Passing nil to
+    /// `onExitCommand` is what LEAVES the press to whoever is behind: an empty closure would still
+    /// swallow it, and on a pushed screen that is the press meant to pop the screen (Sodalite#140).
+    @ViewBuilder
+    func onExitCommandIfEnabled(_ enabled: Bool, perform action: @escaping () -> Void) -> some View {
+        #if os(tvOS)
+        onExitCommand(perform: enabled ? action : nil)
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder
     func onPlayPauseCommandCompat(perform action: @escaping () -> Void) -> some View {
         #if os(tvOS)

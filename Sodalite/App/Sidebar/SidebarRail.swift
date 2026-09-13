@@ -22,6 +22,7 @@ struct SidebarRail: View {
                    : SidebarMetrics.iconColumn
     }
 
+
     var body: some View {
         VStack(alignment: isExpanded ? .leading : .center, spacing: SidebarMetrics.itemSpacing) {
             ActiveUserBadge()
@@ -53,15 +54,9 @@ struct SidebarRail: View {
         }
         .frame(width: SidebarMetrics.width(isExpanded: isExpanded))
         .frame(maxHeight: .infinity, alignment: .center)
-        .background(
-            RoundedRectangle(cornerRadius: SidebarMetrics.panelCornerRadius)
-                .fill(Color.Theme.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: SidebarMetrics.panelCornerRadius)
-                        .strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
-                )
-                .opacity(isExpanded ? 1 : 0)
-        )
+        // No panel behind the expanded rail. It was there out of habit, and on device it earned
+        // nothing: white labels and an accent icon are legible over the app background on their
+        // own, while the panel only ever drew a second edge for the labels to overrun.
         .focusSectionCompat()
     }
 }

@@ -41,10 +41,12 @@ struct SidebarItemRow: View {
                     .font(.title3)
                     .foregroundStyle(state.labelColor)
                     .lineLimit(1)
-                    .fixedSize()
+                    // NOT fixedSize: that makes a long label (German "Einstellungen") wider than
+                    // the rail and it then draws straight over the content beside it.
+                    .truncationMode(.tail)
             }
         }
-        .padding(.horizontal, SidebarMetrics.horizontalPadding)
+        .padding(.horizontal, SidebarMetrics.itemHorizontalPadding(isExpanded: isExpanded))
         .padding(.vertical, SidebarMetrics.itemVerticalPadding)
         .frame(maxWidth: .infinity, alignment: isExpanded ? .leading : .center)
         .background(

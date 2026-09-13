@@ -13,9 +13,19 @@ struct SidebarMetricsTests {
         #expect(SidebarMetrics.itemSpacing > 0, "a bigger icon than the pitch allows would collapse the gap")
     }
 
-    @Test("the collapsed rail is wide enough for the icon column it has to centre")
-    func collapsedFitsTheIcon() {
-        #expect(SidebarMetrics.collapsedWidth >= SidebarMetrics.iconColumn + SidebarMetrics.horizontalPadding * 2)
+    @Test("the collapsed rail costs exactly the icon plus its own padding, no leftover white space")
+    func collapsedIsAsNarrowAsItsIcon() {
+        let padding = SidebarMetrics.itemHorizontalPadding(isExpanded: false)
+        #expect(SidebarMetrics.collapsedWidth == SidebarMetrics.iconColumn + padding * 2)
+        // Square around the icon, so the focus pill is a tile rather than a stretched capsule.
+        #expect(padding == SidebarMetrics.itemVerticalPadding)
+    }
+
+    @Test("the expanded rail is wide enough for the longest label plus the icon column")
+    func expandedFitsTheLongestLabel() {
+        let chrome = SidebarMetrics.iconColumn + SidebarMetrics.horizontalPadding * 2 + 16
+        // "Einstellungen" at .title3 needs roughly 210pt on tvOS; it overran the 300pt rail on device.
+        #expect(SidebarMetrics.expandedWidth - chrome >= 210)
     }
 
     @Test("expanding is the only thing that changes the width")

@@ -16,9 +16,15 @@ struct SidebarShell<Content: View>: View {
     /// Mirrors the focus so the animation has something to compare, and so the Menu policy can ask
     /// where focus is without reading `@FocusState` mid-update.
     @State private var focusIsInRail = true
+    /// Raised by a pushed screen that wants the navigation out of the way (Settings sub-screens,
+    /// the licence reader, Home's customiser). The rail then has to go, but NOT by taking a
+    /// different branch: that rebuilds the content and the pushed screen's own stack goes with it.
+    @State private var chromeHidden = false
 
     var body: some View {
-        HStack(spacing: SidebarMetrics.horizontalPadding) {
+        // No spacing here: the rail carries its own leading inset and every screen already brings
+        // screenContentInset(), so a gap in between is a third margin nobody asked for.
+        HStack(spacing: 0) {
             SidebarRail(
                 tabs: tabs,
                 selectedTab: selectedTab,
@@ -31,17 +37,26 @@ struct SidebarShell<Content: View>: View {
                     focus = nil
                 }
             )
-            .padding(.leading, SidebarMetrics.horizontalPadding)
+            .padding(.leading, chromeHidden ? 0 : SidebarMetrics.horizontalPadding)
+            .frame(width: chromeHidden ? 0 : nil)
+            .opacity(chromeHidden ? 0 : 1)
+            .disabled(chromeHidden)
 
             content(selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .focusSectionCompat()
+                .onPreferenceChange(ShellChromeHiddenKey.self) { hidden in
+                    chromeHidden = hidden
+                }
         }
         .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: focusIsInRail)
         .onChange(of: focus) { _, newValue in
             focusIsInRail = newValue != nil
         }
-        .onExitCommandCompat {
+        // Menu is ours only while the rail is on screen. On a pushed screen the navigation stack
+        // owns it, and an installed handler would swallow the press that should pop the screen,
+        // hence the nil rather than an empty closure.
+        .onExitCommandIfEnabled(!chromeHidden) {
             switch SidebarExitPolicy.next(focusIsInRail: focusIsInRail, selectedTab: selectedTab) {
             case .focusRail:
                 focus = .item(selectedTab)
