@@ -35,9 +35,13 @@ struct CloudSyncSettingsParityTests {
         return defaults
     }
 
+    /// One named exemption: `skipIntervalSeconds` is the pre-split single interval (Sodalite#144),
+    /// still written so a build without the two direction fields keeps syncing its jumps, and no
+    /// longer a setting this build stores.
     @Test func everyPlaybackSettingIsInThePayload() {
         let store = PlaybackPreferences(store: scratchDefaults("playback"))
-        #expect(storedSettingNames(of: store) == payloadFieldNames(.playback))
+        #expect(storedSettingNames(of: store)
+                == payloadFieldNames(.playback).subtracting(["skipIntervalSeconds"]))
     }
 
     @Test func everyAppearanceSettingIsInThePayload() {

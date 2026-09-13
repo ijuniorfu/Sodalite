@@ -116,7 +116,8 @@ struct CloudSyncForwardCompatTests {
                 subtitlesOnSkipBack: true, liveTeletextPage: "auto",
                 liveBufferDepth: "ninetyMinutes", autoplayCountdown: true,
                 forceDolbyVisionOnNonDVDisplay: true, touchpadScrubbing: true,
-                nextEpisodeCountdownAnchor: "end"
+                nextEpisodeCountdownAnchor: "end",
+                skipForwardSeconds: 30, skipBackwardSeconds: 10
             ))
         case .appearance:
             return .appearance(AppearanceSettingsPayload(

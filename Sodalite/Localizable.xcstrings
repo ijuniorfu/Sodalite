@@ -164892,324 +164892,646 @@
         }
       }
     },
-    "settings.playback.skipInterval" : {
+    "settings.playback.skipBackward" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interval přeskoku"
+            "value" : "Skok zpět"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spring-interval"
+            "value" : "Spring tilbage"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sprung-Intervall"
+            "value" : "Zurückspringen"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Διάστημα παράλειψης"
+            "value" : "Μετάβαση πίσω"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skip Interval"
+            "value" : "Skip Back"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intervalo de salto"
+            "value" : "Salto atrás"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kelausväli"
+            "value" : "Kelaus taaksepäin"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intervalle de saut"
+            "value" : "Saut arrière"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interval preskoka"
+            "value" : "Preskok natrag"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ugrás időköze"
+            "value" : "Ugrás vissza"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intervallo di salto"
+            "value" : "Salto indietro"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "スキップ間隔"
+            "value" : "後方スキップ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "건너뛰기 간격"
+            "value" : "뒤로 건너뛰기"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hoppeintervall"
+            "value" : "Hopp bakover"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Overslaaninterval"
+            "value" : "Terugspringen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Odstęp przewijania"
+            "value" : "Skok do tyłu"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intervalo de avanço"
+            "value" : "Salto para trás"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intervalo de salto"
+            "value" : "Salto para trás"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interval de salt"
+            "value" : "Salt înapoi"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Интервал перемотки"
+            "value" : "Перемотка назад"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Interval preskoku"
+            "value" : "Skok dozadu"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hoppintervall"
+            "value" : "Hoppa bakåt"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atlama Aralığı"
+            "value" : "Geri Atlama"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Інтервал перемотки"
+            "value" : "Перемотка назад"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "跳过间隔"
+            "value" : "向后跳过"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "跳轉間隔"
+            "value" : "向後跳轉"
           }
         }
       }
     },
-    "settings.playback.skipInterval.subtitle" : {
+    "settings.playback.skipBackward.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekundy, o které přeskočí tlačítka vlevo/vpravo."
+            "value" : "Jak daleko skočí přeskok zpět."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekunder som venstre/højre-knapperne hopper."
+            "value" : "Hvor langt et spring tilbage går."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekunden, die die Links/Rechts-Tasten springen."
+            "value" : "Wie weit ein Sprung zurück geht."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Δευτερόλεπτα παράλειψης με αριστερά/δεξιά."
+            "value" : "Πόσο μακριά φτάνει ένα άλμα πίσω."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seconds that the left/right buttons jump."
+            "value" : "How far a jump back goes."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segundos de salto para los botones izquierdo y derecho."
+            "value" : "Cuánto retrocede un salto hacia atrás."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekunteja, joilla vasen/oikea-painikkeet kelaavat."
+            "value" : "Kuinka pitkälle taaksepäin kelaus hyppää."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Secondes de saut pour les boutons gauche et droite."
+            "value" : "Distance parcourue par un saut arrière."
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekunde koje preskaču lijeva/desna tipka."
+            "value" : "Koliko daleko ide preskok natrag."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A bal/jobb gombok által átugrott másodpercek."
+            "value" : "Milyen messzire ugrik egy visszaugrás."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Secondi di salto con i pulsanti sinistra/destra."
+            "value" : "Di quanto torna indietro un salto."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "左右ボタンでスキップする秒数。"
+            "value" : "後方へのスキップが戻る長さ。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "왼쪽/오른쪽 버튼으로 건너뛸 초 수."
+            "value" : "뒤로 건너뛸 때 이동하는 거리입니다."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekunder som venstre/høyre-knappene hopper."
+            "value" : "Hvor langt et hopp bakover går."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seconden die de links/rechts-knoppen overslaan."
+            "value" : "Hoe ver een sprong terug gaat."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekundy przewijania lewym/prawym przyciskiem."
+            "value" : "Jak daleko sięga skok do tyłu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segundos que os botões esquerdo/direito avançam."
+            "value" : "Quanto retrocede um salto para trás."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segundos que os botões esquerdo/direito avançam."
+            "value" : "Quanto recua um salto para trás."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Secunde pentru salt cu butoanele stânga/dreapta."
+            "value" : "Cât de departe ajunge un salt înapoi."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Секунды перемотки левой/правой кнопкой."
+            "value" : "Насколько далеко перематывает прыжок назад."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekundy, o ktoré preskočia tlačidlá vľavo/vpravo."
+            "value" : "Ako ďaleko skočí skok dozadu."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sekunder som vänster/höger-knapparna hoppar."
+            "value" : "Hur långt ett hopp bakåt går."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sol/sağ düğmelerinin atlayacağı saniye."
+            "value" : "Geri atlamanın ne kadar gerilediği."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Секунди, на які перемотують кнопки вліво/вправо."
+            "value" : "Наскільки далеко перемотує стрибок назад."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "左右按钮跳过的秒数。"
+            "value" : "向后跳过的时长。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "左右按鈕跳轉的秒數。"
+            "value" : "向後跳轉的時間長度。"
+          }
+        }
+      }
+    },
+    "settings.playback.skipForward" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skok vpřed"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spring frem"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorspringen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μετάβαση εμπρός"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip Forward"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salto adelante"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kelaus eteenpäin"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saut avant"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preskok naprijed"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ugrás előre"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salto avanti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前方スキップ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앞으로 건너뛰기"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hopp fremover"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vooruit springen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skok do przodu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salto para frente"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salto para a frente"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salt înainte"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемотка вперёд"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skok dopredu"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoppa framåt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İleri Atlama"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемотка вперед"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向前跳过"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向前跳轉"
+          }
+        }
+      }
+    },
+    "settings.playback.skipForward.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jak daleko skočí přeskok vpřed."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hvor langt et spring frem går."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie weit ein Sprung vorwärts geht."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πόσο μακριά φτάνει ένα άλμα εμπρός."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How far a forward jump goes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuánto avanza un salto hacia adelante."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kuinka pitkälle eteenpäin kelaus hyppää."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance parcourue par un saut avant."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koliko daleko ide preskok naprijed."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milyen messzire ugrik egy előreugrás."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Di quanto avanza un salto in avanti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前方へのスキップが進む長さ。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앞으로 건너뛸 때 이동하는 거리입니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hvor langt et hopp fremover går."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoe ver een sprong vooruit gaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jak daleko sięga skok do przodu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quanto avança um salto para frente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quanto avança um salto para a frente."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cât de departe ajunge un salt înainte."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Насколько далеко перематывает прыжок вперёд."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ako ďaleko skočí skok dopredu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hur långt ett hopp framåt går."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İleri atlamanın ne kadar ilerlediği."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Наскільки далеко перемотує стрибок уперед."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向前跳过的时长。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向前跳轉的時間長度。"
           }
         }
       }

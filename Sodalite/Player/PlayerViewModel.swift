@@ -1741,7 +1741,7 @@ final class PlayerViewModel {
     /// Seek by the user's configured interval; direction +1 (right) or -1 (left). Wraps the seconds
     /// variant so the press handler doesn't need a Preferences lookup.
     func seekJumpByConfiguredInterval(direction: Int) {
-        let interval = preferences.skipIntervalSeconds
+        let interval = preferences.skipSeconds(direction: direction)
         let signed = (direction < 0 ? -1 : 1) * interval
         seekJump(seconds: Double(signed))
     }
@@ -3046,7 +3046,14 @@ final class PlayerViewModel {
     }
 
     #if os(iOS)
-    enum PlayerHUDKind: Equatable { case brightness, volume, skipForward, skipBackward }
+    /// The two skip cases carry their length, because the glyph is the length (Sodalite#144):
+    /// once the two directions can differ, a fixed `goforward.10` would be telling the viewer
+    /// about a jump that did not happen.
+    enum PlayerHUDKind: Equatable {
+        case brightness, volume
+        case skipForward(seconds: Int)
+        case skipBackward(seconds: Int)
+    }
 
     /// Transient touch HUD (brightness/volume swipe, skip ripple); the overlay observes hudKind.
     var hudKind: PlayerHUDKind?
@@ -3074,13 +3081,14 @@ final class PlayerViewModel {
     func skip(by seconds: Double) {
         seekJump(seconds: seconds)
         commitScrub()
-        flashHUD(seconds >= 0 ? .skipForward : .skipBackward)
+        let magnitude = Int(abs(seconds).rounded())
+        flashHUD(seconds >= 0 ? .skipForward(seconds: magnitude) : .skipBackward(seconds: magnitude))
     }
 
     /// Same commit-immediately rule for the iPad keyboard's arrow tap, at the configured interval.
     /// The HUD it flashes is also the only feedback there is, since the AVKit chrome is hidden.
     func skipByConfiguredInterval(direction: Int) {
-        skip(by: Double((direction < 0 ? -1 : 1) * preferences.skipIntervalSeconds))
+        skip(by: Double((direction < 0 ? -1 : 1) * preferences.skipSeconds(direction: direction)))
     }
 
     func setBrightness(_ value: CGFloat) {

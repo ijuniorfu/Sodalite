@@ -290,7 +290,7 @@ extension DependencyContainer {
                 autoSkipIntro: p.autoSkipIntro,
                 autoSkipOutro: p.autoSkipOutro,
                 nextEpisodeCountdownSeconds: p.nextEpisodeCountdownSeconds,
-                skipIntervalSeconds: p.skipIntervalSeconds,
+                skipIntervalSeconds: p.skipForwardSeconds,
                 preferredAudioLanguage: p.preferredAudioLanguage,
                 preferredSubtitleLanguage: p.preferredSubtitleLanguage,
                 autoSubtitleForForeignAudio: p.autoSubtitleForForeignAudio,
@@ -319,7 +319,9 @@ extension DependencyContainer {
                 autoplayCountdown: p.autoplayCountdown,
                 forceDolbyVisionOnNonDVDisplay: p.forceDolbyVisionOnNonDVDisplay,
                 touchpadScrubbing: p.touchpadScrubbing,
-                nextEpisodeCountdownAnchor: p.nextEpisodeCountdownAnchor.rawValue
+                nextEpisodeCountdownAnchor: p.nextEpisodeCountdownAnchor.rawValue,
+                skipForwardSeconds: p.skipForwardSeconds,
+                skipBackwardSeconds: p.skipBackwardSeconds
             ))
         case .appearance:
             let a = stores.appearance
@@ -395,7 +397,8 @@ extension DependencyContainer {
             store.autoSkipIntro = p.autoSkipIntro
             store.autoSkipOutro = p.autoSkipOutro
             store.nextEpisodeCountdownSeconds = p.nextEpisodeCountdownSeconds
-            store.skipIntervalSeconds = p.skipIntervalSeconds
+            store.skipForwardSeconds = p.skipForwardSeconds ?? p.skipIntervalSeconds
+            store.skipBackwardSeconds = p.skipBackwardSeconds ?? p.skipIntervalSeconds
             store.preferredAudioLanguage = p.preferredAudioLanguage
             store.preferredSubtitleLanguage = p.preferredSubtitleLanguage
             store.autoSubtitleForForeignAudio = p.autoSubtitleForForeignAudio

@@ -5,19 +5,19 @@ import CoreGraphics
 
 struct PlayerTouchInputTests {
     @Test func leftThirdSkipsBackward() {
-        #expect(PlayerTouchInput.skipSeconds(forTapX: 50, width: 900, interval: 10) == -10)
+        #expect(PlayerTouchInput.skipDirection(forTapX: 50, width: 900) == -1)
     }
 
     @Test func rightThirdSkipsForward() {
-        #expect(PlayerTouchInput.skipSeconds(forTapX: 850, width: 900, interval: 10) == 10)
+        #expect(PlayerTouchInput.skipDirection(forTapX: 850, width: 900) == 1)
     }
 
     @Test func middleDoesNotSkip() {
-        #expect(PlayerTouchInput.skipSeconds(forTapX: 450, width: 900, interval: 10) == nil)
+        #expect(PlayerTouchInput.skipDirection(forTapX: 450, width: 900) == nil)
     }
 
     @Test func zeroWidthDoesNotSkip() {
-        #expect(PlayerTouchInput.skipSeconds(forTapX: 0, width: 0, interval: 10) == nil)
+        #expect(PlayerTouchInput.skipDirection(forTapX: 0, width: 0) == nil)
     }
 
     @Test func upwardDragRaisesLevel() {

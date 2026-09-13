@@ -29,8 +29,8 @@ struct PlayerHUD: View {
         switch kind {
         case .brightness: return "sun.max.fill"
         case .volume: return level <= 0.001 ? "speaker.slash.fill" : "speaker.wave.2.fill"
-        case .skipForward: return "goforward.10"
-        case .skipBackward: return "gobackward.10"
+        case .skipForward(let seconds): return SkipGlyph.name(seconds: seconds, direction: 1)
+        case .skipBackward(let seconds): return SkipGlyph.name(seconds: seconds, direction: -1)
         }
     }
 }

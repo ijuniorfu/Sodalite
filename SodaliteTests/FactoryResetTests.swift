@@ -18,10 +18,10 @@ struct FactoryResetTests {
     @Test func theFactorySetIgnoresWhatThisDeviceHasStored() throws {
         let container = DependencyContainer(keychainService: InMemoryKeychain())
         let live = container.playbackPreferences
-        let original = live.skipIntervalSeconds
-        defer { live.skipIntervalSeconds = original }
-        let virgin = PlaybackPreferences(store: emptySuite("ignores")).skipIntervalSeconds
-        live.skipIntervalSeconds = virgin == 30 ? 45 : 30
+        let original = live.skipForwardSeconds
+        defer { live.skipForwardSeconds = original }
+        let virgin = PlaybackPreferences(store: emptySuite("ignores")).skipForwardSeconds
+        live.skipForwardSeconds = virgin == 30 ? 45 : 30
 
         let factory = try #require(SettingsStores.factoryDefaults())
         guard case .playback(let payload) = container.collectSettingsPayload(
@@ -31,21 +31,23 @@ struct FactoryResetTests {
             return
         }
 
+        #expect(payload.skipForwardSeconds == virgin)
+        #expect(payload.skipForwardSeconds != live.skipForwardSeconds)
+        // The pre-split field an older build still reads carries the same factory value.
         #expect(payload.skipIntervalSeconds == virgin)
-        #expect(payload.skipIntervalSeconds != live.skipIntervalSeconds)
     }
 
     /// The scratch suite is a real, persisted domain: leaving a previous reset's writes (or the
     /// migrations these inits run) in it would make the second reset less of a reset than the first.
     @Test func aSecondResetIsNotInheritedFromTheFirst() throws {
         let first = try #require(SettingsStores.factoryDefaults())
-        let virgin = first.playback.skipIntervalSeconds
-        first.playback.skipIntervalSeconds = virgin == 30 ? 45 : 30
+        let virgin = first.playback.skipForwardSeconds
+        first.playback.skipForwardSeconds = virgin == 30 ? 45 : 30
         first.appearance.largeCards = !first.appearance.largeCards
 
         let second = try #require(SettingsStores.factoryDefaults())
 
-        #expect(second.playback.skipIntervalSeconds == virgin)
+        #expect(second.playback.skipForwardSeconds == virgin)
         #expect(second.appearance.largeCards == AppearancePreferences(store: emptySuite("second")).largeCards)
     }
 

@@ -358,12 +358,20 @@ struct SeekReadoutTests {
 
     @Test("every skip interval the settings offer has a glyph to draw it with")
     func everyIntervalHasASymbol() {
-        // SF Symbols ships goforward/gobackward at exactly these steps, and the readout composes the
-        // name from the interval, so an interval without one would render as a blank box.
-        let symbolled: Set<Int> = [5, 10, 15, 30, 45, 60, 75, 90]
+        // SF Symbols ships goforward/gobackward at these steps only, and both the readout and the
+        // touch HUD compose the name from the interval, so one without a glyph would render as a
+        // blank box. Pinned against the shipped set rather than a copy of it.
         for interval in PlaybackPreferences.skipIntervalChoices {
-            #expect(symbolled.contains(interval))
+            #expect(SkipGlyph.numbered.contains(interval))
+            #expect(SkipGlyph.name(seconds: interval, direction: 1) == "goforward.\(interval)")
+            #expect(SkipGlyph.name(seconds: interval, direction: -1) == "gobackward.\(interval)")
         }
+    }
+
+    @Test("a length with no numbered glyph falls back instead of drawing a blank box")
+    func anUnknownLengthStillDraws() {
+        #expect(SkipGlyph.name(seconds: 7, direction: 1) == "goforward")
+        #expect(SkipGlyph.name(seconds: 7, direction: -1) == "gobackward")
     }
 }
 
