@@ -124,6 +124,7 @@
 		1C7ACD5DCAF6FE0D89683CA2 /* DependencyContainer+Reset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4738A351C002E7BCC83240 /* DependencyContainer+Reset.swift */; };
 		1C945DB50E0DDA9C55ACB403 /* PlaybackModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE05BAE4F20A7C12D4F92363 /* PlaybackModels.swift */; };
 		1CA21DD248027041C1F4AAD6 /* PlayerHostController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BCB912099E52F189D68C89 /* PlayerHostController.swift */; };
+		1CCEFF1A396F5E2EB7759F66 /* SidebarMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9760AF442298F6A23DE0E49A /* SidebarMetricsTests.swift */; };
 		1D454A8E08C7FF6F0073DEC4 /* PersonDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC4D951D87C80695C4546AF /* PersonDetailView.swift */; };
 		1D668B8BC67E800AC12F1AEB /* ParentalControlsPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BBB8E5E9C80E873A883AAC3 /* ParentalControlsPreferences.swift */; };
 		1D862DBE09894AE77A4A3DE6 /* StableTapHoldTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D0C28B757C74756405843E /* StableTapHoldTests.swift */; };
@@ -230,6 +231,7 @@
 		32D4792FE49F480428CF582C /* SeerrServiceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090B5210D3ACA84E2E25E318 /* SeerrServiceConfig.swift */; };
 		32E90092EF199E8EF002F0DE /* GenreFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA6EBC252CCA4B36109E389 /* GenreFilter.swift */; };
 		32FAF2DA394EF114FB09A5A6 /* BackgroundPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6F943062A404584A9A3AF7 /* BackgroundPickerView.swift */; };
+		332028D2F7C4DCD65A627D30 /* SidebarMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18AAF677978748A967A480D1 /* SidebarMetrics.swift */; };
 		333FD7D106A520F6A16D2F49 /* ResumeBarFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95598449270B79CB528DC564 /* ResumeBarFile.swift */; };
 		3360073260E74AF22A9199A9 /* ResumeBarRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FF85A82012DB16FC162782 /* ResumeBarRenderer.swift */; };
 		338F54EC5F1360AD3EB148EE /* MediaSegmentRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7138A1E131E7104ED1881D2B /* MediaSegmentRequestTests.swift */; };
@@ -283,6 +285,7 @@
 		405B51CBA803D69D14D52F54 /* GuideAxisAdvanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F92E6CE312FC6CB38861FA /* GuideAxisAdvanceTests.swift */; };
 		4115318BCC4798788C59F3C7 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4F6464C543DFF6027F96CB /* JSONValue.swift */; };
 		4170BEA5851D7BD71BCF5EE5 /* TabVisibilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43004940EBB07122F744C1E8 /* TabVisibilitySettingsView.swift */; };
+		418C5AACE19F07785707BC70 /* SidebarMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18AAF677978748A967A480D1 /* SidebarMetrics.swift */; };
 		41A0402D6E22510F65EB753B /* PlayerViewModel+NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C0FDE1041F3C651DDC2FAE /* PlayerViewModel+NowPlaying.swift */; };
 		41DB0DCD40482B2C61B8D8EB /* PlayerErrorFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71491BC0EDD7B0C08EC97B4 /* PlayerErrorFocus.swift */; };
 		424308DE3BF409FF649E5D3D /* TrackSelectionMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507BD61D174F40D1EAE62DE4 /* TrackSelectionMatcher.swift */; };
@@ -1212,6 +1215,7 @@
 		168C9C4EDD234AD97BFA1D96 /* HomeRowConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRowConfiguration.swift; sourceTree = "<group>"; };
 		175E298AC582C20244F3BBDC /* JellyfinServerDiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServerDiscoveryTests.swift; sourceTree = "<group>"; };
 		17821D029EC7EA102611CED0 /* SeerrRequestEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestEditSheet.swift; sourceTree = "<group>"; };
+		18AAF677978748A967A480D1 /* SidebarMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarMetrics.swift; sourceTree = "<group>"; };
 		18D0C28B757C74756405843E /* StableTapHoldTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StableTapHoldTests.swift; sourceTree = "<group>"; };
 		194B5AEB74D5B8FE374A0C3E /* SubtitlePlacementGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitlePlacementGeometryTests.swift; sourceTree = "<group>"; };
 		197C056F3F41EFB53CDD2345 /* PlayerTouchControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTouchControls.swift; sourceTree = "<group>"; };
@@ -1555,6 +1559,7 @@
 		96DEE022060CA00DACCEFDD6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		973120A7DD065FCEB8706D3D /* LiveTVTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTVTabView.swift; sourceTree = "<group>"; };
 		973E8EC25E9E5BB871AC73E7 /* SeerrStatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrStatusBadge.swift; sourceTree = "<group>"; };
+		9760AF442298F6A23DE0E49A /* SidebarMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarMetricsTests.swift; sourceTree = "<group>"; };
 		97F52845EFD489AE02A52FF2 /* SodaliteIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SodaliteIntents.swift; sourceTree = "<group>"; };
 		98AD611609B558446EBE5DF6 /* AccentButtonContrastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentButtonContrastTests.swift; sourceTree = "<group>"; };
 		996502532B626B8B72DC25CF /* SiriRemoteSurfaceTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriRemoteSurfaceTracker.swift; sourceTree = "<group>"; };
@@ -1853,6 +1858,7 @@
 			isa = PBXGroup;
 			children = (
 				1663D6EF22AB38B10E46604A /* Environment */,
+				4880674B8773A786D143DA69 /* Sidebar */,
 				8CEBCF0AA238DAB1924A48D3 /* AppRouter.swift */,
 				67C2B7AED1B1E7DFFFFFC4AA /* AppState.swift */,
 				B9A555200A5ACA574AF2055E /* AppTab.swift */,
@@ -2215,6 +2221,7 @@
 				442CBBBE7A989D32C02969FB /* ServerURLEditPrecedenceTests.swift */,
 				B1B942F0FB15F6423EDCD17B /* ServerURLSlotRetentionTests.swift */,
 				34D5B3810DDB2AD91CD7A5CD /* SessionRestorerTests.swift */,
+				9760AF442298F6A23DE0E49A /* SidebarMetricsTests.swift */,
 				70AEC623687A44C3603ED57F /* SiriRemoteEdgeClickTests.swift */,
 				8CC2B044B670A6CF7B701C10 /* SkipBackSubtitleWindowTests.swift */,
 				6A1AC3DC2967075D0F243004 /* SkipSegmentResolverTests.swift */,
@@ -2316,6 +2323,14 @@
 				6BCED8EC83C97130D38152C3 /* WatchStatsViewModel.swift */,
 			);
 			path = Stats;
+			sourceTree = "<group>";
+		};
+		4880674B8773A786D143DA69 /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+				18AAF677978748A967A480D1 /* SidebarMetrics.swift */,
+			);
+			path = Sidebar;
 			sourceTree = "<group>";
 		};
 		4A5045F3BD8450CAE9D87A17 /* Resources */ = {
@@ -3478,6 +3493,7 @@
 				26B9667EB72514B1BD400DFF /* SettingsView.swift in Sources */,
 				9DFF2ABE323BA938CBDC00D0 /* SharedSession.swift in Sources */,
 				F6491082B1EF3D9273CA5F79 /* SharedSessionMirror.swift in Sources */,
+				332028D2F7C4DCD65A627D30 /* SidebarMetrics.swift in Sources */,
 				64913A8514DF05A048AE8406 /* SiriRemoteEdgeClick.swift in Sources */,
 				9E37FA39B6C864BBFD702D69 /* SiriRemoteSurfaceTracker.swift in Sources */,
 				AF30CA9DF8793B32973C7C66 /* SkipBackSubtitleWindow.swift in Sources */,
@@ -3762,6 +3778,7 @@
 				92CD55594DCD52CAB89A9114 /* ServerURLEditPrecedenceTests.swift in Sources */,
 				57FF673743802E78AB3CBB72 /* ServerURLSlotRetentionTests.swift in Sources */,
 				7E6A5602AAE2EB1189151A70 /* SessionRestorerTests.swift in Sources */,
+				1CCEFF1A396F5E2EB7759F66 /* SidebarMetricsTests.swift in Sources */,
 				4B052E6F415F767C5866AF76 /* SiriRemoteEdgeClickTests.swift in Sources */,
 				55E2B3C115B23DC8A05B7830 /* SkipBackSubtitleWindowTests.swift in Sources */,
 				FA71B3DD2FF286D3FF66A930 /* SkipSegmentResolverTests.swift in Sources */,
@@ -4145,6 +4162,7 @@
 				9981B6E3FE935337DA60E438 /* SettingsView.swift in Sources */,
 				2C90F9EF0CB58FE811A92914 /* SharedSession.swift in Sources */,
 				60A3FFF539B9940F9B9F7C2F /* SharedSessionMirror.swift in Sources */,
+				418C5AACE19F07785707BC70 /* SidebarMetrics.swift in Sources */,
 				12597F3BFEA91B5C27EF0CE5 /* SiriRemoteEdgeClick.swift in Sources */,
 				30D13C36366BE66ED056016E /* SiriRemoteSurfaceTracker.swift in Sources */,
 				F0CD48A08028A8FBB61A7C1B /* SkipBackSubtitleWindow.swift in Sources */,
