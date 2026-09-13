@@ -128,7 +128,19 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
             var sawIncompletePayload = false
             sawTransientFailure = false
             for candidate in [url, fallbackURL] {
-                switch await loadImage(from: candidate, attempt: attempt) {
+                let outcome = await loadImage(from: candidate, attempt: attempt)
+                // Sodalite#123 round 3. A device log showed ONE "payload stops short" per logo where
+                // the ladder should have written three, and the only path that leaves no line of its
+                // own is `.noImage`. Name every outcome per attempt so the ladder is readable rather
+                // than inferred. Silent on the ordinary case: a first-pass hit says nothing.
+                if !(attempt == 0 && outcome.isImage) {
+                    LogTap.shared.note(
+                        "[Image] attempt \(attempt + 1)/\(imageLoadAttemptLimit)"
+                            + " \(outcome.diagnosticName) \(Self.imageKind(candidate))"
+                            + " \(Self.itemTail(candidate))"
+                    )
+                }
+                switch outcome {
                 case .image(let image):
                     loaded = image
                     onImageLoaded?(image)
@@ -158,6 +170,25 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
 
         retryOnActivate = sawTransientFailure
         onLoadFailed?(true)
+    }
+
+    /// "Logo", "Backdrop", "Primary": the segment after /Images/, which is what a reader of the
+    /// diagnostic log is actually looking for.
+    nonisolated private static func imageKind(_ url: URL?) -> String {
+        guard let parts = url?.pathComponents,
+              let index = parts.firstIndex(of: "Images"),
+              index + 1 < parts.count
+        else { return "?" }
+        return parts[index + 1]
+    }
+
+    /// Last six of the item id: enough to tell two logos apart in the log, short enough to read.
+    nonisolated private static func itemTail(_ url: URL?) -> String {
+        guard let parts = url?.pathComponents,
+              let index = parts.firstIndex(of: "Items"),
+              index + 1 < parts.count
+        else { return "" }
+        return String(parts[index + 1].suffix(6))
     }
 
     @MainActor
@@ -209,6 +240,21 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
 /// What one candidate URL came back as. Not a bool: "nothing arrived", "the connection dropped" and
 /// "a whole transfer that carried only the front of an image" each want a different second try.
 private enum ImageLoadOutcome {
+    var isImage: Bool {
+        if case .image = self { return true }
+        return false
+    }
+
+    /// Named for the log, where the interesting question is which rung of the ladder answered what.
+    var diagnosticName: String {
+        switch self {
+        case .image: "ok"
+        case .incompletePayload: "incomplete"
+        case .transientFailure: "transient"
+        case .noImage: "noImage"
+        }
+    }
+
     case image(UIImage)
     /// A complete HTTP response whose body is not a complete image. The server is mid-write, so the
     /// next attempt is likely to get the whole thing.
