@@ -143,7 +143,12 @@ struct TabRootView: View {
                 ActiveUserBadge()
             }
             #else
-            ActiveUserBadge()
+            // Not in sidebar mode: the rail carries the profile as its header, so a second badge in
+            // the corner is both a duplicate and, without a top bar under it, a thing that lands on
+            // top of whatever the screen puts up there (the Live TV and Catalog pickers do).
+            if appearance.navigationStyle == .topBar {
+                ActiveUserBadge()
+            }
             #endif
         }
         #if os(iOS)

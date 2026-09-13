@@ -19,9 +19,15 @@ enum SidebarMetrics {
         isExpanded ? horizontalPadding : itemVerticalPadding
     }
 
-    /// The rail sits close to the edge: tvOS already keeps a title-safe margin outside it, so a
-    /// second generous inset here is width the content never gets back.
-    static let railLeadingInset: CGFloat = 8
+    /// Measured from the physical edge, not from the safe area: the rail deliberately reaches into
+    /// tvOS's 60pt title-safe margin, which is what Apple's own sidebar does (its panel sits about
+    /// 38pt from the edge). Staying outside it stacks 60 + inset and reads as a wide empty gutter.
+    static let railLeadingInset: CGFloat = 40
+
+    /// Breathing room between the rail and the content. Not zero: most screens bring their own
+    /// 80pt `screenHInset`, but the Live TV guide draws its channel column flush, and against a
+    /// zero gap it touched the rail.
+    static let contentGap: CGFloat = 28
     /// Gap between the icon column and the label.
     static let labelSpacing: CGFloat = 16
 

@@ -22,9 +22,9 @@ struct SidebarShell<Content: View>: View {
     @State private var chromeHidden = false
 
     var body: some View {
-        // No spacing here: the rail carries its own leading inset and every screen already brings
-        // screenContentInset(), so a gap in between is a third margin nobody asked for.
-        HStack(spacing: 0) {
+        // A small gap, not the screens' own margin: most bring an 80pt screenHInset of their own,
+        // but the Live TV guide draws flush and would otherwise touch the rail.
+        HStack(spacing: chromeHidden ? 0 : SidebarMetrics.contentGap) {
             SidebarRail(
                 tabs: tabs,
                 selectedTab: selectedTab,
@@ -38,6 +38,9 @@ struct SidebarShell<Content: View>: View {
                 }
             )
             .padding(.leading, chromeHidden ? 0 : SidebarMetrics.railLeadingInset)
+            // The inset above is measured from the physical edge, so the rail has to opt out of the
+            // safe area it would otherwise be pushed inside of.
+            .ignoresSafeArea(edges: .leading)
             .frame(width: chromeHidden ? 0 : nil)
             .opacity(chromeHidden ? 0 : 1)
             .disabled(chromeHidden)
