@@ -34,6 +34,16 @@ struct SidebarMetricsTests {
         #expect(SidebarMetrics.labelWidthBudget < 13 * 48 * 0.5)
     }
 
+    /// Zero here shipped once and cut the left edge off the focused settings card: focus scales a
+    /// row up and SwiftUI clips it at the container's edge, so the margin a screen keeps has to be
+    /// big enough for that growth.
+    @Test("the margin a screen keeps is never zero, because focus grows into it")
+    func focusGrowthMarginIsNotZero() {
+        #expect(SidebarMetrics.focusGrowthMargin > 0)
+        // A 260pt card at the focus scale grows about 8pt per side; the margin covers it.
+        #expect(SidebarMetrics.focusGrowthMargin >= 260 * 0.06 / 2)
+    }
+
     @Test("expanding is the only thing that changes the width")
     func widthFollowsExpansion() {
         #expect(SidebarMetrics.width(isExpanded: false) == SidebarMetrics.collapsedWidth)

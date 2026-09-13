@@ -228,7 +228,10 @@ private struct ScreenContentInset: ViewModifier {
             // The 80pt leading margin is for a shell whose navigation sits ABOVE the content. With
             // the sidebar beside it (Sodalite#140), the rail plus its gap is that margin, and
             // charging it twice pushes the first card a fifth of the screen inwards.
-            .padding(.leading, shellPaysLeading ? 0 : m.screenHInset)
+            //
+            // Reduced, NOT removed: a focused row grows, and SwiftUI clips it at the container's
+            // edge, so zero here cut the left side off the selected settings card.
+            .padding(.leading, shellPaysLeading ? SidebarMetrics.focusGrowthMargin : m.screenHInset)
             .padding(.trailing, m.screenHInset)
             .padding(.vertical, m.screenVInset)
     }
