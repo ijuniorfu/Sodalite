@@ -23,45 +23,75 @@ struct SidebarShell<Content: View>: View {
     /// different branch: that rebuilds the content and the pushed screen's own stack goes with it.
     @State private var chromeHidden = false
 
+    /// How much room the rail takes in the LAYOUT. Set without animation, because a
+    /// `NavigationStack` is UIKit-backed on tvOS and does not interpolate a width handed to it from
+    /// outside: measured in the simulator, the cards stand still through the whole animation and
+    /// snap at the end. The movement is done by `shift` instead.
+    @State private var railSlot: CGFloat = SidebarMetrics.railSlot
+    /// The visual correction that makes the layout jump invisible: set to the difference in the
+    /// same frame the layout changes, then animated back to zero. A transform, unlike a width, is a
+    /// layer property that UIKit does interpolate, so the content travels with the rail.
+    @State private var shift: CGFloat = 0
+
+    /// First the layout, then the correction, then play it out: the layout lands on its new width
+    /// in one unanimated step, `shift` cancels that step visually, and animating `shift` back to
+    /// zero is what the viewer actually sees. Doing it the obvious way instead (animate the width)
+    /// leaves the content standing still until the animation ends, see `railSlot`.
+    private func setChrome(hidden: Bool) {
+        let target: CGFloat = hidden ? 0 : SidebarMetrics.railSlot
+        guard target != railSlot else { return }
+        let delta = railSlot - target
+
+        var instant = Transaction()
+        instant.disablesAnimations = true
+        withTransaction(instant) {
+            railSlot = target
+            shift = delta
+            chromeHidden = hidden
+        }
+
+        withAnimation(.easeInOut(duration: SidebarMetrics.expandDuration)) {
+            shift = 0
+        }
+    }
+
     var body: some View {
-        // A small gap, not the screens' own margin: most bring an 80pt screenHInset of their own,
-        // but the Live TV guide draws flush and would otherwise touch the rail.
-        HStack(spacing: chromeHidden ? 0 : SidebarMetrics.contentGap) {
-            // A transition rather than hand-rolled width, offset and opacity: those three describe
-            // the OUTGOING movement only, so the rail slid out to the left correctly and then came
-            // back in from the left as well. `.move(edge: .leading)` knows both directions.
-            if !chromeHidden {
-                SidebarRail(
-                    tabs: tabs,
-                    selectedTab: selectedTab,
-                    isExpanded: focusIsInRail,
-                    focus: $focus,
-                    onSelect: { tab in
-                        // Select commits the tab and hands focus back to the content, so the rail
-                        // collapses in the same gesture.
-                        selectedTab = tab
-                        focus = nil
-                    }
-                )
-                .padding(.leading, SidebarMetrics.railLeadingInset)
-                .transition(.move(edge: .leading).combined(with: .opacity))
-            }
+        HStack(spacing: 0) {
+            // Layout placeholder only. The rail itself is an overlay, so it can move freely while
+            // this width changes in one step underneath it.
+            Color.clear
+                .frame(width: railSlot)
 
             content(selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .environment(\.shellPaysLeadingInset, !chromeHidden)
+                .offset(x: shift)
                 .focusSectionCompat()
                 // The shell opens on the content, not on the rail, which is what the top bar does.
                 .prefersDefaultFocus(true, in: shellFocus)
                 .onPreferenceChange(ShellChromeHiddenKey.self) { hidden in
-                    // withAnimation, not .animation(value:): the width the screens below react to
-                    // arrives through the environment, and a modifier up here does not catch that
-                    // propagation. Inside an explicit transaction every margin moves with the rail
-                    // instead of snapping while the rail slides.
-                    withAnimation(.easeInOut(duration: SidebarMetrics.expandDuration)) {
-                        chromeHidden = hidden
-                    }
+                    setChrome(hidden: hidden)
                 }
+        }
+        .overlay(alignment: .leading) {
+            SidebarRail(
+                tabs: tabs,
+                selectedTab: selectedTab,
+                isExpanded: focusIsInRail,
+                focus: $focus,
+                onSelect: { tab in
+                    // Select commits the tab and hands focus back to the content, so the rail
+                    // collapses in the same gesture.
+                    selectedTab = tab
+                    focus = nil
+                }
+            )
+            .padding(.leading, SidebarMetrics.railLeadingInset)
+            // Rides the same correction as the content, so the two move as one, and steps aside
+            // entirely once the layout has closed the gap.
+            .offset(x: shift - (chromeHidden ? SidebarMetrics.railSlot : 0))
+            .opacity(chromeHidden ? 0 : 1)
+            .disabled(chromeHidden)
         }
         // ONE opt-out, for the whole shell. On a child alone it does not work: the HStack still
         // starts inside the 60pt title-safe margin, so the rail reaches the edge while the content

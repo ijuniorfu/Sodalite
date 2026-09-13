@@ -41,6 +41,9 @@ enum SidebarMetrics {
 
     static var collapsedWidth: CGFloat { iconColumn + itemHorizontalPadding(isExpanded: false) * 2 }
 
+    /// Everything the rail occupies on the leading edge: its own inset plus its collapsed width.
+    static var railSlot: CGFloat { railLeadingInset + collapsedWidth }
+
     /// What is left for the label once the icon column and the paddings have taken their share.
     static var labelWidthBudget: CGFloat {
         expandedWidth - iconColumn - labelSpacing - horizontalPadding * 2
