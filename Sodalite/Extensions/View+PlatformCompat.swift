@@ -191,6 +191,18 @@ extension View {
         #endif
     }
 
+    /// Same, but installable and removable without changing the view's type. Passing nil to
+    /// `onExitCommand` is what LEAVES the press to whoever is behind: an empty closure would still
+    /// swallow it, and on a pushed screen that is the press meant to pop the screen (Sodalite#140).
+    @ViewBuilder
+    func onExitCommandIfEnabled(_ enabled: Bool, perform action: @escaping () -> Void) -> some View {
+        #if os(tvOS)
+        onExitCommand(perform: enabled ? action : nil)
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder
     func onPlayPauseCommandCompat(perform action: @escaping () -> Void) -> some View {
         #if os(tvOS)
@@ -208,10 +220,31 @@ extension View {
 
 private struct ScreenContentInset: ViewModifier {
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
+
     func body(content: Content) -> some View {
         let m = LayoutMetrics.current(hSizeClass)
         return content
-            .padding(.horizontal, m.screenHInset)
+            // The 80pt leading margin is for a shell whose navigation sits ABOVE the content. With
+            // the sidebar beside it (Sodalite#140), the rail plus its gap is that margin, and
+            // charging it twice pushes the first card a fifth of the screen inwards.
+            //
+            // Reduced, NOT removed: a focused row grows, and SwiftUI clips it at the container's
+            // edge, so zero here cut the left side off the selected settings card.
+            .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : m.screenHInset)
+            .padding(.trailing, m.screenHInset)
             .padding(.vertical, m.screenVInset)
+    }
+}
+
+private struct ShellPaysLeadingInsetKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Set by the sidebar shell on its content: the leading margin is already accounted for.
+    var shellPaysLeadingInset: Bool {
+        get { self[ShellPaysLeadingInsetKey.self] }
+        set { self[ShellPaysLeadingInsetKey.self] = newValue }
     }
 }

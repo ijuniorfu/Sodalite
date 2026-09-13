@@ -17,8 +17,12 @@ struct HorizontalMediaRow: View {
     var inset: CGFloat? = nil
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     private var rowInset: CGFloat { inset ?? metrics.rowInset }
+    /// With the sidebar beside the content (Sodalite#140) the rail and its gap ARE the left margin,
+    /// so the row keeps only enough room for a focused card to grow into.
+    private var leadingInset: CGFloat { shellPaysLeading ? SidebarMetrics.contentLeading : rowInset }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -31,7 +35,8 @@ struct HorizontalMediaRow: View {
             }
             .font(.title3)
             .fontWeight(.semibold)
-            .padding(.horizontal, rowInset)
+            .padding(.leading, leadingInset)
+            .padding(.trailing, rowInset)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: metrics.itemSpacing) {
@@ -50,7 +55,8 @@ struct HorizontalMediaRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, rowInset)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, rowInset)
                 .padding(.vertical, metrics.rowVerticalPadding)
             }
             // A row is its own focus section so vertical navigation can reach it from any column (#80).

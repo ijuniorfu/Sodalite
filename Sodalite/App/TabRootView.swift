@@ -66,7 +66,7 @@ struct TabRootView: View {
         return tabs
     }
 
-    var body: some View {
+    private var tabShell: some View {
         TabView(selection: $selectedTab) {
             ForEach(displayedTabs, id: \.self) { tab in
                 #if os(iOS)
@@ -93,13 +93,38 @@ struct TabRootView: View {
                 #endif
             }
         }
+    }
+
+    /// Sodalite#140. iOS and iPadOS are on the adaptive sidebar unconditionally. tvOS asks the
+    /// viewer, because the two styles are a different shell rather than a different skin: the
+    /// sidebar hands its screens the full height the top bar reserves for itself. Flipping the
+    /// choice changes this view's type, so the whole TabView is rebuilt and every tab page starts
+    /// fresh. That is why the settings screen commits the change on the way out, not under focus.
+    @ViewBuilder
+    private var styledTabShell: some View {
         #if os(iOS)
-        .tabViewStyle(.sidebarAdaptable)
+        tabShell
+            .tabViewStyle(.sidebarAdaptable)
         #else
+        Group {
+            if appearance.navigationStyle == .sidebar {
+                // Ours, not the system's. The system sidebar cannot be tinted at all (see the note
+                // on configureTabBarItemAppearance) and it covers the content instead of pushing it.
+                SidebarShell(tabs: displayedTabs, selectedTab: $selectedTab) { tab in
+                    tabContent(for: tab)
+                }
+            } else {
+                tabShell
+            }
+        }
         .background {
             AppBackgroundView(theme: appearanceTheme, mode: .automatic)
         }
         #endif
+    }
+
+    var body: some View {
+        styledTabShell
         // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
         .id(appState.activeServer?.id)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
@@ -118,7 +143,12 @@ struct TabRootView: View {
                 ActiveUserBadge()
             }
             #else
-            ActiveUserBadge()
+            // Not in sidebar mode: the rail carries the profile as its header, so a second badge in
+            // the corner is both a duplicate and, without a top bar under it, a thing that lands on
+            // top of whatever the screen puts up there (the Live TV and Catalog pickers do).
+            if appearance.navigationStyle == .topBar {
+                ActiveUserBadge()
+            }
             #endif
         }
         #if os(iOS)
@@ -304,6 +334,16 @@ struct TabRootView: View {
         }
     }
 
+    /// TOP BAR ONLY, and that is not a gap to close (Sodalite#140). A sidebar cannot be tinted:
+    /// measured on tvOS 26.5, `.tint`, `.foregroundStyle` on the label, `window.tintColor`,
+    /// `tintColor` on every view in the hierarchy and a baked `.alwaysOriginal` image all leave the
+    /// icons alone, the baked one even forces them black. There is no `UITabBar` under a sidebar to
+    /// begin with: the hierarchy is `_UIHostingView` plus `_UIInheritedView` and layers, so this
+    /// appearance proxy has nothing to reach. Apple DTS states it outright, "that's currently not
+    /// supported, navigation controls are monochromatic" (developer.apple.com/forums/thread/795226).
+    /// The viewer who wants the accent over the height keeps the top bar, which is what the switch
+    /// in Settings > Tabs is for.
+    ///
     /// Tints tab-bar icons + titles via UITabBarAppearance.iconColor at bar creation. NOT per-item .alwaysOriginal images: tvOS re-templates mid-session-inserted items (Live TV / Music) gray and discards baked images, but iconColor tells it which color to template TO. (The gray-on-detail-RETURN is a separate tvOS 26 issue, addressed by presenting details as a full-screen cover so the bar is never hidden/removed.)
     private func configureTabBarItemAppearance() {
         #if os(tvOS)

@@ -42,6 +42,8 @@ struct GuideView: View {
         self.onGridFocused = onGridFocused
     }
 
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
+
     var body: some View {
         content
             .task { await model.load() }
@@ -138,6 +140,9 @@ struct GuideView: View {
                 onGridFocused: onGridFocused)
             // Keep the top safe area so the grid starts below the tab bar.
             .ignoresSafeArea(edges: [.horizontal, .bottom])
+            // The grid draws to its container's edge, and beside a sidebar that edge is the rail.
+            // Outside the safe-area opt-out, so it survives it (Sodalite#140).
+            .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : 0)
         }
     }
 }
