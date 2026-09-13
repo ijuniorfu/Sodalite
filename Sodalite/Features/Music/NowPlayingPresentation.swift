@@ -46,11 +46,13 @@ final class NowPlayingPresentation {
         hosts.append(token)
     }
 
-    /// Ignored while the player is on screen. Presenting it takes its own host off screen, so the
-    /// host's `onDisappear` fires for the very cover it just put up; popping there would hand the
-    /// presentation back to the router and dismiss the player in the same update.
+    /// Called from the PRESENTING side's own state, never from the host's `onDisappear`: presenting
+    /// the player takes its host off screen, so that callback fires for the very cover the host just
+    /// put up and cannot tell it from the cover being closed. Releasing there would hand the
+    /// presentation back to the router and dismiss the player in the update it appeared in, and
+    /// guarding it against that leaves a claim behind whenever a cover really does go away while the
+    /// player is up. Whoever owns the cover's item knows which of the two happened.
     func popHost(_ token: HostToken) {
-        guard !isPresented else { return }
         hosts.removeAll { $0 == token }
     }
 }
@@ -62,7 +64,8 @@ final class NowPlayingPresentation {
 /// from, which today is the detail cover the album page lives in.
 private struct NowPlayingCoverHost: ViewModifier {
     @Environment(\.dependencies) private var dependencies
-    @State private var token = NowPlayingPresentation.HostToken()
+    /// Owned by the presenting side, which is also where it is released.
+    let token: NowPlayingPresentation.HostToken
 
     func body(content: Content) -> some View {
         let presentation = dependencies.musicPlaybackCoordinator.nowPlayingPresentation
@@ -77,12 +80,13 @@ private struct NowPlayingCoverHost: ViewModifier {
             // On appear rather than in init: a host that never reached the screen cannot present,
             // and claiming from it would swallow the request the way the router's cover did.
             .onAppear { presentation.pushHost(token) }
-            .onDisappear { presentation.popHost(token) }
     }
 }
 
 extension View {
-    func nowPlayingCoverHost() -> some View {
-        modifier(NowPlayingCoverHost())
+    /// `token` belongs to the view that presents this surface, which releases the claim when it
+    /// takes the surface away. See `NowPlayingPresentation.popHost`.
+    func nowPlayingCoverHost(_ token: NowPlayingPresentation.HostToken) -> some View {
+        modifier(NowPlayingCoverHost(token: token))
     }
 }

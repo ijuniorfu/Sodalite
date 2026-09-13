@@ -67,11 +67,12 @@ struct NowPlayingPresentationTests {
         #expect(presentation.routerPresents)
     }
 
-    /// The trap this guard exists for: presenting the player takes its own host off screen, so the
-    /// host's disappear fires for the cover it just put up. Unguarded, that hands the presentation
-    /// back to the router and the player is dismissed in the same update it appeared in.
-    @Test("the presenting host keeps its claim while the player is up")
-    func popIsIgnoredWhilePresented() {
+    /// A release only ever comes from the side that owns the cover's item, never from the cover's
+    /// own disappear: presenting the player takes its host off screen, and releasing there would
+    /// dismiss the player in the update it appeared in. So a release while the player is up means
+    /// the cover is really gone, and then the player changes hands rather than vanishing.
+    @Test("a cover that goes away under the player hands it to the router")
+    func releaseWhilePresentedFallsBackToTheRouter() {
         let presentation = NowPlayingPresentation()
         let cover = NowPlayingPresentation.HostToken()
         presentation.pushHost(cover)
@@ -79,9 +80,8 @@ struct NowPlayingPresentationTests {
 
         presentation.popHost(cover)
 
-        #expect(presentation.presents(cover))
-        #expect(presentation.routerPresents == false)
-        #expect(presentation.isPresented)
+        #expect(presentation.routerPresents)
+        #expect(presentation.isPresented, "the player stays on screen, it only changes presenter")
     }
 
     @Test("closing the player ends the presentation and lets the host go")

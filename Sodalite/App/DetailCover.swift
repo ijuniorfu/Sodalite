@@ -8,11 +8,35 @@ extension View {
         item: Binding<Item?>,
         @ViewBuilder content: @escaping (Item) -> Content
     ) -> some View {
-        fullScreenCover(item: item) { value in
-            DetailCoverHost(dismiss: { item.wrappedValue = nil }) {
-                content(value)
+        modifier(DetailCoverPresenter(item: item, coverContent: content))
+    }
+}
+
+/// Presents one detail cover, and owns its claim on the fullscreen music player.
+///
+/// The claim is released from the item binding here rather than from the cover's own lifecycle: a
+/// cover cannot tell being closed from being covered by the player it just put up, and this side
+/// can (Sodalite#140, see NowPlayingPresentation).
+private struct DetailCoverPresenter<Item: Identifiable, CoverContent: View>: ViewModifier {
+    @Environment(\.dependencies) private var dependencies
+    @Binding var item: Item?
+    @ViewBuilder let coverContent: (Item) -> CoverContent
+
+    @State private var nowPlayingHost = NowPlayingPresentation.HostToken()
+
+    func body(content: Content) -> some View {
+        content
+            .fullScreenCover(item: $item) { value in
+                DetailCoverHost(dismiss: { item = nil }) {
+                    coverContent(value)
+                }
+                .nowPlayingCoverHost(nowPlayingHost)
             }
-        }
+            .onChange(of: item == nil) { _, coverIsGone in
+                if coverIsGone {
+                    dependencies.musicPlaybackCoordinator.nowPlayingPresentation.popHost(nowPlayingHost)
+                }
+            }
     }
 }
 
@@ -37,10 +61,6 @@ private struct DetailCoverHost<Content: View>: View {
                 #endif
         }
         .environment(\.detailCoverStack, stack)
-        // A track started from the album page inside this cover has to be presented BY this cover:
-        // the router is the same hosting controller under the sidebar, and its cover was refused
-        // until this one went away (Sodalite#140).
-        .nowPlayingCoverHost()
         #if os(iOS)
         .pausesAppBackgroundMotion()
         #else
