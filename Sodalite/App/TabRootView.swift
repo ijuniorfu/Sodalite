@@ -108,8 +108,11 @@ struct TabRootView: View {
         #else
         Group {
             if appearance.navigationStyle == .sidebar {
-                tabShell
-                    .tabViewStyle(.sidebarAdaptable)
+                // Ours, not the system's. The system sidebar cannot be tinted at all (see the note
+                // on configureTabBarItemAppearance) and it covers the content instead of pushing it.
+                SidebarShell(tabs: displayedTabs, selectedTab: $selectedTab) { tab in
+                    tabContent(for: tab)
+                }
             } else {
                 tabShell
             }
