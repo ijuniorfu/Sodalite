@@ -19,7 +19,18 @@ enum SidebarMetrics {
         isExpanded ? horizontalPadding : itemVerticalPadding
     }
 
+    /// The rail sits close to the edge: tvOS already keeps a title-safe margin outside it, so a
+    /// second generous inset here is width the content never gets back.
+    static let railLeadingInset: CGFloat = 8
+    /// Gap between the icon column and the label.
+    static let labelSpacing: CGFloat = 16
+
     static var collapsedWidth: CGFloat { iconColumn + itemHorizontalPadding(isExpanded: false) * 2 }
+
+    /// What is left for the label once the icon column and the paddings have taken their share.
+    static var labelWidthBudget: CGFloat {
+        expandedWidth - iconColumn - labelSpacing - horizontalPadding * 2
+    }
     /// A cap, not a promise: labels are `lineLimit(1)`, and 26 locales include longer compounds.
     /// 360 rather than 300 because German ("Einstellungen") overran the narrower rail on device.
     static let expandedWidth: CGFloat = 360

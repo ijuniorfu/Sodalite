@@ -28,7 +28,7 @@ struct SidebarItemRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: SidebarMetrics.labelSpacing) {
             // .monochrome for the same reason the tab bar needs it: "tv" renders hierarchically and
             // would otherwise ignore the colour it is given.
             Image(systemName: tab.systemImage)
@@ -38,7 +38,9 @@ struct SidebarItemRow: View {
                 .frame(width: SidebarMetrics.iconColumn)
             if isExpanded {
                 Text(tab.labelKey)
-                    .font(.title3)
+                    // .headline (38pt on tvOS 26), not .title3: title3 is 48pt there, and the
+                    // longest label at that size ("Einstellungen") does not fit the rail.
+                    .font(.headline)
                     .foregroundStyle(state.labelColor)
                     .lineLimit(1)
                     // NOT fixedSize: that makes a long label (German "Einstellungen") wider than

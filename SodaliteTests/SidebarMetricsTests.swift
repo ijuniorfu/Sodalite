@@ -21,11 +21,17 @@ struct SidebarMetricsTests {
         #expect(padding == SidebarMetrics.itemVerticalPadding)
     }
 
-    @Test("the expanded rail is wide enough for the longest label plus the icon column")
+    /// The first attempt at this used .title3 and guessed its size. On tvOS 26 title3 is 48pt, not
+    /// the ~29 a phone habit suggests, so "Einstellungen" was truncated on device. The row uses
+    /// .headline (38pt) now, and the budget is checked against that measured number.
+    @Test("the label budget fits the longest label at the size the row actually uses")
     func expandedFitsTheLongestLabel() {
-        let chrome = SidebarMetrics.iconColumn + SidebarMetrics.horizontalPadding * 2 + 16
-        // "Einstellungen" at .title3 needs roughly 210pt on tvOS; it overran the 300pt rail on device.
-        #expect(SidebarMetrics.expandedWidth - chrome >= 210)
+        let headlinePointSize: CGFloat = 38
+        // Mixed-case Latin averages about half the point size per character; "Einstellungen" is 13.
+        let longestLabelWidth = 13 * headlinePointSize * 0.5
+        #expect(SidebarMetrics.labelWidthBudget >= longestLabelWidth)
+        // And the size it replaced would NOT have fitted, which is why this test exists.
+        #expect(SidebarMetrics.labelWidthBudget < 13 * 48 * 0.5)
     }
 
     @Test("expanding is the only thing that changes the width")

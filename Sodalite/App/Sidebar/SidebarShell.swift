@@ -37,7 +37,7 @@ struct SidebarShell<Content: View>: View {
                     focus = nil
                 }
             )
-            .padding(.leading, chromeHidden ? 0 : SidebarMetrics.horizontalPadding)
+            .padding(.leading, chromeHidden ? 0 : SidebarMetrics.railLeadingInset)
             .frame(width: chromeHidden ? 0 : nil)
             .opacity(chromeHidden ? 0 : 1)
             .disabled(chromeHidden)
@@ -50,8 +50,14 @@ struct SidebarShell<Content: View>: View {
                 }
         }
         .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: focusIsInRail)
-        .onChange(of: focus) { _, newValue in
+        .onChange(of: focus) { oldValue, newValue in
             focusIsInRail = newValue != nil
+            // Entering the rail from the content lands wherever the geometry points, which is
+            // whichever row happens to share the y position of the card left behind. Correct it
+            // to the selected tab, but ONLY on entry: while walking the rail, focus is the point.
+            if oldValue == nil, let newValue, newValue != .item(selectedTab) {
+                focus = .item(selectedTab)
+            }
         }
         // Menu is ours only while the rail is on screen. On a pushed screen the navigation stack
         // owns it, and an installed handler would swallow the press that should pop the screen,
