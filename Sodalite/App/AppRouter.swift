@@ -40,9 +40,6 @@ struct AppRouter: View {
     /// Drives the WhatsNew fullScreenCover after the splash on a release-boundary launch; dismiss callback stamps the version seen.
     @State private var showWhatsNew = false
 
-    /// Drives the NowPlaying fullScreenCover off the coordinator's nowPlayingPresentationRequest bump.
-    @State private var showNowPlaying = false
-
     /// Last requestContentReload this view answered. `.task(id:)` re-fires with the same id on every
     /// reappear, and re-running the session refresh on each modal dismissal would be pointless traffic.
     @State private var lastHandledContentReload = 0
@@ -50,6 +47,12 @@ struct AppRouter: View {
     /// Both platforms: its change callback is an iOS concern, but the path STATUS it snapshots is
     /// what tells an unreachable server apart from a device with no network (Sodalite#122).
     @State private var pathObserver = NetworkPathObserver()
+
+    /// Whether the fullscreen music player is up, and who may present it (the router only while
+    /// nothing above it has claimed it).
+    private var nowPlaying: NowPlayingPresentation {
+        dependencies.musicPlaybackCoordinator.nowPlayingPresentation
+    }
 
     /// (server, user) identity of the active session. Background music is scoped to it and must stop when it
     /// changes: server switch, same-server profile switch (switchToUser, which does NOT bump serverDidSwitch),
@@ -319,12 +322,16 @@ struct AppRouter: View {
             #endif
             .pausesAppBackgroundMotion()
         }
-        .fullScreenCover(isPresented: $showNowPlaying) {
-            NowPlayingView(onClose: { showNowPlaying = false })
+        // The router's own player cover, for a track started where nothing is presented above it
+        // (the Music tab's card and track list). A surface that IS presented above it hosts its own
+        // via `nowPlayingCoverHost()`, because a cover cannot stack on a cover from the same
+        // hosting controller and the sidebar shell is one such controller (Sodalite#140).
+        .fullScreenCover(isPresented: Binding(
+            get: { nowPlaying.isPresented && nowPlaying.routerPresents },
+            set: { if !$0 { nowPlaying.dismiss() } }
+        )) {
+            NowPlayingView(onClose: { nowPlaying.dismiss() })
                 .pausesAppBackgroundMotion()
-        }
-        .onChange(of: dependencies.musicPlaybackCoordinator.nowPlayingPresentationRequest) { _, _ in
-            showNowPlaying = true
         }
         // Background music is scoped to the active (server, user) session; stop it whenever that identity
         // changes (server switch, profile switch, active-server removal, logout). No-op when nothing is playing.
@@ -485,7 +492,7 @@ struct AppRouter: View {
     private func maybeRequestProfileReprompt(backgroundedAt: ContinuousClock.Instant?) {
         guard let backgroundedAt else { return }
         // Never arm over a sibling cover (one fullScreenCover per host view) or a deep link in flight.
-        guard deepLinkPresentation == nil, !showNowPlaying, !showWhatsNew, profileCover == nil,
+        guard deepLinkPresentation == nil, !nowPlaying.isPresented, !showWhatsNew, profileCover == nil,
               appState.pendingDeepLinkItemID == nil, !appState.isResolvingDeepLink
         else { return }
         guard let server = appState.activeServer else { return }
