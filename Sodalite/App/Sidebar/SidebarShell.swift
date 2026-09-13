@@ -40,10 +40,10 @@ struct SidebarShell<Content: View>: View {
                 }
             )
             .padding(.leading, chromeHidden ? 0 : SidebarMetrics.railLeadingInset)
-            // The inset above is measured from the physical edge, so the rail has to opt out of the
-            // safe area it would otherwise be pushed inside of.
-            .ignoresSafeArea(edges: .leading)
             .frame(width: chromeHidden ? 0 : nil)
+            // Slides out to the left rather than shrinking in place, so a pushed screen reads as
+            // the rail stepping aside and the content growing into the space it leaves.
+            .offset(x: chromeHidden ? -(SidebarMetrics.collapsedWidth + SidebarMetrics.railLeadingInset) : 0)
             .opacity(chromeHidden ? 0 : 1)
             .disabled(chromeHidden)
 
@@ -57,7 +57,16 @@ struct SidebarShell<Content: View>: View {
                     chromeHidden = hidden
                 }
         }
+        // ONE opt-out, for the whole shell. On a child alone it does not work: the HStack still
+        // starts inside the 60pt title-safe margin, so the rail reaches the edge while the content
+        // begins 60pt further right, and the two gaps around the rail can never match. Measured in
+        // the simulator: 38pt on the left against 120 on the right.
+        .ignoresSafeArea(edges: .leading)
         .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: focusIsInRail)
+        // Without this the rail simply vanishes on a push and the content jumps to its new width.
+        // Animating the same value on the shell carries the rail, the width and every screen margin
+        // that depends on it through one movement.
+        .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: chromeHidden)
         .onChange(of: focus) { _, newValue in
             focusIsInRail = newValue != nil
         }
