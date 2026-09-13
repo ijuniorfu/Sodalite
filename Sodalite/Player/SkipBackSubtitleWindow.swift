@@ -25,8 +25,8 @@ enum SkipBackSubtitleWindow {
 
     /// The setting this mirrors promises subtitles "when you skip back up to 30 seconds", and a
     /// window lasts until playback has caught up with where the jump started, so an ungated burst of
-    /// presses turned subtitles on for minutes. 30 s is also the largest single press the app offers
-    /// (`skipIntervalChoices`), so one press always qualifies.
+    /// presses turned subtitles on for minutes. 30 s is also the longest jump back the app offers
+    /// (`skipIntervalChoices`, which both directions pick from), so one press always qualifies.
     ///
     /// Two places enforce it, deliberately: `shouldOpen` refuses a jump that is already longer, and
     /// `end(of:)` bounds the window itself. The second one is what holds, because the merge path

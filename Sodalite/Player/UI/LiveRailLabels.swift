@@ -115,7 +115,7 @@ struct SeekReadoutView: View {
         switch viewModel.seekReadout {
         case .press(let seconds, let count, let direction):
             VStack(spacing: 2) {
-                Image(systemName: "\(direction < 0 ? "gobackward" : "goforward").\(seconds)")
+                Image(systemName: SkipGlyph.name(seconds: seconds, direction: direction))
                     .font(.callout)
                 if count > 1 {
                     Text(verbatim: "\(count)x")

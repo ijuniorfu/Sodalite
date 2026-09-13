@@ -3,10 +3,11 @@ import UIKit
 
 /// Full-screen SwiftUI gesture catcher at the bottom of the overlay z-stack (below the controls,
 /// above the video): single-tap toggles controls (and closes a dropdown via hideControls),
-/// double-tap on the left/right third skips -/+10s (middle = play/pause), a vertical drag near the
-/// left/right EDGE sets brightness / volume. The wide center is a dead zone, so a minimize / swipe
-/// gesture there does not accidentally change brightness or volume. A plain SwiftUI layer (Color.clear)
-/// reliably receives empty-area taps in the hosting overlay; the controls render above and win their hits.
+/// double-tap on the left/right third skips by the interval configured for that direction (middle =
+/// play/pause), a vertical drag near the left/right EDGE sets brightness / volume. The wide center is
+/// a dead zone, so a minimize / swipe gesture there does not accidentally change brightness or
+/// volume. A plain SwiftUI layer (Color.clear) reliably receives empty-area taps in the hosting
+/// overlay; the controls render above and win their hits.
 struct PlayerGestureCatcher: View {
     let viewModel: PlayerViewModel
 
@@ -15,7 +16,6 @@ struct PlayerGestureCatcher: View {
     @State private var panStartLevel: Double = 0
     private enum PanAxis { case undecided, vertical, horizontalIgnored }
     private enum PanZone { case brightness, volume, none }
-    private let skipInterval: Double = 10
     /// Brightness/volume vertical swipes are confined to a strip this fraction wide at each edge; the rest
     /// of the width is a dead center so a minimize / swipe gesture there does not change brightness or volume.
     /// 0.18 keeps the strip ~70pt in iPhone portrait, still comfortably above a 44pt touch target.
@@ -26,8 +26,8 @@ struct PlayerGestureCatcher: View {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture(count: 2, coordinateSpace: .local) { location in
-                    if let seconds = PlayerTouchInput.skipSeconds(forTapX: location.x, width: geo.size.width, interval: skipInterval) {
-                        viewModel.skip(by: seconds)
+                    if let direction = PlayerTouchInput.skipDirection(forTapX: location.x, width: geo.size.width) {
+                        viewModel.skipByConfiguredInterval(direction: direction)
                     } else {
                         viewModel.togglePlayPause()
                     }

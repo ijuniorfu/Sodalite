@@ -15,7 +15,11 @@ final class PlaybackPreferences {
         static let autoplayCountdown = "playback.autoplayCountdown"
         static let nextEpisodeCountdownSeconds = "playback.nextEpisodeCountdownSeconds"
         static let nextEpisodeCountdownAnchor = "playback.nextEpisodeCountdownAnchor"
-        static let skipIntervalSeconds = "playback.skipIntervalSeconds"
+        static let skipForwardSeconds = "playback.skipForwardSeconds"
+        static let skipBackwardSeconds = "playback.skipBackwardSeconds"
+        /// The single pre-split interval (Sodalite#144). Seeds both directions on first read
+        /// and is then left alone, so a downgrade lands on the value it last knew.
+        static let legacySkipIntervalSeconds = "playback.skipIntervalSeconds"
         static let preferredAudioLanguage = "playback.preferredAudioLanguage"
         static let preferredSubtitleLanguage = "playback.preferredSubtitleLanguage"
         static let autoSkipIntro = "playback.autoSkipIntro"
@@ -53,6 +57,7 @@ final class PlaybackPreferences {
 
     // MARK: - Allowed Values
 
+    /// Offered for both directions. Every entry needs an SF Symbol to draw it with, see `SkipGlyph`.
     static let skipIntervalChoices: [Int] = [5, 10, 15, 30]
 
     /// Countdown lengths offered in Settings. 0 is the countdown switched OFF, never a zero-second
@@ -304,8 +309,21 @@ final class PlaybackPreferences {
         }
     }
 
-    var skipIntervalSeconds: Int {
-        didSet { store.set(skipIntervalSeconds, forKey: Keys.skipIntervalSeconds) }
+    /// Sodalite#144: the two directions are set apart, because reaching back for a line of dialogue
+    /// and jumping past a stretch are different distances. Both default to the pre-split interval, so
+    /// an install that never touches this keeps exactly the jumps it had.
+    var skipForwardSeconds: Int {
+        didSet { store.set(skipForwardSeconds, forKey: Keys.skipForwardSeconds) }
+    }
+
+    var skipBackwardSeconds: Int {
+        didSet { store.set(skipBackwardSeconds, forKey: Keys.skipBackwardSeconds) }
+    }
+
+    /// The interval a jump in `direction` covers; negative is back, anything else forward. The one
+    /// place the direction-to-value question is answered, so a new transport cannot get it wrong.
+    func skipSeconds(direction: Int) -> Int {
+        direction < 0 ? skipBackwardSeconds : skipForwardSeconds
     }
 
     var preferredAudioLanguage: String? {
@@ -475,7 +493,9 @@ final class PlaybackPreferences {
         self.nextEpisodeCountdownSeconds = store.object(forKey: Keys.nextEpisodeCountdownSeconds) as? Int ?? 15
         self.nextEpisodeCountdownAnchor = (store.string(forKey: Keys.nextEpisodeCountdownAnchor))
             .flatMap(NextEpisodePolicy.CountdownAnchor.init(rawValue:)) ?? .outro
-        self.skipIntervalSeconds = store.object(forKey: Keys.skipIntervalSeconds) as? Int ?? 10
+        let legacySkipInterval = store.object(forKey: Keys.legacySkipIntervalSeconds) as? Int ?? 10
+        self.skipForwardSeconds = store.object(forKey: Keys.skipForwardSeconds) as? Int ?? legacySkipInterval
+        self.skipBackwardSeconds = store.object(forKey: Keys.skipBackwardSeconds) as? Int ?? legacySkipInterval
         self.preferredAudioLanguage = store.string(forKey: Keys.preferredAudioLanguage)
         self.preferredSubtitleLanguage = store.string(forKey: Keys.preferredSubtitleLanguage)
         self.autoSubtitleForForeignAudio = store.object(forKey: Keys.autoSubtitleForForeignAudio) as? Bool ?? true

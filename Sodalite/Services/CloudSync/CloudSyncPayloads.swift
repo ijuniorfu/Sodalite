@@ -99,6 +99,8 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var autoSkipIntro: Bool
     var autoSkipOutro: Bool
     var nextEpisodeCountdownSeconds: Int
+    /// Pre-split single interval. Still written (with the forward value) because a build without the
+    /// two fields below requires it, and still read as "this device jumps that far both ways".
     var skipIntervalSeconds: Int
     var preferredAudioLanguage: String?
     var preferredSubtitleLanguage: String?
@@ -142,6 +144,11 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     var touchpadScrubbing: Bool?
     /// Sodalite#133, same reason again. Raw value of `NextEpisodePolicy.CountdownAnchor`.
     var nextEpisodeCountdownAnchor: String?
+    /// Sodalite#144. Absent means the sender has one interval for both directions, which is exactly
+    /// what `skipIntervalSeconds` says, so these two fall back to it rather than to keep-current: the
+    /// older build is making a statement about both jumps, not staying silent about them.
+    var skipForwardSeconds: Int?
+    var skipBackwardSeconds: Int?
 }
 
 /// Sodalite#46. Unlike the other settings payloads this one is NOT last-writer-wins:

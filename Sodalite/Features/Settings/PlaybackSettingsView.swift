@@ -111,12 +111,24 @@ struct PlaybackSettingsView: View {
 
                 ValuePickerRow(
                     icon: "goforward",
-                    title: "settings.playback.skipInterval",
-                    subtitle: "settings.playback.skipInterval.subtitle",
+                    title: "settings.playback.skipForward",
+                    subtitle: "settings.playback.skipForward.subtitle",
                     options: PlaybackPreferences.skipIntervalChoices,
                     selection: Binding(
-                        get: { prefs.skipIntervalSeconds },
-                        set: { prefs.skipIntervalSeconds = $0 }
+                        get: { prefs.skipForwardSeconds },
+                        set: { prefs.skipForwardSeconds = $0 }
+                    ),
+                    label: { seconds in "\(seconds) s" }
+                )
+
+                ValuePickerRow(
+                    icon: "gobackward",
+                    title: "settings.playback.skipBackward",
+                    subtitle: "settings.playback.skipBackward.subtitle",
+                    options: PlaybackPreferences.skipIntervalChoices,
+                    selection: Binding(
+                        get: { prefs.skipBackwardSeconds },
+                        set: { prefs.skipBackwardSeconds = $0 }
                     ),
                     label: { seconds in "\(seconds) s" }
                 )
