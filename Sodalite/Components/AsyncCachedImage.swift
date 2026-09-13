@@ -131,9 +131,20 @@ struct AsyncCachedImage<Content: View, Placeholder: View>: View {
                 await loadImage(from: candidate, attempt: attempt)
             },
             onOutcome: { attempt, candidate, outcome in
-                // Silent on the ordinary case, a first-pass hit, so the ring buffer is not flooded
-                // by every poster on a Home screen (Sodalite#123).
-                guard !(attempt == 0 && outcome.isImage) else { return }
+                // Quiet by default, or the ring buffer is useless: a Home screen loads dozens of
+                // images, and most carry no fallback URL, so the ladder asks a nil candidate that
+                // always answers `noImage`. Worth a line only when something can actually be
+                // learned from it (Sodalite#123):
+                //   - a payload that stopped short, the bug being chased
+                //   - a dropped connection
+                //   - a refusal on a RETRY, which is the shape that decides whether the ladder
+                //     recovers; the same refusal on the first pass is just an item with no logo.
+                guard candidate != nil else { return }
+                switch outcome {
+                case .image: return
+                case .noImage where attempt == 0: return
+                case .incompletePayload, .transientFailure, .noImage: break
+                }
                 LogTap.shared.note(
                     "[Image] attempt \(attempt + 1)/\(imageLoadAttemptLimit)"
                         + " \(outcome.diagnosticName) \(Self.imageKind(candidate))"
