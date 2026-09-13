@@ -362,7 +362,20 @@ struct MovieDetailView: View {
                 hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true),
                 leftSecondaryPending: !vm.hasFullDetail && vm.item.genres == nil
             ) {
-                ItemMetadataRow(item: vm.item, extras: formatBadges(vm: vm))
+                // Portrait puts the pills on a line of their own: the panel is one narrow column
+                // there, and four of them on the metadata line pushed it past the screen edge and
+                // dragged the studios line out with it (measured on the iPhone, 2026-09-14).
+                if isPhonePortrait {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ItemMetadataRow(item: vm.item)
+                        let pills = formatBadgePills(vm: vm)
+                        if !pills.isEmpty {
+                            FormatBadgeRow(pills: pills)
+                        }
+                    }
+                } else {
+                    ItemMetadataRow(item: vm.item, extras: formatBadges(vm: vm))
+                }
             } leftSecondary: {
                 if let genres = vm.item.genres, !genres.isEmpty {
                     Text(genres.joined(separator: " · "))
@@ -384,6 +397,16 @@ struct MovieDetailView: View {
     /// uses, so the pills cannot describe a copy the viewer did not pick.
     private func formatBadges(vm: DetailViewModel) -> [AnyView] {
         FormatBadgeRow.extras(
+            for: vm.item,
+            sourceID: versionSelection.preferredSourceID(for: vm.item),
+            enabled: dependencies.appearancePreferences.showDetailBadges
+        )
+    }
+
+    /// The same pills for the portrait layout, which places the row itself instead of handing it to
+    /// the metadata line as a segment.
+    private func formatBadgePills(vm: DetailViewModel) -> [String] {
+        FormatBadgeRow.pills(
             for: vm.item,
             sourceID: versionSelection.preferredSourceID(for: vm.item),
             enabled: dependencies.appearancePreferences.showDetailBadges

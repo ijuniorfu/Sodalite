@@ -571,18 +571,19 @@ struct SeriesDetailView: View {
             ) {
                 if isShowingEpisode {
                     // Single metadata line (runtime + series genres). S/E pair left the panel (Sodalite#15 round 6) since the play-button subtitle already carries it; keeps the episode panel at title + one line.
-                    // The format pills join that line rather than taking one of their own, so the
-                    // episode panel stays at title + one line (Sodalite#145).
-                    HStack(spacing: 12) {
-                        if let line = episodeMetadataLine(vm: vm) {
-                            Text(line)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
+                    // The format pills join that line where it has the width, so the episode panel
+                    // stays at title + one line. Portrait is the exception: the panel is one narrow
+                    // column there and the pills pushed it past the screen edge (Sodalite#145,
+                    // measured on the iPhone 2026-09-14).
+                    if isPhonePortrait {
+                        VStack(alignment: .leading, spacing: 8) {
+                            episodeLine(vm: vm)
+                            episodeBadges()
                         }
-                        let pills = formatBadgePills()
-                        if !pills.isEmpty {
-                            FormatBadgeRow(pills: pills)
+                    } else {
+                        HStack(spacing: 12) {
+                            episodeLine(vm: vm)
+                            episodeBadges()
                         }
                     }
                 } else {
@@ -612,6 +613,24 @@ struct SeriesDetailView: View {
     private func seasonCount(vm: DetailViewModel) -> [AnyView] {
         guard let count = vm.item.childCount, count > 0 else { return [] }
         return [AnyView(Text("detail.seasonCount \(count)"))]
+    }
+
+    @ViewBuilder
+    private func episodeLine(vm: DetailViewModel) -> some View {
+        if let line = episodeMetadataLine(vm: vm) {
+            Text(line)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+    }
+
+    @ViewBuilder
+    private func episodeBadges() -> some View {
+        let pills = formatBadgePills()
+        if !pills.isEmpty {
+            FormatBadgeRow(pills: pills)
+        }
     }
 
     /// Sodalite#145. Episode mode only: a series root has no streams of its own, and a badge sampled
