@@ -134718,6 +134718,330 @@
         }
       }
     },
+    "settings.appearance.detailBadges" : {
+      "comment" : "Appearance toggle: show format badges on detail pages",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odznaky na stránce s podrobnostmi"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mærker på detaljesider"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detail-Badges"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σήματα στις σελίδες λεπτομερειών"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detail page badges"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distintivos en las páginas de detalles"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tietosivun merkinnät"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Badges sur les pages de détails"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oznake na stranicama s pojedinostima"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jelvények a részletek oldalán"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Badge nelle pagine dei dettagli"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細ページのバッジ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세부 정보 페이지 배지"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merker på detaljsider"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Labels op detailpagina's"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plakietki na stronach szczegółów"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selos nas páginas de detalhes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distintivos nas páginas de detalhes"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insigne pe paginile de detalii"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Значки на страницах с подробностями"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odznaky na stránke s podrobnosťami"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Märken på detaljsidor"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayrıntı sayfası rozetleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Значки на сторінках з деталями"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详情页标签"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細資料頁標籤"
+          }
+        }
+      }
+    },
+    "settings.appearance.detailBadges.subtitle" : {
+      "comment" : "Subtitle for the detail page badges toggle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "U filmů a epizod zobrazí vedle názvu rozlišení, formát HDR a formát zvuku."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis opløsning, HDR-format og lydformat ved siden af titlen på film- og afsnitssider."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auflösung, HDR-Format und Tonformat bei Filmen und Episoden neben dem Titel anzeigen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εμφάνιση ανάλυσης, μορφής HDR και μορφής ήχου δίπλα στον τίτλο σε ταινίες και επεισόδια."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show resolution, HDR format and audio format next to the title on movie and episode pages."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra la resolución, el formato HDR y el formato de audio junto al título en películas y episodios."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näytä tarkkuus, HDR-muoto ja äänimuoto otsikon vieressä elokuvien ja jaksojen sivuilla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche la résolution, le format HDR et le format audio à côté du titre pour les films et les épisodes."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prikaži razlučivost, HDR format i format zvuka pokraj naslova na stranicama filmova i epizoda."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felbontás, HDR-formátum és hangformátum megjelenítése a cím mellett a filmek és epizódok oldalán."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra risoluzione, formato HDR e formato audio accanto al titolo nelle pagine di film ed episodi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "映画とエピソードのページで、タイトルの横に解像度、HDR形式、音声形式を表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영화와 에피소드 페이지에서 제목 옆에 해상도, HDR 형식, 음향 형식을 표시합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vis oppløsning, HDR-format og lydformat ved siden av tittelen på film- og episodesider."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont resolutie, HDR-formaat en audioformaat naast de titel op film- en afleveringpagina's."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuje rozdzielczość, format HDR i format dźwięku obok tytułu na stronach filmów i odcinków."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra resolução, formato HDR e formato de áudio ao lado do título nas páginas de filmes e episódios."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra a resolução, o formato HDR e o formato de áudio junto ao título nas páginas de filmes e episódios."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afișează rezoluția, formatul HDR și formatul audio lângă titlu pe paginile de filme și episoade."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать разрешение, формат HDR и формат звука рядом с названием на страницах фильмов и эпизодов."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pri filmoch a epizódach zobrazí vedľa názvu rozlíšenie, formát HDR a formát zvuku."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visa upplösning, HDR-format och ljudformat bredvid titeln på film- och avsnittssidor."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film ve bölüm sayfalarında başlığın yanında çözünürlüğü, HDR biçimini ve ses biçimini gösterir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати роздільність, формат HDR і формат звуку поряд із назвою на сторінках фільмів та епізодів."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在电影和剧集页面的标题旁显示分辨率、HDR 格式和音频格式。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在電影和單集頁面的標題旁顯示解析度、HDR 格式和音訊格式。"
+          }
+        }
+      }
+    },
     "settings.appearance.libraryNames" : {
       "comment" : "Appearance toggle: draw the library name over its artwork on the My Media row",
       "extractionState" : "manual",

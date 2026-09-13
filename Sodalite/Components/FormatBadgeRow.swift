@@ -1,0 +1,54 @@
+import SwiftUI
+
+/// The format pills on a detail page's metadata line (Sodalite#145): resolution, dynamic range,
+/// audio codec, spatial format. Same shape as the age-rating box two segments to the left, so the
+/// line reads as one row rather than as a row with a badge strip stapled onto it.
+///
+/// Text, not the brand artwork the request arrived with: the Dolby Vision, Dolby Atmos, DTS:X and
+/// HDR10+ logos are licensed marks and an App Store build cannot carry them without an agreement
+/// from their owners. Naming the format is what jellyfin-web, Plex and Infuse print as well.
+///
+/// A leaf that is handed its strings: the facts come from `MediaBadgeResolver`, the same resolver
+/// the poster corners read, so a card and the page it opens can never disagree about a title.
+struct FormatBadgeRow: View {
+    let pills: [String]
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(pills, id: \.self) { pill in
+                Text(pill)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(.secondary.opacity(0.5), lineWidth: 1)
+                    )
+            }
+        }
+    }
+
+    /// The row as a metadata-line segment, or no segment at all when there is nothing to say or the
+    /// viewer turned the pills off. Empty rather than an empty view on purpose: the metadata line
+    /// puts a separator in front of every segment it is given, and cannot see that one is blank.
+    ///
+    /// `sourceID` is the version the page is showing. Without it a multi-version title describes its
+    /// first source while the viewer is looking at the one they picked, which is Sodalite#139 again,
+    /// one row further up the page.
+    static func extras(for item: JellyfinItem, sourceID: String?, enabled: Bool) -> [AnyView] {
+        let pills = pills(for: item, sourceID: sourceID, enabled: enabled)
+        guard !pills.isEmpty else { return [] }
+        return [AnyView(FormatBadgeRow(pills: pills))]
+    }
+
+    /// What the row would say, for callers that place it themselves instead of handing it to the
+    /// metadata row. Empty when the viewer turned the pills off or the server said nothing.
+    static func pills(for item: JellyfinItem, sourceID: String?, enabled: Bool) -> [String] {
+        guard enabled else { return [] }
+        return MediaBadgeResolver.badges(
+            width: item.width,
+            height: item.height,
+            streams: item.effectiveMediaStreams(id: sourceID)
+        ).detailPills
+    }
+}

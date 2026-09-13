@@ -571,20 +571,22 @@ struct SeriesDetailView: View {
             ) {
                 if isShowingEpisode {
                     // Single metadata line (runtime + series genres). S/E pair left the panel (Sodalite#15 round 6) since the play-button subtitle already carries it; keeps the episode panel at title + one line.
-                    if let line = episodeMetadataLine(vm: vm) {
-                        Text(line)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                } else {
-                    ItemMetadataRow(item: vm.item, showRuntime: false) {
-                        if let count = vm.item.childCount, count > 0 {
-                            AnyView(Text("detail.seasonCount \(count)"))
-                        } else {
-                            AnyView(EmptyView())
+                    // The format pills join that line rather than taking one of their own, so the
+                    // episode panel stays at title + one line (Sodalite#145).
+                    HStack(spacing: 12) {
+                        if let line = episodeMetadataLine(vm: vm) {
+                            Text(line)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        let pills = formatBadgePills()
+                        if !pills.isEmpty {
+                            FormatBadgeRow(pills: pills)
                         }
                     }
+                } else {
+                    ItemMetadataRow(item: vm.item, showRuntime: false, extras: seasonCount(vm: vm))
                 }
             } leftSecondary: {
                 // Series genres, one line only: a long list (e.g. One Piece's seven) wraps to two lines and makes the panel tall enough to land at a different scroll position.
@@ -601,6 +603,26 @@ struct SeriesDetailView: View {
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
+        )
+    }
+
+    /// Season count as a metadata segment, and no segment at all when the server gave none: a row
+    /// handed an EmptyView still counts it as a segment and puts a separator in front, which left
+    /// the line ending on a dot with nothing behind it.
+    private func seasonCount(vm: DetailViewModel) -> [AnyView] {
+        guard let count = vm.item.childCount, count > 0 else { return [] }
+        return [AnyView(Text("detail.seasonCount \(count)"))]
+    }
+
+    /// Sodalite#145. Episode mode only: a series root has no streams of its own, and a badge sampled
+    /// from one episode would speak for the rest of them. Reads `displayItem`, so the pills follow
+    /// the episode on screen and the version the tech strip below is describing.
+    private func formatBadgePills() -> [String] {
+        guard isShowingEpisode else { return [] }
+        return FormatBadgeRow.pills(
+            for: displayItem,
+            sourceID: versionSelection.preferredSourceID(for: displayItem),
+            enabled: dependencies.appearancePreferences.showDetailBadges
         )
     }
 

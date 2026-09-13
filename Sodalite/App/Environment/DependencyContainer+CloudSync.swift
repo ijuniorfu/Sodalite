@@ -337,6 +337,7 @@ extension DependencyContainer {
                 spoilerHideEpisodes: a.spoilerHideEpisodes,
                 spoilerHideMovies: a.spoilerHideMovies,
                 showPosterBadges: a.showPosterBadges,
+                showDetailBadges: a.showDetailBadges,
                 showTopShelfRow: a.showTopShelfRow,
                 topShelfImage: a.topShelfImage.rawValue,
                 showLibraryNames: a.showLibraryNames,
@@ -456,6 +457,7 @@ extension DependencyContainer {
             store.spoilerHideEpisodes = a.spoilerHideEpisodes
             store.spoilerHideMovies = a.spoilerHideMovies
             store.showPosterBadges = a.showPosterBadges
+            store.showDetailBadges = a.showDetailBadges
             store.showTopShelfRow = a.showTopShelfRow
             store.showLibraryNames = a.showLibraryNames
             store.showPosterProgress = a.showPosterProgress

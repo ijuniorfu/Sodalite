@@ -170,6 +170,123 @@ struct MediaBadgeTests {
         #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: nil).pills.isEmpty)
     }
 
+    // MARK: - Audio codec (detail pages only)
+
+    @Test("AAC, Dolby Digital and Dolby Digital Plus carry the shorthand a viewer reads on a box")
+    func lossyCodecLabels() {
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "aac", channels: 2)]).audioCodec == "AAC")
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "ac3")]).audioCodec == "DD")
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "eac3")]).audioCodec == "DD+")
+    }
+
+    @Test("the lossless formats are named, not collapsed into their lossy siblings")
+    func losslessCodecLabels() {
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "truehd", channels: 8)]).audioCodec == "TrueHD")
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "flac", channels: 2)]).audioCodec == "FLAC")
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "pcm_s24le", channels: 2)]).audioCodec == "PCM")
+    }
+
+    @Test("the DTS profile decides DTS from DTS-HD: the codec string is the same either way")
+    func dtsSplitsOnItsProfile() {
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "dts", profile: "DTS")]).audioCodec == "DTS")
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "dts", profile: "DTS-HD MA", channels: 8)]).audioCodec == "DTS-HD")
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "dts", profile: "DTS-HD HRA")]).audioCodec == "DTS-HD")
+    }
+
+    @Test("DTS:X keeps the DTS-HD carrier it rides on rather than naming itself twice")
+    func dtsXKeepsItsCarrier() {
+        let badges = MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "dts", profile: "DTS:X", channels: 8)])
+        #expect(badges.audioCodec == "DTS-HD")
+        #expect(badges.audio == .dtsX)
+    }
+
+    @Test("a codec nobody mapped still gets a pill, in the shape the server spelled it")
+    func unknownCodecFallsBackToTheServerString() {
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [audio(codec: "speex", channels: 1)]).audioCodec == "SPEEX")
+    }
+
+    @Test("a silent film has no audio pill rather than an empty one")
+    func noAudioStreamNoCodec() {
+        #expect(MediaBadgeResolver.badges(width: 1920, height: 1080, streams: [video(width: 1920)]).audioCodec == nil)
+    }
+
+    // MARK: - Which audio track the pills describe
+
+    @Test("the spatial track behind a stereo default names the codec too, not just the Atmos pill")
+    func codecComesFromTheSpatialTrack() {
+        let badges = MediaBadgeResolver.badges(
+            width: 3840, height: 2160,
+            streams: [audio(codec: "aac", channels: 2),
+                      audio(codec: "truehd", profile: "TrueHD with Dolby Atmos", channels: 8)])
+        #expect(badges.audioCodec == "TrueHD")
+        #expect(badges.audio == .atmos)
+    }
+
+    @Test("lossless outranks a lossy track with more channels: the pill advertises the format")
+    func losslessOutranksChannelCount() {
+        let badges = MediaBadgeResolver.badges(
+            width: nil, height: nil,
+            streams: [audio(codec: "ac3", channels: 6),
+                      audio(codec: "truehd", channels: 2)])
+        #expect(badges.audioCodec == "TrueHD")
+    }
+
+    @Test("inside one tier the wider track wins, so 5.1 beats the stereo commentary beside it")
+    func channelsBreakTheTierTie() {
+        let badges = MediaBadgeResolver.badges(
+            width: nil, height: nil,
+            streams: [audio(codec: "ac3", channels: 2),
+                      audio(codec: "eac3", channels: 6)])
+        #expect(badges.audioCodec == "DD+")
+    }
+
+    @Test("two tracks that tie on tier and channels fall to bitrate")
+    func bitrateBreaksTheChannelTie() {
+        let quiet = MediaStream(index: 1, type: .audio, codec: "eac3", language: "eng",
+                                displayTitle: nil, title: nil, isDefault: true, isForced: nil,
+                                isExternal: nil, height: nil, width: nil, channels: 6,
+                                videoRange: nil, videoRangeType: nil, averageFrameRate: nil,
+                                realFrameRate: nil, profile: nil, bitRate: 384_000, dvProfile: nil)
+        let loud = MediaStream(index: 2, type: .audio, codec: "ac3", language: "ger",
+                               displayTitle: nil, title: nil, isDefault: false, isForced: nil,
+                               isExternal: nil, height: nil, width: nil, channels: 6,
+                               videoRange: nil, videoRangeType: nil, averageFrameRate: nil,
+                               realFrameRate: nil, profile: nil, bitRate: 640_000, dvProfile: nil)
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: [quiet, loud]).audioCodec == "DD")
+    }
+
+    // MARK: - What a detail page paints
+
+    @Test("the detail pills read left to right: resolution, picture, codec, sound")
+    func detailPillOrder() {
+        let badges = MediaBadgeResolver.badges(
+            width: 3840, height: 2160,
+            streams: [video(width: 3840, range: "DOVI", dvProfile: 5),
+                      audio(codec: "truehd", profile: "TrueHD with Dolby Atmos", channels: 8)])
+        #expect(badges.detailPills == ["4K", "DV", "TrueHD", "ATMOS"])
+    }
+
+    @Test("a plain 1080p AAC title still says what it is, an everyday codec is not hidden")
+    func detailPillsNameTheEverydayCase() {
+        let badges = MediaBadgeResolver.badges(
+            width: 1920, height: 1080,
+            streams: [video(width: 1920, range: "SDR"), audio(codec: "aac", channels: 2)])
+        #expect(badges.detailPills == ["1080p", "AAC"])
+    }
+
+    @Test("the codec pill stays off the poster: the corner keeps its three")
+    func theCornerIsUnchangedByTheCodec() {
+        let badges = MediaBadgeResolver.badges(
+            width: 1920, height: 1080,
+            streams: [video(width: 1920, range: "SDR"), audio(codec: "aac", channels: 2)])
+        #expect(badges.pills == ["1080p"])
+    }
+
+    @Test("an item the server said nothing about paints no detail pills either")
+    func noDetailPills() {
+        #expect(MediaBadgeResolver.badges(width: nil, height: nil, streams: nil).detailPills.isEmpty)
+    }
+
     // MARK: - Pill geometry
 
     /// Measured on the tvOS simulator, not guessed at the TV: 0.06 of the tier's poster width puts

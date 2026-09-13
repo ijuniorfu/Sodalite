@@ -362,7 +362,7 @@ struct MovieDetailView: View {
                 hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true),
                 leftSecondaryPending: !vm.hasFullDetail && vm.item.genres == nil
             ) {
-                ItemMetadataRow(item: vm.item)
+                ItemMetadataRow(item: vm.item, extras: formatBadges(vm: vm))
             } leftSecondary: {
                 if let genres = vm.item.genres, !genres.isEmpty {
                     Text(genres.joined(separator: " · "))
@@ -377,6 +377,16 @@ struct MovieDetailView: View {
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
+        )
+    }
+
+    /// Sodalite#145. Reads the version the page is showing, the same source id the tech strip below
+    /// uses, so the pills cannot describe a copy the viewer did not pick.
+    private func formatBadges(vm: DetailViewModel) -> [AnyView] {
+        FormatBadgeRow.extras(
+            for: vm.item,
+            sourceID: versionSelection.preferredSourceID(for: vm.item),
+            enabled: dependencies.appearancePreferences.showDetailBadges
         )
     }
 

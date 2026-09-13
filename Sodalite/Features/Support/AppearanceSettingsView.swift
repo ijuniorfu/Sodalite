@@ -104,6 +104,16 @@ struct AppearanceSettingsView: View {
                                set: { appearance.showPosterBadges = $0 })
             )
 
+            // Sodalite#145. On by default, unlike the poster corners above: a detail page already
+            // holds the streams these read, so the pills cost no request.
+            boolRow(
+                icon: "tag",
+                title: "settings.appearance.detailBadges",
+                subtitle: "settings.appearance.detailBadges.subtitle",
+                value: Binding(get: { appearance.showDetailBadges },
+                               set: { appearance.showDetailBadges = $0 })
+            )
+
             // Sodalite#84. Off by default: most library images have the library's name burnt in,
             // and ours on top makes two captions. On for viewers whose images carry no text.
             boolRow(

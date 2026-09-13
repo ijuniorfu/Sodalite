@@ -70,6 +70,7 @@ final class AppearancePreferences {
         static let hiddenTabs = "appearance.hiddenTabs"
         static let navigationStyle = "appearance.navigationStyle"
         static let showPosterBadges = "appearance.showPosterBadges"
+        static let showDetailBadges = "appearance.showDetailBadges"
         static let showTopShelfRow = "appearance.showTopShelfRow"
         static let topShelfImage = "appearance.topShelfImage"
         static let showLibraryNames = "appearance.showLibraryNames"
@@ -141,6 +142,14 @@ final class AppearancePreferences {
     }
     var showPosterBadges: Bool {
         didSet { store.set(showPosterBadges, forKey: Keys.showPosterBadges) }
+    }
+
+    /// Sodalite#145. The same facts as the poster pills, plus the audio codec, on the metadata line
+    /// of a detail page. On by default, unlike the poster corners: a detail page already holds the
+    /// streams it needs, so the pills cost no request, and a page about one title is where a viewer
+    /// goes to find out what the copy is.
+    var showDetailBadges: Bool {
+        didSet { store.set(showDetailBadges, forKey: Keys.showDetailBadges) }
     }
 
     /// Sodalite#84. Draws the library's name over its artwork on the My Media row. Off by default:
@@ -241,6 +250,7 @@ final class AppearancePreferences {
         self.spoilerHideEpisodes = store.object(forKey: Keys.spoilerHideEpisodes) as? Bool ?? true
         self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
         self.showPosterBadges = store.object(forKey: Keys.showPosterBadges) as? Bool ?? false
+        self.showDetailBadges = store.object(forKey: Keys.showDetailBadges) as? Bool ?? true
         self.showTopShelfRow = store.object(forKey: Keys.showTopShelfRow) as? Bool ?? true
         self.topShelfImage = store.string(forKey: Keys.topShelfImage)
             .flatMap(ContinueWatchingImage.init(rawValue:)) ?? .thumb
