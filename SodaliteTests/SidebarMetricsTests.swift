@@ -39,8 +39,6 @@ struct SidebarMetricsTests {
     @Test("the content sits as far from the rail as the rail sits from the screen edge")
     func theTwoGapsMatch() {
         #expect(SidebarMetrics.contentLeading == SidebarMetrics.railLeadingInset)
-        // The shell adds nothing on top, so that symmetry is the whole distance.
-        #expect(SidebarMetrics.contentGap == 0)
     }
 
     /// 16pt shipped once and still clipped the focused settings card. A settings tile is

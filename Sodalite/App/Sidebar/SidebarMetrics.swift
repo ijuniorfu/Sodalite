@@ -24,10 +24,6 @@ enum SidebarMetrics {
     /// 38pt from the edge). Staying outside it stacks 60 + inset and reads as a wide empty gutter.
     static let railLeadingInset: CGFloat = 40
 
-    /// Zero: the content's own leading edge is the whole distance (`contentLeading`), so there is
-    /// one number to reason about instead of a shell gap plus whatever each screen brings.
-    static let contentGap: CGFloat = 0
-
     /// The leading edge of every screen while the sidebar is up, and deliberately the SAME number
     /// as `railLeadingInset`: the gap from the screen edge to the rail then equals the gap from the
     /// rail to the content, which is the symmetry the eye actually checks.

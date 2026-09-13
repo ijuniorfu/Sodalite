@@ -23,42 +23,15 @@ struct SidebarShell<Content: View>: View {
     /// different branch: that rebuilds the content and the pushed screen's own stack goes with it.
     @State private var chromeHidden = false
 
-    /// Whether the rail's slot is closed (a pushed screen). Kept as a flag rather than a width so
-    /// the EXPANDED width still reaches the layout: fixing the slot at the collapsed width put the
-    /// expanded rail on top of the content, because the overlay had nothing to push against.
-    @State private var slotClosed = false
-    /// The visual correction that makes the layout jump invisible: set to the difference in the
-    /// same frame the layout changes, then animated back to zero. A transform, unlike a width, is a
-    /// layer property that UIKit does interpolate, so the content travels with the rail.
-    @State private var shift: CGFloat = 0
-
-    /// What the rail occupies in the layout right now: nothing on a pushed screen, otherwise its
-    /// current width, so expanding still pushes the content aside the way it always did.
+    /// What the rail occupies in the layout. Note what it does NOT depend on: `chromeHidden`.
+    ///
+    /// A pushed screen takes the rail away but leaves the layout alone, so the content never moves
+    /// for it. Every attempt at moving it fought the NavigationStack's own push and pop animation,
+    /// two movements that know nothing about each other, and the result read as unrest no matter
+    /// how the width was animated (a stack is UIKit-backed on tvOS and will not interpolate one
+    /// anyway). One element moving beats two moving out of step.
     private var slotWidth: CGFloat {
-        slotClosed ? 0 : SidebarMetrics.railLeadingInset + SidebarMetrics.width(isExpanded: focusIsInRail)
-    }
-
-    /// First the layout, then the correction, then play it out: the layout lands on its new width
-    /// in one unanimated step, `shift` cancels that step visually, and animating `shift` back to
-    /// zero is what the viewer actually sees. Doing it the obvious way instead (animate the width)
-    /// leaves the content standing still until the animation ends, see `railSlot`.
-    private func setChrome(hidden: Bool) {
-        guard hidden != slotClosed else { return }
-        // The rail is always collapsed when this fires: focus is in the content, which is what the
-        // push came from. So the slot that opens or closes is exactly the collapsed one.
-        let delta: CGFloat = hidden ? SidebarMetrics.railSlot : -SidebarMetrics.railSlot
-
-        var instant = Transaction()
-        instant.disablesAnimations = true
-        withTransaction(instant) {
-            slotClosed = hidden
-            shift = delta
-            chromeHidden = hidden
-        }
-
-        withAnimation(.easeInOut(duration: SidebarMetrics.expandDuration)) {
-            shift = 0
-        }
+        SidebarMetrics.railLeadingInset + SidebarMetrics.width(isExpanded: focusIsInRail)
     }
 
     var body: some View {
@@ -71,13 +44,14 @@ struct SidebarShell<Content: View>: View {
 
             content(selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .environment(\.shellPaysLeadingInset, !chromeHidden)
-                .offset(x: shift)
+                // Unconditional: the margins stay put when the rail leaves, so a pushed screen
+                // does not re-lay-out itself on the way in or out.
+                .environment(\.shellPaysLeadingInset, true)
                 .focusSectionCompat()
                 // The shell opens on the content, not on the rail, which is what the top bar does.
                 .prefersDefaultFocus(true, in: shellFocus)
                 .onPreferenceChange(ShellChromeHiddenKey.self) { hidden in
-                    setChrome(hidden: hidden)
+                    chromeHidden = hidden
                 }
         }
         .overlay(alignment: .leading) {
@@ -94,11 +68,11 @@ struct SidebarShell<Content: View>: View {
                 }
             )
             .padding(.leading, SidebarMetrics.railLeadingInset)
-            // Rides the same correction as the content, so the two move as one, and steps aside
-            // entirely once the layout has closed the gap.
-            .offset(x: shift - (chromeHidden ? SidebarMetrics.railSlot : 0))
+            // The only thing that moves for a pushed screen.
+            .offset(x: chromeHidden ? -SidebarMetrics.railSlot : 0)
             .opacity(chromeHidden ? 0 : 1)
             .disabled(chromeHidden)
+            .animation(.easeInOut(duration: SidebarMetrics.expandDuration), value: chromeHidden)
         }
         // ONE opt-out, for the whole shell. On a child alone it does not work: the HStack still
         // starts inside the 60pt title-safe margin, so the rail reaches the edge while the content
