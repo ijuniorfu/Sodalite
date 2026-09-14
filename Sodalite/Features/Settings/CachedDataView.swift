@@ -148,6 +148,16 @@ struct CachedDataView: View {
     /// "0 bytes" while the screen is still counting.
     private static func size(_ bytes: Int?) -> String {
         guard let bytes else { return "–" }
-        return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+        return formatter.string(fromByteCount: Int64(bytes))
     }
+
+    /// `allowsNonnumericFormatting` off, because the default renders zero as "Zero KB", and the one
+    /// moment every figure on this screen is zero is the moment just after the button was pressed,
+    /// which is when it has to read like an answer.
+    private static let formatter: ByteCountFormatter = {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        formatter.allowsNonnumericFormatting = false
+        return formatter
+    }()
 }
