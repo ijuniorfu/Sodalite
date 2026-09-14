@@ -384,6 +384,15 @@ struct MovieDetailView: View {
                         .lineLimit(1)
                 }
             }
+
+            // Sodalite#146: the plot belongs in the viewport the viewer actually meets. The box
+            // below the fold keeps the full text; this is the teaser that decides whether they
+            // scroll to it.
+            DetailHeroSynopsis(
+                text: vm.item.overview,
+                isPending: !vm.hasFullDetail,
+                spoilerItem: vm.item
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(isPhonePortrait ? 16 : 30)

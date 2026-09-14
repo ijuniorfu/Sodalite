@@ -155,6 +155,20 @@ struct SeriesDetailView: View {
         return nil
     }
 
+    /// Whether a synopsis can still arrive for whatever the page is showing. The hero teaser and the
+    /// box below the fold reserve their space on exactly this value, so the two cannot drift apart
+    /// and reserve for different states.
+    private var overviewMayStillLand: Bool {
+        guard let vm = viewModel else { return true }
+        guard isShowingEpisode else { return !vm.hasFullDetail }
+        guard let episode = selectedEpisode else { return false }
+        // Mirrors the enrichment trigger: an episode already carrying streams is fully detailed, so
+        // a missing overview is final (Sodalite#15).
+        return episode.mediaStreams == nil
+            && episode.mediaSources == nil
+            && !settledEpisodeDetailIDs.contains(episode.id)
+    }
+
     var body: some View {
         ZStack {
             // Solid black behind the spinner; backdrop held back until content is ready to crossfade over it.
@@ -207,14 +221,8 @@ struct SeriesDetailView: View {
                                 )
                                 .padding(.horizontal, metrics.rowInset)
                                 .id(displayItem.id)
-                            } else if !isShowingEpisode && !vm.hasFullDetail {
+                            } else if overviewMayStillLand {
                                 // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
-                                ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, metrics.rowInset)
-                            } else if isShowingEpisode, let ep = selectedEpisode,
-                                      ep.mediaStreams == nil, ep.mediaSources == nil,
-                                      !settledEpisodeDetailIDs.contains(ep.id) {
-                                // Episode-mode slim snapshot, overview may still land (Sodalite#15). The mediaStreams/mediaSources guard mirrors the enrichment trigger: an episode already carrying streams is fully detailed, so a missing overview is final.
                                 ExpandableTextBoxPlaceholder()
                                     .padding(.horizontal, metrics.rowInset)
                             }
@@ -598,6 +606,14 @@ struct SeriesDetailView: View {
                         .lineLimit(1)
                 }
             }
+
+            // Sodalite#146: series synopsis in the series state, the episode's own in episode state,
+            // which is what displayItem/displayOverview already resolve for the box below the fold.
+            DetailHeroSynopsis(
+                text: displayOverview,
+                isPending: overviewMayStillLand,
+                spoilerItem: displayItem
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(30)
