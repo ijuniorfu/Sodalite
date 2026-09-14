@@ -151,6 +151,14 @@ struct EpisodeLandscapeCard: View {
     /// and the only one that may hide the resume indicator (`DetailViewModel.wasMarkedPlayedInSession`).
     var justMarkedPlayed: Bool = false
 
+    /// Sodalite#146. A hint, not a control: it appears on the FOCUSED card only and teaches the
+    /// long-press that opens the episode, which is otherwise a gesture nothing on screen mentions.
+    /// Deliberately not focusable, and deliberately drawn by the card rather than pressable: Select
+    /// is already spoken for by playback, so a real button here would need a second focus stop per
+    /// card inside a horizontally scrolling strip whose up and down moves the page hand-routes.
+    /// Touch has no focus engine to protect, so there the call site puts a real tap target on top.
+    var showsInfoHint: Bool = false
+
     @Environment(\.appearanceTheme) private var appearanceTheme
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
@@ -202,6 +210,14 @@ struct EpisodeLandscapeCard: View {
                     posterWidth: LayoutMetrics.current(hSizeClass).posterSize.width
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+
+                // Leading corner, not joined to the badge cluster opposite: those say what the
+                // VIEWER has done with this episode, and a hint about a gesture is not one of them.
+                if showsInfoHint {
+                    EpisodeInfoHint(posterWidth: LayoutMetrics.current(hSizeClass).posterSize.width)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .transition(.opacity)
+                }
             }
             .frame(width: cardSize.width, height: cardSize.height)
 
@@ -402,5 +418,29 @@ enum EpisodeCardStroke: CaseIterable {
         case .playTarget: return 3
         case .focused: return 4
         }
+    }
+}
+
+// MARK: - Info hint
+
+/// The ⓘ mark on an episode card (Sodalite#146). Same geometry as the state badges opposite so the
+/// two corners read as one margin, but white on a dark disc rather than tinted: it is not a state,
+/// and the accent on this row already means focus and the episode token.
+struct EpisodeInfoHint: View {
+    /// The tier's poster width, not this card's width, matching `ArtworkStateBadges`.
+    let posterWidth: CGFloat
+    var scale: CGFloat = 1
+
+    private var diameter: CGFloat { PosterBadgeMetrics.checkDiameter(posterWidth: posterWidth, scale: scale) }
+    private var inset: CGFloat { PosterBadgeMetrics.checkInset(posterWidth: posterWidth, scale: scale) }
+
+    var body: some View {
+        Image(systemName: "info.circle.fill")
+            .resizable()
+            .scaledToFit()
+            .frame(width: diameter, height: diameter)
+            .foregroundStyle(.white, Color.Theme.scrimHeavy)
+            .shadow(color: .black.opacity(0.45), radius: diameter * 0.12, y: diameter * 0.05)
+            .padding(inset)
     }
 }

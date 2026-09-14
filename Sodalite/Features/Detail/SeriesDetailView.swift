@@ -143,6 +143,16 @@ struct SeriesDetailView: View {
         selectedEpisode != nil
     }
 
+    /// Whether the episode card's info mark is a hint (tvOS, focus only) or a control (touch, always
+    /// and pressable). See `EpisodeLandscapeCard.showsInfoHint`.
+    private var isTVOS: Bool {
+        #if os(tvOS)
+        true
+        #else
+        false
+        #endif
+    }
+
     /// Synopsis overview. Slim-sourced episodes (Home/search) lack Overview until the detail fetch backfills it (seconds late on slow CDNs), so fall back to the matching episode-list entry (carries Overview) and the synopsis paints with the episode row (Sodalite#15).
     private var displayOverview: String? {
         if let overview = displayItem.overview, !overview.isEmpty {
@@ -304,6 +314,13 @@ struct SeriesDetailView: View {
             }
         }
         .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
+        // Menu returns to the series state rather than dismissing the page (Sodalite#146). The page
+        // swaps its header for an episode rather than pushing a screen, so tvOS had nothing to pop
+        // and Menu went straight past it to the detail cover: opening an episode cost the whole show
+        // page to get back out of. Enabled only while the episode state is open, and via the
+        // nil-passing helper, because an empty closure would swallow the press that has to reach the
+        // cover or the navigation stack behind it (Sodalite#140).
+        .onExitCommandIfEnabled(isShowingEpisode, perform: closeEpisodeState)
         // iPhone portrait respects the safe area so detail content is not clipped under the status
         // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         .ignoresSafeArea(when: !isPhonePortrait)
@@ -912,12 +929,12 @@ struct SeriesDetailView: View {
             }
 
             if isShowingEpisode {
+                // `tv`, not `xmark` (Sodalite#146): the glyph said "close this panel" while the
+                // label said "show the series", and only one of the two is what pressing it does.
                 GlassActionButton(
                     title: "detail.showSeries",
-                    systemImage: "xmark",
-                    action: {
-                        withAnimation { selectedEpisode = nil }
-                    }
+                    systemImage: "tv",
+                    action: { closeEpisodeState() }
                 )
             }
 
@@ -1025,6 +1042,13 @@ struct SeriesDetailView: View {
             parts.append(remaining)
         }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// Leaving the episode state. One function because Menu and the Go to Show button have to do
+    /// the same thing (Sodalite#146); on tvOS Menu used to dismiss the whole detail cover from here,
+    /// so a viewer who opened an episode lost the show page to get out of it.
+    private func closeEpisodeState() {
+        withAnimation(.easeInOut(duration: 0.3)) { selectedEpisode = nil }
     }
 
     private func playState(for target: JellyfinItem) -> PlayActionState {
@@ -1235,10 +1259,32 @@ struct SeriesDetailView: View {
                                             isFocused: focusedEpisodeID == episode.id,
                                             isPlayed: vm.isPlayed(episode),
                                             isFavorite: vm.isFavorite(episode),
-                                            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode)
+                                            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode),
+                                            // tvOS: a hint on the focused card, teaching the
+                                            // long-press. Touch draws its own, below, because there
+                                            // it is a control rather than a hint.
+                                            showsInfoHint: isTVOS && focusedEpisodeID == episode.id
                                         )
                                     }
                                     .buttonStyle(EpisodeCardButtonStyle())
+                                    // Touch has no focus engine to protect, so the mark is a real
+                                    // tap target: tapping the card plays, tapping this opens the
+                                    // episode. It is an overlay on the Button rather than a control
+                                    // inside its label, which iOS would not deliver the tap to.
+                                    .overlay(alignment: .topLeading) {
+                                        #if !os(tvOS)
+                                        Button {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                selectedEpisode = episode
+                                            }
+                                            scrollToEpisodePanel()
+                                        } label: {
+                                            EpisodeInfoHint(posterWidth: metrics.posterSize.width)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .accessibilityLabel("detail.episode.showDetails")
+                                        #endif
+                                    }
                                     .focused($focusedEpisodeID, equals: episode.id)
                                     // Prime the season-bar target before the up-move resolves, else tvOS's geographic picker skips the bar (far-right episode outside the tabs' span) and lands on the overview above.
                                     #if os(tvOS)
