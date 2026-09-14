@@ -77,6 +77,8 @@ enum JellyfinEndpoint: APIEndpoint {
     case closeLiveStream(liveStreamID: String)
     /// DELETE /Videos/ActiveEncodings: kill the transcode for this (device, play session) + its output. Without it a live transcode whose PlaybackStopped is lost (app kill/crash) keeps ffmpeg growing stream.ts until the disk fills.
     case stopActiveEncodings(deviceID: String, playSessionID: String)
+    /// GET /Sessions: who the server thinks is playing what, right now. Read by the tuner sweep, which has to know whether a channel-scoped live stream id belongs to somebody else before closing it (#147).
+    case sessions
     case liveTvRecordings(userID: String, isInProgress: Bool?)
     case liveTvTimers
     case liveTvSeriesTimers
@@ -174,6 +176,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/LiveStreams/Close"
         case .stopActiveEncodings:
             "/Videos/ActiveEncodings"
+        case .sessions:
+            "/Sessions"
         case .liveTvRecordings:
             "/LiveTv/Recordings"
         case .liveTvTimers, .createLiveTvTimer:

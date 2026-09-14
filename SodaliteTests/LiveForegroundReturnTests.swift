@@ -19,12 +19,13 @@ struct LiveForegroundReturnTests {
 
     private func decide(
         needsReload: Bool = false,
+        tunerReleased: Bool = false,
         wasPlaying: Bool = true,
         away: TimeInterval,
         advance: TimeInterval
     ) -> Return {
         PlayerHostController.liveForegroundReturn(
-            needsReload: needsReload, wasPlaying: wasPlaying,
+            needsReload: needsReload, tunerReleased: tunerReleased, wasPlaying: wasPlaying,
             backgroundSeconds: away, playheadAdvance: advance)
     }
 
@@ -61,6 +62,14 @@ struct LiveForegroundReturnTests {
     @Test func aTornDownPipelineAlwaysTunes() {
         #expect(decide(needsReload: true, wasPlaying: false, away: 1, advance: 0) == .retune)
         #expect(decide(needsReload: true, away: 1, advance: 1) == .retune)
+    }
+
+    /// Sodalite#147: the suspension closed the session server-side, so there is no stream left to
+    /// resume onto. It outranks every other reading, the paused position included, because the pause
+    /// is a position inside a buffer whose producer has been let go.
+    @Test func aTunerReleasedOnTheWayOutAlwaysTunes() {
+        #expect(decide(tunerReleased: true, wasPlaying: false, away: 1, advance: 0) == .retune)
+        #expect(decide(tunerReleased: true, away: 30, advance: 30) == .retune)
     }
 
     /// The gate the live decision now sits in front of, unchanged: only a torn-down session pays the

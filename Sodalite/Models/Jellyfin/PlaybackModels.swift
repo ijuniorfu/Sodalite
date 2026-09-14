@@ -65,6 +65,40 @@ struct PlaybackMediaSource: Codable, Sendable, Identifiable {
     }
 }
 
+// MARK: - Sessions
+
+/// One entry of `GET /Sessions`, decoded down to the two fields a tuner sweep needs (#147).
+///
+/// Deliberately narrow: `NowPlayingItem` is a full item, and decoding it would drag this small
+/// question into the date formats and optionality of the whole library model for nothing. The sweep
+/// asks one thing, whether somebody else is on that channel, and these are the two fields that
+/// answer it.
+struct JellyfinSessionInfo: Decodable, Sendable {
+    let deviceID: String?
+    let nowPlayingItemID: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case deviceId = "DeviceId"
+        case nowPlayingItem = "NowPlayingItem"
+    }
+
+    private enum ItemKeys: String, CodingKey {
+        case id = "Id"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        deviceID = try container.decodeIfPresent(String.self, forKey: .deviceId)
+        let item = try? container.nestedContainer(keyedBy: ItemKeys.self, forKey: .nowPlayingItem)
+        nowPlayingItemID = try? item?.decodeIfPresent(String.self, forKey: .id)
+    }
+
+    init(deviceID: String?, nowPlayingItemID: String?) {
+        self.deviceID = deviceID
+        self.nowPlayingItemID = nowPlayingItemID
+    }
+}
+
 // MARK: - Media Segments
 
 /// `/MediaSegments/{itemId}` intro/outro/preview markers; native on Jellyfin 10.10+, intro-skipper plugin on 10.9.
