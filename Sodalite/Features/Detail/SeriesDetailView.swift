@@ -1145,6 +1145,99 @@ struct SeriesDetailView: View {
         return overview
     }
 
+    /// The long-press menu on an episode card. A function because the two platforms attach it
+    /// differently: only touch gets a preview, and only because of the ring (see the call site).
+    @ViewBuilder
+    private func episodeContextMenu(_ episode: JellyfinItem, vm: DetailViewModel) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                selectedEpisode = episode
+            }
+            episodeOrigin.openedFromStrip()
+            #if os(tvOS)
+            // Context menu restores focus to this card on dismiss; flag it so the focusedEpisodeID observer bounces focus up to Play (a fixed delay lost the race against the restore). The delayed write is a fallback when focus never visibly cycles.
+            pendingPlayFocusAfterMenu = true
+            deferOnMain(by: 0.6) {
+                guard pendingPlayFocusAfterMenu else { return }
+                pendingPlayFocusAfterMenu = false
+                playButtonFocused = false
+                DispatchQueue.main.async { playButtonFocused = true }
+            }
+            #else
+            // Touch has no focus engine, so the focus bounce above (the only thing that
+            // scrolls the episode panel into view on tvOS) is inert here: the state flipped
+            // correctly but the panel sits a viewport up and the tech info far below, so the
+            // action read as a no-op. Scroll there explicitly instead. The defer rides out
+            // the context menu's dismiss morph, which otherwise fights the scroll.
+            scrollToEpisodePanel()
+            #endif
+        } label: {
+            Label("detail.episode.showDetails", systemImage: "info.circle")
+        }
+
+        Button {
+            requestPlay(episode, fromBeginning: true, fromPlayButton: false)
+        } label: {
+            Label("detail.play", systemImage: "play.fill")
+        }
+
+        if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
+            Button {
+                requestPlay(episode, fromBeginning: false, fromPlayButton: false)
+            } label: {
+                Label("detail.resume", systemImage: "play.circle")
+            }
+        }
+
+        Button {
+            let target = !vm.isPlayed(episode)
+            Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
+        } label: {
+            Label(
+                vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
+                systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
+            )
+        }
+
+        Button {
+            let target = !vm.isFavorite(episode)
+            Task { await vm.setEpisodeFavorite(episode, isFavorite: target) }
+        } label: {
+            Label(
+                vm.isFavorite(episode) ? "detail.unfavorite" : "detail.favorite",
+                systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
+            )
+        }
+
+        // Sodalite#50. For an episode without a synopsis the box is
+        // not focusable, so this is the only way to uncover its still.
+        if SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState) {
+            Button {
+                SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
+            } label: {
+                Label("spoiler.reveal", systemImage: "eye")
+            }
+        }
+    }
+
+    /// One card, built once, so the row and the long-press preview cannot drift apart.
+    private func episodeCard(_ episode: JellyfinItem, vm: DetailViewModel, playTargetID: String?) -> some View {
+        EpisodeLandscapeCard(
+            episode: episode,
+            imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
+            isPlayTarget: playTargetID == episode.id,
+            isFocused: focusedEpisodeID == episode.id,
+            isPlayed: vm.isPlayed(episode),
+            isFavorite: vm.isFavorite(episode),
+            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode),
+            // tvOS only, and on the focused card only: it teaches the long-press, which the remote
+            // gives no other sign of. Touch already has a long-press everyone knows, so a permanent
+            // mark on every card there was chrome for a gesture nobody needed taught (Vincent,
+            // device, 2026-09-14).
+            showsInfoHint: isTVOS && focusedEpisodeID == episode.id
+        )
+    }
+
     /// Where a move down into the episode row lands. Every entry path (the focus bridge, the one-shot redirect below it, the return from the player) reads this one resolver so they cannot aim at different cards.
     private func episodeEntryTarget(vm: DetailViewModel) -> String? {
         episodeAim.target(in: vm.episodes.map(\.id), currentEpisodeID: vm.currentEpisodeID)
@@ -1302,40 +1395,9 @@ struct SeriesDetailView: View {
                                     Button {
                                         requestPlay(episode, fromBeginning: false, fromPlayButton: false)
                                     } label: {
-                                        EpisodeLandscapeCard(
-                                            episode: episode,
-                                            imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
-                                            isPlayTarget: playTargetID == episode.id,
-                                            isFocused: focusedEpisodeID == episode.id,
-                                            isPlayed: vm.isPlayed(episode),
-                                            isFavorite: vm.isFavorite(episode),
-                                            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode),
-                                            // tvOS: a hint on the focused card, teaching the
-                                            // long-press. Touch draws its own, below, because there
-                                            // it is a control rather than a hint.
-                                            showsInfoHint: isTVOS && focusedEpisodeID == episode.id
-                                        )
+                                        episodeCard(episode, vm: vm, playTargetID: playTargetID)
                                     }
                                     .buttonStyle(EpisodeCardButtonStyle())
-                                    // Touch has no focus engine to protect, so the mark is a real
-                                    // tap target: tapping the card plays, tapping this opens the
-                                    // episode. It is an overlay on the Button rather than a control
-                                    // inside its label, which iOS would not deliver the tap to.
-                                    .overlay(alignment: .topLeading) {
-                                        #if !os(tvOS)
-                                        Button {
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                selectedEpisode = episode
-                                            }
-                                            episodeOrigin.openedFromStrip()
-                                            scrollToEpisodePanel()
-                                        } label: {
-                                            EpisodeInfoHint(posterWidth: metrics.posterSize.width)
-                                        }
-                                        .buttonStyle(.plain)
-                                        .accessibilityLabel("detail.episode.showDetails")
-                                        #endif
-                                    }
                                     .focused($focusedEpisodeID, equals: episode.id)
                                     // Prime the season-bar target before the up-move resolves, else tvOS's geographic picker skips the bar (far-right episode outside the tabs' span) and lands on the overview above.
                                     #if os(tvOS)
@@ -1345,77 +1407,23 @@ struct SeriesDetailView: View {
                                         }
                                     }
                                     #endif
+                                    #if os(tvOS)
+                                    .contextMenu { episodeContextMenu(episode, vm: vm) }
+                                    #else
+                                    // With a preview of its own, because the default one is a
+                                    // snapshot of the card's BOUNDS and the play-target ring is
+                                    // drawn outside them (an outer stroke at -3 pt, so the artwork
+                                    // keeps its full size, Sodalite#134). Lifted, three of its four
+                                    // sides were cut off. Given the stroke's own width as padding it
+                                    // fits inside what the snapshot takes. Predates this branch,
+                                    // reported 2026-09-14.
                                     .contextMenu {
-                                        Button {
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                selectedEpisode = episode
-                                            }
-                                            episodeOrigin.openedFromStrip()
-                                            #if os(tvOS)
-                                            // Context menu restores focus to this card on dismiss; flag it so the focusedEpisodeID observer bounces focus up to Play (a fixed delay lost the race against the restore). The delayed write is a fallback when focus never visibly cycles.
-                                            pendingPlayFocusAfterMenu = true
-                                            deferOnMain(by: 0.6) {
-                                                guard pendingPlayFocusAfterMenu else { return }
-                                                pendingPlayFocusAfterMenu = false
-                                                playButtonFocused = false
-                                                DispatchQueue.main.async { playButtonFocused = true }
-                                            }
-                                            #else
-                                            // Touch has no focus engine, so the focus bounce above (the only thing that
-                                            // scrolls the episode panel into view on tvOS) is inert here: the state flipped
-                                            // correctly but the panel sits a viewport up and the tech info far below, so the
-                                            // action read as a no-op. Scroll there explicitly instead. The defer rides out
-                                            // the context menu's dismiss morph, which otherwise fights the scroll.
-                                            scrollToEpisodePanel()
-                                            #endif
-                                        } label: {
-                                            Label("detail.episode.showDetails", systemImage: "info.circle")
-                                        }
-
-                                        Button {
-                                            requestPlay(episode, fromBeginning: true, fromPlayButton: false)
-                                        } label: {
-                                            Label("detail.play", systemImage: "play.fill")
-                                        }
-
-                                        if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
-                                            Button {
-                                                requestPlay(episode, fromBeginning: false, fromPlayButton: false)
-                                            } label: {
-                                                Label("detail.resume", systemImage: "play.circle")
-                                            }
-                                        }
-
-                                        Button {
-                                            let target = !vm.isPlayed(episode)
-                                            Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
-                                        } label: {
-                                            Label(
-                                                vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
-                                                systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
-                                            )
-                                        }
-
-                                        Button {
-                                            let target = !vm.isFavorite(episode)
-                                            Task { await vm.setEpisodeFavorite(episode, isFavorite: target) }
-                                        } label: {
-                                            Label(
-                                                vm.isFavorite(episode) ? "detail.unfavorite" : "detail.favorite",
-                                                systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
-                                            )
-                                        }
-
-                                        // Sodalite#50. For an episode without a synopsis the box is
-                                        // not focusable, so this is the only way to uncover its still.
-                                        if SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState) {
-                                            Button {
-                                                SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
-                                            } label: {
-                                                Label("spoiler.reveal", systemImage: "eye")
-                                            }
-                                        }
+                                        episodeContextMenu(episode, vm: vm)
+                                    } preview: {
+                                        episodeCard(episode, vm: vm, playTargetID: playTargetID)
+                                            .padding(EpisodeCardStroke.focused.lineWidth)
                                     }
+                                    #endif
 
                                     // Per-card synopsis box; reserves a fixed three-line height even when empty so every column stays the same height.
                                     EpisodeSynopsisBox(
