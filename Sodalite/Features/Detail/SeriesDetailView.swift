@@ -39,6 +39,7 @@ struct SeriesDetailView: View {
     /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
     @State private var overviewHasFocus = false
     @State private var isPresentingDeleteSheet: Bool = false
+    @State private var isPresentingMoreDetails = false
     /// Set on episode "Show Details": the context menu restores focus to its anchor card on dismiss, so the focusedEpisodeID observer bounces focus up to the play button.
     @State private var pendingPlayFocusAfterMenu = false
 
@@ -236,9 +237,9 @@ struct SeriesDetailView: View {
                                     .id("episodeRow")
                             }
 
-                            // Cast ahead of the tech strip (Sodalite#47): with the season/episode
-                            // block above it, the cast row sat far down the page for viewers who
-                            // only want the people. Codec details follow one row later.
+                            // Cast above Related (Sodalite#47): with the season/episode block over
+                            // it, the cast row already sits far down the page for viewers who only
+                            // want the people.
                             if let people = vm.item.people, !people.isEmpty {
                                 MediaCastRow(
                                     members: jellyfinCastMembers(
@@ -248,11 +249,6 @@ struct SeriesDetailView: View {
                                     ),
                                     onSelect: { handlePersonTap($0) }
                                 )
-                            }
-
-                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
-                                TechInfoBox(item: displayItem, sourceID: versionSelection.preferredSourceID(for: displayItem))
-                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
                             }
 
                             if !vm.similarItems.isEmpty {
@@ -273,6 +269,19 @@ struct SeriesDetailView: View {
                                     items: vm.catalogSimilar,
                                     onItemSelected: { navigateToSeerrRequest = $0 }
                                 )
+                            }
+
+                            // Sodalite#146: one non-focusable line closing the page with what the
+                            // file actually is, in place of the strip that cost a third of a screen
+                            // for the same facts. It follows the episode on screen.
+                            if let caption = techFacts().caption {
+                                Text(caption)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                    .padding(.horizontal, metrics.rowInset)
+                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
                             }
                         }
                         .onAppear {
@@ -484,6 +493,21 @@ struct SeriesDetailView: View {
                 settledEpisodeDetailIDs.insert(episode.id)
             }
         }
+        .menuPresentation(isPresented: $isPresentingMoreDetails, panel: .plain) {
+            DetailMoreOverlay(
+                title: displayItem.name,
+                // Veiled stays veiled: the reader is not a way around the spoiler rule, and the box
+                // below the fold is where it gets lifted.
+                synopsis: SpoilerReveal.isHidden(displayItem, dependencies: dependencies, appState: appState)
+                    ? nil : displayOverview,
+                facts: techFacts(),
+                versionLabel: TechFacts.versionSubtitle(
+                    for: displayItem,
+                    sourceID: versionSelection.preferredSourceID(for: displayItem)
+                ),
+                isPresented: $isPresentingMoreDetails
+            )
+        }
         .menuPresentation(isPresented: $isPresentingDeleteSheet, panel: .plain) {
             if let vm = viewModel {
                 let popDetail = dismiss
@@ -659,6 +683,13 @@ struct SeriesDetailView: View {
             sourceID: versionSelection.preferredSourceID(for: displayItem),
             enabled: dependencies.appearancePreferences.showDetailBadges
         )
+    }
+
+    /// Everything the page can say about the copy it is describing, for the reader and the caption
+    /// line alike, so the two cannot describe different files. displayItem, so both follow the
+    /// episode on screen.
+    private func techFacts() -> TechFacts {
+        TechFacts.resolve(item: displayItem, sourceID: versionSelection.preferredSourceID(for: displayItem))
     }
 
     /// Episode panel's single metadata line ("43 min · Genre · Genre"); episode runtime + series genres. nil when both absent so the line collapses.
@@ -926,6 +957,14 @@ struct SeriesDetailView: View {
                     }
                 )
             }
+
+            // Last of the informational controls, and the page's only route to the full synopsis
+            // and the technical detail (Sodalite#146).
+            GlassActionButton(
+                title: "detail.moreDetails",
+                systemImage: "info.circle",
+                action: { isPresentingMoreDetails = true }
+            )
 
             // Delete last, matching MovieDetailView, so the destructive action sits furthest from Play.
             if canDelete && !isShowingEpisode {

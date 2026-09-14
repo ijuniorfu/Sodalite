@@ -20,6 +20,7 @@ struct MovieDetailView: View {
     @State private var showTrailer = false
     @State private var trailerItem: JellyfinItem?
     @State private var isPresentingDeleteSheet: Bool = false
+    @State private var isPresentingMoreDetails = false
     @FocusState private var playButtonFocused: Bool
     /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
     /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
@@ -225,6 +226,23 @@ struct MovieDetailView: View {
             // Open the animation gate once the cover's present transition has settled.
             deferOnMain(by: 0.35) { didSettleIn = true }
         }
+        .menuPresentation(isPresented: $isPresentingMoreDetails, panel: .plain) {
+            if let vm = viewModel {
+                DetailMoreOverlay(
+                    title: vm.item.name,
+                    // Veiled stays veiled: the reader is not a way around the spoiler rule, and the
+                    // box below the fold is where it gets lifted.
+                    synopsis: SpoilerReveal.isHidden(vm.item, dependencies: dependencies, appState: appState)
+                        ? nil : vm.item.overview,
+                    facts: techFacts(vm: vm),
+                    versionLabel: TechFacts.versionSubtitle(
+                        for: vm.item,
+                        sourceID: versionSelection.preferredSourceID(for: vm.item)
+                    ),
+                    isPresented: $isPresentingMoreDetails
+                )
+            }
+        }
         .menuPresentation(isPresented: $isPresentingDeleteSheet, panel: .plain) {
             if let vm = viewModel {
                 let popDetail = dismiss
@@ -317,10 +335,6 @@ struct MovieDetailView: View {
                     )
                 }
 
-                if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
-                    TechInfoBox(item: vm.item, sourceID: versionSelection.preferredSourceID(for: vm.item))
-                }
-
                 if !vm.similarItems.isEmpty {
                     HorizontalMediaRow(
                         title: "detail.similar",
@@ -339,6 +353,19 @@ struct MovieDetailView: View {
                         items: vm.catalogSimilar,
                         onItemSelected: { navigateToSeerrRequest = $0 }
                     )
+                }
+
+                // Sodalite#146, after Infuse: one non-focusable line closing the page with what the
+                // file actually is. The tech strip that used to carry these facts is gone; this is
+                // the part of it worth keeping in sight, and it costs a line instead of a third of
+                // a screen.
+                if let caption = techFacts(vm: vm).caption {
+                    Text(caption)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .padding(.horizontal, metrics.rowInset)
                 }
             }
         }
@@ -420,6 +447,12 @@ struct MovieDetailView: View {
             sourceID: versionSelection.preferredSourceID(for: vm.item),
             enabled: dependencies.appearancePreferences.showDetailBadges
         )
+    }
+
+    /// Everything the page can say about the copy it is describing. Read once per body pass and
+    /// handed to both the reader and the caption line, so the two cannot describe different files.
+    private func techFacts(vm: DetailViewModel) -> TechFacts {
+        TechFacts.resolve(item: vm.item, sourceID: versionSelection.preferredSourceID(for: vm.item))
     }
 
     /// Play starts the version the page shows. It used to open the picker instead, which put a
@@ -543,6 +576,14 @@ struct MovieDetailView: View {
                 title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
                 systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
                 action: { Task { await vm.togglePlayed() } }
+            )
+
+            // Last of the informational controls, and the page's only route to the full synopsis
+            // and the technical detail (Sodalite#146).
+            GlassActionButton(
+                title: "detail.moreDetails",
+                systemImage: "info.circle",
+                action: { isPresentingMoreDetails = true }
             )
 
             // Episodes only reach here via DetailRouterView's no-parent-series fallback; per-episode deletion isn't supported (delete lives on series detail, matching SeriesDetailView's !isShowingEpisode guard).
