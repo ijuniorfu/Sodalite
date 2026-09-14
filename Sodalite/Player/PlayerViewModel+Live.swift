@@ -986,10 +986,12 @@ extension PlayerViewModel {
     /// down on the way into the background (no grace window there), iOS defers a paused teardown by
     /// its 15 s window, so the wait covers both and gives up rather than guessing.
     ///
-    /// Returns whether the tuner was released, which is what makes the return a tune rather than a
-    /// resume: there is nothing left to resume onto.
-    func releaseLiveSessionForSuspension(waitingForTeardownUpTo timeout: TimeInterval) async -> Bool {
-        guard isLiveSession, activeLiveStreamID != nil else { return false }
+    /// `liveTunerReleasedWhileSuspended` is the answer, and it has to be a stored flag rather than a
+    /// return value: this runs in a task that is long finished by the time the foreground return asks,
+    /// and a released tuner is what makes that return a tune rather than a resume, because there is
+    /// nothing left to resume onto.
+    func releaseLiveSessionForSuspension(waitingForTeardownUpTo timeout: TimeInterval) async {
+        guard isLiveSession, activeLiveStreamID != nil else { return }
         let deadline = Date().addingTimeInterval(timeout)
         while player.playbackBackend != .none, Date() < deadline, !Task.isCancelled {
             try? await Task.sleep(nanoseconds: 250_000_000)
@@ -997,12 +999,12 @@ extension PlayerViewModel {
         // Coming back to the foreground cancels the WAIT and nothing else. A session still holding a
         // live pipeline is one the viewer can still see, and the retune the return decides on closes
         // the old tuner itself before it opens the next.
-        guard !Task.isCancelled else { return false }
+        guard !Task.isCancelled else { return }
         guard player.playbackBackend == .none else {
             LogTap.shared.note(
                 "[Live] #147 suspension: the pipeline is still up after \(Int(timeout))s "
                 + "(PiP or background playback), leaving the tuner open")
-            return false
+            return
         }
 
         liveTunerReleasedWhileSuspended = true
@@ -1021,7 +1023,6 @@ extension PlayerViewModel {
         LogTap.shared.note(
             "[Live] #147 suspension: closed the live session server-side, key="
             + "\(Self.liveLogToken(deadTuner))")
-        return true
     }
 
     /// Whether the server's probe failed to identify the source's video codec (no streams, or a video stream without a codec). Jellyfin can't stream-copy what it couldn't identify, so the high copy ceiling silently becomes a 200 Mbps ENCODE target (HTTP 500); route through the bounded re-encode cap up front, where ffmpeg's runtime probe may still read it.
