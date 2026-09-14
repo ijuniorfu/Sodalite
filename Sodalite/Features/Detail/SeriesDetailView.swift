@@ -196,111 +196,7 @@ struct SeriesDetailView: View {
             }
 
             if let vm = viewModel, !vm.isLoading {
-                DetailContentOverlay(
-                    heroImageURL: backdropURL,
-                    heroPosterURL: vm.heroPosterURL(for: vm.item),
-                    hero: {
-                    // Series logo, both modes (episode has none); observes the VM so it appears once an episode deep-link's series stub loads imageTags, no scroll needed.
-                    DetailHeroLogo(viewModel: vm)
-                }, primary: {
-                    // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), kept one unit so the id-rebuild and episode crossfade cover both.
-                    VStack(alignment: .leading, spacing: 24) {
-                        glassPanel(vm: vm)
-                            .id(Self.pageTopAnchor)
-                        actionButtonRow(vm: vm)
-                    }
-                    .padding(.horizontal, metrics.rowInset)
-                    // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
-                    .id("\(vm.item.id)-\(vm.isLoading)")
-                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                }) {
-                    // Captured proxy lets player-dismiss scroll the outer ScrollView back to the episode row, else tvOS's scroll-focus-into-view runs against a not-yet-rendered state and jumps to the top.
-                    ScrollViewReader { outerProxy in
-                        VStack(alignment: .leading, spacing: 40) {
-                            // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
-                            if let overview = displayOverview {
-                                // displayItem is the series in series mode and the selected episode
-                                // in episode mode, so the series overview stays visible (the policy
-                                // ignores .series) while the episode overview is veiled.
-                                // Up out of the box lands on the row's last button, Delete, unless it
-                                // is corrected: the engine resolves it from the box's centre (Sodalite#53).
-                                ExpandableTextBox(
-                                    text: overview,
-                                    spoilerItem: displayItem,
-                                    onFocusMovedUp: { playButtonFocused = true },
-                                    onFocusChanged: { overviewHasFocus = $0 }
-                                )
-                                .padding(.horizontal, metrics.rowInset)
-                                .id(displayItem.id)
-                            } else if overviewMayStillLand {
-                                // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
-                                ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, metrics.rowInset)
-                            }
-
-                            if !vm.seasons.isEmpty {
-                                seasonSection(vm: vm)
-                                    .id("episodeRow")
-                            } else if vm.isLoadingSeasons {
-                                // getSeasons in flight: skeleton tabs + episode row so it isn't a blank gap on a slow CDN. Swapped for the real section once seasons arrive.
-                                seasonSectionSkeleton(vm: vm)
-                                    .id("episodeRow")
-                            }
-
-                            // Cast above Related (Sodalite#47): with the season/episode block over
-                            // it, the cast row already sits far down the page for viewers who only
-                            // want the people.
-                            if let people = vm.item.people, !people.isEmpty {
-                                MediaCastRow(
-                                    members: jellyfinCastMembers(
-                                        from: people,
-                                        imageService: dependencies.jellyfinImageService,
-                                        imageWidth: metrics.castImageWidth
-                                    ),
-                                    onSelect: { handlePersonTap($0) }
-                                )
-                            }
-
-                            if !vm.similarItems.isEmpty {
-                                HorizontalMediaRow(
-                                    title: "detail.similar",
-                                    items: vm.similarItems,
-                                    imageURLProvider: { vm.posterURL(for: $0) },
-                                    onItemSelected: { navigateToItem = $0 },
-                                    cardStyle: .poster
-                                )
-                            }
-
-                            // Same split the search screen teaches: what the server has on top, what it
-                            // would have to fetch below, under the header the catalog already uses.
-                            if !vm.catalogSimilar.isEmpty {
-                                SeerrHorizontalMediaRow(
-                                    title: "search.section.catalog",
-                                    items: vm.catalogSimilar,
-                                    onItemSelected: { navigateToSeerrRequest = $0 }
-                                )
-                            }
-
-                            // Sodalite#146: one non-focusable line closing the page with what the
-                            // file actually is, in place of the strip that cost a third of a screen
-                            // for the same facts. It follows the episode on screen.
-                            if let caption = techFacts().caption {
-                                Text(caption)
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                    .padding(.horizontal, metrics.rowInset)
-                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                            }
-                        }
-                        .onAppear {
-                            episodeRowScrollProxy = outerProxy
-                        }
-                    }
-                }
-                .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
-                .transition(.opacity)
+                contentOverlay(vm: vm)
             } else {
                 // Centred spinner; gating on isLoading avoids the field-fill repaint storm (play title + subtitle + progress all change in a 300ms window) and lands the user on one finished render.
                 ZStack {
@@ -595,6 +491,129 @@ struct SeriesDetailView: View {
         } else {
             backdropURL = nil
         }
+    }
+
+    /// The whole scrolling page. Extracted from `body` because the type checker gave up on it as one
+    /// expression once the overlay took another argument, which is the usual signal that a SwiftUI
+    /// body has grown past what it should hold. Same shape MovieDetailView already has.
+    @ViewBuilder
+    private func contentOverlay(vm: DetailViewModel) -> some View {
+        DetailContentOverlay(
+            heroImageURL: backdropURL,
+            heroPosterURL: vm.heroPosterURL(for: vm.item),
+            pinnedMark: pinnedMark(vm: vm),
+            hero: {
+            // Series logo, both modes (episode has none); observes the VM so it appears once an episode deep-link's series stub loads imageTags, no scroll needed.
+            DetailHeroLogo(viewModel: vm)
+        }, primary: {
+            // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), kept one unit so the id-rebuild and episode crossfade cover both.
+            VStack(alignment: .leading, spacing: 24) {
+                glassPanel(vm: vm)
+                    .id(Self.pageTopAnchor)
+                actionButtonRow(vm: vm)
+            }
+            .padding(.horizontal, metrics.rowInset)
+            // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
+            .id("\(vm.item.id)-\(vm.isLoading)")
+            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+        }) {
+            // Captured proxy lets player-dismiss scroll the outer ScrollView back to the episode row, else tvOS's scroll-focus-into-view runs against a not-yet-rendered state and jumps to the top.
+            ScrollViewReader { outerProxy in
+                VStack(alignment: .leading, spacing: 40) {
+                    // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
+                    if let overview = displayOverview {
+                        // displayItem is the series in series mode and the selected episode
+                        // in episode mode, so the series overview stays visible (the policy
+                        // ignores .series) while the episode overview is veiled.
+                        // Up out of the box lands on the row's last button, Delete, unless it
+                        // is corrected: the engine resolves it from the box's centre (Sodalite#53).
+                        ExpandableTextBox(
+                            text: overview,
+                            spoilerItem: displayItem,
+                            onFocusMovedUp: { playButtonFocused = true },
+                            onFocusChanged: { overviewHasFocus = $0 }
+                        )
+                        .padding(.horizontal, metrics.rowInset)
+                        .id(displayItem.id)
+                    } else if overviewMayStillLand {
+                        // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
+                        ExpandableTextBoxPlaceholder()
+                            .padding(.horizontal, metrics.rowInset)
+                    }
+
+                    if !vm.seasons.isEmpty {
+                        seasonSection(vm: vm)
+                            .id("episodeRow")
+                    } else if vm.isLoadingSeasons {
+                        // getSeasons in flight: skeleton tabs + episode row so it isn't a blank gap on a slow CDN. Swapped for the real section once seasons arrive.
+                        seasonSectionSkeleton(vm: vm)
+                            .id("episodeRow")
+                    }
+
+                    // Cast above Related (Sodalite#47): with the season/episode block over
+                    // it, the cast row already sits far down the page for viewers who only
+                    // want the people.
+                    if let people = vm.item.people, !people.isEmpty {
+                        MediaCastRow(
+                            members: jellyfinCastMembers(
+                                from: people,
+                                imageService: dependencies.jellyfinImageService,
+                                imageWidth: metrics.castImageWidth
+                            ),
+                            onSelect: { handlePersonTap($0) }
+                        )
+                    }
+
+                    if !vm.similarItems.isEmpty {
+                        HorizontalMediaRow(
+                            title: "detail.similar",
+                            items: vm.similarItems,
+                            imageURLProvider: { vm.posterURL(for: $0) },
+                            onItemSelected: { navigateToItem = $0 },
+                            cardStyle: .poster
+                        )
+                    }
+
+                    // Same split the search screen teaches: what the server has on top, what it
+                    // would have to fetch below, under the header the catalog already uses.
+                    if !vm.catalogSimilar.isEmpty {
+                        SeerrHorizontalMediaRow(
+                            title: "search.section.catalog",
+                            items: vm.catalogSimilar,
+                            onItemSelected: { navigateToSeerrRequest = $0 }
+                        )
+                    }
+
+                    // Sodalite#146: one non-focusable line closing the page with what the
+                    // file actually is, in place of the strip that cost a third of a screen
+                    // for the same facts. It follows the episode on screen.
+                    if let caption = techFacts().caption {
+                        Text(caption)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .padding(.horizontal, metrics.rowInset)
+                            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+                    }
+                }
+                .onAppear {
+                    episodeRowScrollProxy = outerProxy
+                }
+            }
+        }
+        .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
+        .transition(.opacity)
+    }
+
+    /// What pins to the top once the hero has scrolled away. Always the SERIES, even in the episode
+    /// state: the mark says whose page this is, and the page is the show's.
+    private func pinnedMark(vm: DetailViewModel) -> PinnedPageMark {
+        PinnedPageMark(
+            itemID: vm.item.id,
+            logo: .from(imageTags: vm.item.imageTags, hasFullDetail: vm.hasFullDetail),
+            title: vm.item.name
+        )
     }
 
     // MARK: - Glass Panel

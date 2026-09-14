@@ -36,6 +36,12 @@ struct ContentLogoTitle<Fallback: View>: View {
     /// right away; the other two have a request in flight whose mark would replace it (Sodalite#97,
     /// Sodalite#125). No default on purpose, so a new surface has to answer the question.
     let logo: ContentLogoAvailability
+    /// Fraction of the tier's budget the mark may take. 1 is the hero; the pinned copy at the top of
+    /// a scrolled page asks for less (Sodalite#146). It scales the BUDGET and never the requested
+    /// pixel box, so both copies read one cache entry: a URL that differs between them would be a
+    /// second download of the same mark, and a URL that moves after the image lands re-fires
+    /// AsyncCachedImage's `task(id:)` and flashes.
+    var shrink: CGFloat = 1
     @ViewBuilder let fallback: () -> Fallback
 
     @Environment(\.dependencies) private var dependencies
@@ -103,7 +109,7 @@ struct ContentLogoTitle<Fallback: View>: View {
     }
 
     var body: some View {
-        let budget = tier.budget(columnWidth: columnWidth)
+        let budget = tier.budget(columnWidth: columnWidth, shrink: shrink)
         // Always an AsyncCachedImage, never a branch: the fallback is its placeholder, so the stable per-id URL never swaps the subtree or resets `.id` to disturb the enclosing ScrollView.
         AsyncCachedImage(
             url: logoURL,
