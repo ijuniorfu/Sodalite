@@ -973,10 +973,32 @@ final class PlayerHostController: AVPlayerViewController {
         }
     }
 
+    /// Sodalite#104: what the Play/Pause button means while a scrub is pending.
+    ///
+    /// A touchpad pan previews and waits for a confirming press; Select has always been able to give
+    /// it (`selectPressed`), and Play was not, so it toggled the transport instead. Measured from a
+    /// field log: the press PAUSED the session with the target still pending, the picture froze on
+    /// the frame it stood on, the behind-live delta then grew a second per second, and two further
+    /// presses were needed before anything moved. Play over a swiped-to position means go there and
+    /// play, so it commits, and it resumes only if the session was not already running.
+    enum PlayPausePress: Equatable {
+        case toggle
+        case commitScrub(thenPlay: Bool)
+    }
+
+    nonisolated static func playPausePress(isScrubbing: Bool, isPlaying: Bool) -> PlayPausePress {
+        isScrubbing ? .commitScrub(thenPlay: !isPlaying) : .toggle
+    }
+
     @objc private func playPausePressed() {
         if viewModel.isSubtitleDeletePromptVisible { return }
         if viewModel.subtitleSearchVisible { return }
-        viewModel.togglePlayPause()
+        switch Self.playPausePress(isScrubbing: viewModel.isScrubbing, isPlaying: viewModel.isPlaying) {
+        case .commitScrub(let thenPlay):
+            viewModel.commitScrub(thenPlay: thenPlay)
+        case .toggle:
+            viewModel.togglePlayPause()
+        }
     }
 
     @objc private func menuPressed() {

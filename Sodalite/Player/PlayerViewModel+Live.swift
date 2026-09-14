@@ -726,7 +726,7 @@ extension PlayerViewModel {
     /// Sodalite#104: the chip supersedes a scrub that has not committed. Without this the rail would
     /// keep drawing a `scrubProgress` the viewer has just overruled, and any pending commit would
     /// seek back out of live a fraction of a second after the return landed.
-    func returnToLiveEdge() {
+    func returnToLiveEdge(thenPlay: Bool = false) {
         skipCommitTask?.cancel()
         skipCommitTask = nil
         seekReadout = nil
@@ -734,14 +734,17 @@ extension PlayerViewModel {
         scrubPreview.clear()
         pendingSkipBackOrigin = nil
         skipBackBurstOrigin = nil
-        Task { await player.seekToLiveEdge() }
+        Task {
+            await player.seekToLiveEdge()
+            if thenPlay { player.play() }
+        }
     }
 
     /// Commit a live (DVR) scrub: map `scrubProgress` (0...1) across the
     /// current `liveSeekableRange` and seek, clamped to the window. Scrubbing
     /// fully right (>= 0.99) snaps to the live edge rather than seeking near
     /// it, so the right edge doubles as the return-to-live affordance in v1.
-    func commitLiveScrub() {
+    func commitLiveScrub(thenPlay: Bool = false) {
         guard isScrubbing,
               let range = liveSeekableRange,
               range.upperBound > range.lowerBound else {
@@ -759,7 +762,7 @@ extension PlayerViewModel {
         if Self.liveScrubReachedLiveEdge(scrubProgress: p, liveEdge: liveRail.liveEdge) {
             pendingSkipBackOrigin = nil
             skipBackBurstOrigin = nil
-            returnToLiveEdge()
+            returnToLiveEdge(thenPlay: thenPlay)
             scheduleControlsHide()
             return
         }
@@ -771,6 +774,7 @@ extension PlayerViewModel {
         openSkipBackSubtitlesIfNeeded(targetTime: target)
         Task {
             await player.seek(to: target)
+            if thenPlay { player.play() }
             scheduleControlsHide()
         }
     }

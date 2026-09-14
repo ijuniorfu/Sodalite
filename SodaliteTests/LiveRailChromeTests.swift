@@ -85,4 +85,17 @@ struct LiveRailChromeTests {
         let green = resolved(Color.Theme.success)
         #expect(RGBColor.white.contrastRatio(with: green) < 3.0)
     }
+
+    // MARK: - Play over a pending scrub
+
+    /// Play over a swiped-to position means go there and play. It used to toggle the transport, which
+    /// paused the session with the target still pending.
+    @Test func playCommitsAPendingScrubInsteadOfTogglingTheTransport() {
+        #expect(PlayerHostController.playPausePress(isScrubbing: true, isPlaying: true)
+                == .commitScrub(thenPlay: false))
+        #expect(PlayerHostController.playPausePress(isScrubbing: true, isPlaying: false)
+                == .commitScrub(thenPlay: true))
+        #expect(PlayerHostController.playPausePress(isScrubbing: false, isPlaying: true) == .toggle)
+        #expect(PlayerHostController.playPausePress(isScrubbing: false, isPlaying: false) == .toggle)
+    }
 }

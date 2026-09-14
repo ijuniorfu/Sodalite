@@ -135,14 +135,18 @@ extension PlayerViewModel {
         }
     }
 
-    func commitScrub() {
+    /// `thenPlay` resumes once the seek has landed, which is what the Play button means over a
+    /// pending scrub: go there and play. The resume is AFTER the seek deliberately, so the engine
+    /// anchors the parked clock on the target and resumes from it rather than from the position the
+    /// picture still stands on (Sodalite#104 round 2).
+    func commitScrub(thenPlay: Bool = false) {
         // Sodalite#104: whichever path ends the scrub, the pending idle and the readout are spent.
         skipCommitTask?.cancel()
         skipCommitTask = nil
         seekReadout = nil
         // Live duration is 0, so the VOD body below would early-return without
         // seeking; commitLiveScrub maps across the moving seekable window.
-        if isLiveSession { commitLiveScrub(); return }
+        if isLiveSession { commitLiveScrub(thenPlay: thenPlay); return }
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
             isScrubbing = false
@@ -159,6 +163,7 @@ extension PlayerViewModel {
         openSkipBackSubtitlesIfNeeded(targetTime: targetTime)
         Task {
             await player.seek(to: targetTime)
+            if thenPlay { player.play() }
             reportProgressIfNeeded()
             scheduleControlsHide()
         }
