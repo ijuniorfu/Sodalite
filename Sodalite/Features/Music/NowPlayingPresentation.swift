@@ -2,15 +2,17 @@ import SwiftUI
 
 /// Who puts the fullscreen music player on screen, and whether it should be up at all.
 ///
-/// Sodalite#140 follow-up. A view controller can present one thing at a time, and with the sidebar
-/// the whole shell is ONE hosting controller: the album detail cover and the router's player cover
-/// are siblings in it, so the second presentation was refused and only went through once the album
-/// cover was dismissed. That is the bug as reported, "the player only comes up after pressing back
-/// once", and it never showed with the top bar because a TabView hosts each tab's content in a
-/// controller of its own, which leaves the router free to present over it.
+/// Sodalite#140 follow-up. A view controller can present one thing at a time, and the shell is ONE
+/// hosting controller: the album detail cover and the router's player cover are siblings in it, so
+/// the second presentation is refused ("Attempt to present ... which is already presenting") and
+/// only goes through once the album cover is dismissed. That is the bug as reported, "the player
+/// only comes up after pressing back once".
 ///
-/// Measured in a throwaway tvOS harness (2026-09-13) with the two shells side by side: the same
-/// pair of covers stacks under a TabView and is deferred under a plain HStack.
+/// It is NOT sidebar-only, which is what the first round of this believed. Re-measured in a
+/// throwaway tvOS 26.5 harness (2026-09-14, Sodalite#110 round 3) against the real shape, TabView
+/// with `Tab(value:)` over a NavigationStack whose content presents the cover: the router's cover is
+/// refused there too. A `Tab`'s content does not get a presenting controller of its own. The report
+/// that arrived from a top-bar build is the field half of the same measurement.
 ///
 /// So the presenting side is chosen instead of assumed: a surface presented above the router claims
 /// the player while it is on screen and hosts its own cover, the router keeps its own for everything
