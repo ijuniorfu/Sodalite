@@ -324,8 +324,9 @@ struct AppRouter: View {
         }
         // The router's own player cover, for a track started where nothing is presented above it
         // (the Music tab's card and track list). A surface that IS presented above it hosts its own
-        // via `nowPlayingCoverHost()`, because a cover cannot stack on a cover from the same
-        // hosting controller and the sidebar shell is one such controller (Sodalite#140).
+        // via `nowPlayingCoverHost()`, because a cover cannot stack on a cover from the same hosting
+        // controller, and BOTH shells are one such controller (Sodalite#140, re-measured in #110
+        // round 3: the top bar is no exception).
         .fullScreenCover(isPresented: Binding(
             get: { nowPlaying.isPresented && nowPlaying.routerPresents },
             set: { if !$0 { nowPlaying.dismiss() } }

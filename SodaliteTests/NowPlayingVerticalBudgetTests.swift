@@ -1,5 +1,6 @@
 import Testing
 import UIKit
+import SwiftUI
 @testable import Sodalite
 
 /// Sodalite#109 follow-up, reported on the shipped fix: the controls view had no air above the
@@ -30,12 +31,46 @@ struct NowPlayingVerticalBudgetTests {
             + lineHeight(.caption1)
     }
 
-    /// Album title (one or two lines), track name, artist.
-    private func metadata(titleLines: CGFloat) -> CGFloat {
-        lineHeight(.title2) * titleLines
-            + NowPlayingMetrics.metadataSpacing + lineHeight(.title3)
-            + NowPlayingMetrics.metadataSpacing + lineHeight(.callout)
+    /// The real block, hosted at the width the centred column gives it.
+    ///
+    /// Measured rather than added up: both of its wrapping lines are strings rather than constants,
+    /// and a SwiftUI text block runs about 1pt per line over `UIFont.lineHeight`, which an arithmetic
+    /// budget silently spends (Sodalite#110 round 3).
+    static func metadata(_ sample: MetadataSample) -> CGFloat {
+        let view = NowPlayingMetadata(context: sample.context,
+                                      title: sample.title,
+                                      artist: sample.artist,
+                                      centered: true)
+        return UIHostingController(rootView: view.frame(width: NowPlayingMetrics.soloColumnWidth))
+            .sizeThatFits(in: CGSize(width: NowPlayingMetrics.soloColumnWidth,
+                                     height: .greatestFiniteMagnitude)).height
     }
+
+    /// One line each, which is what a song off an album looks like.
+    static let plain = MetadataSample(context: "Rumours",
+                                      title: "Go Your Own Way",
+                                      artist: "Fleetwood Mac")
+
+    /// The case the round-3 report is about: a podcast whose show name wraps and whose episode title
+    /// wraps under it. Both lines at their limit at once, which is the most the block may ever be.
+    static let worst = MetadataSample(
+        context: "Conversations with Tyler: Economics, Culture and Everything Else",
+        title: "560. The Fall of the Aztecs: Cortes and Montezuma (Part 3)",
+        artist: "Goalhanger Podcasts")
+
+    /// A one-line show name over an episode title that needs two. The round-3 report in one string:
+    /// the old ramp allowed this title exactly one line and ellipsised the rest of it.
+    static let podcast = MetadataSample(context: "The Rest Is History",
+                                        title: "560. The Fall of the Aztecs: Cortes and Montezuma (Part 3)",
+                                        artist: "Goalhanger Podcasts")
+
+    /// The same podcast with a title that cannot wrap, so the only difference between the two is the
+    /// line under test.
+    static let podcastShortTitle = MetadataSample(context: "The Rest Is History",
+                                                 title: "Aztecs",
+                                                 artist: "Goalhanger Podcasts")
+
+    private func metadata(_ sample: MetadataSample) -> CGFloat { Self.metadata(sample) }
 
     /// Beside the queue the title block lives in the OTHER column, so this one is cover over chrome.
     private var wideCoverColumn: CGFloat {
@@ -46,18 +81,18 @@ struct NowPlayingVerticalBudgetTests {
 
     /// The same album once the chrome and the queue have gone: the title block has moved in here,
     /// and nothing is reserved behind the chrome because the title already filled the gap.
-    private func ambientColumn(titleLines: CGFloat) -> CGFloat {
+    private func ambientColumn(_ sample: MetadataSample) -> CGFloat {
         NowPlayingMetrics.coverSide(compact: false)
             + NowPlayingMetrics.columnSpacing
-            + metadata(titleLines: titleLines)
+            + metadata(sample)
     }
 
     /// A SINGLE-track album, the only case with no queue column to give the title block up to. The
     /// chrome leaves and nothing arrives, so half its height stays reserved.
-    private func soloColumn(titleLines: CGFloat, chromeShown: Bool) -> CGFloat {
+    private func soloColumn(_ sample: MetadataSample, chromeShown: Bool) -> CGFloat {
         NowPlayingMetrics.coverSide(compact: false)
             + NowPlayingMetrics.columnSpacing
-            + metadata(titleLines: titleLines)
+            + metadata(sample)
             + NowPlayingMetrics.columnSpacing
             + (chromeShown ? chrome : chrome / 2)
     }
@@ -70,18 +105,36 @@ struct NowPlayingVerticalBudgetTests {
 
     @Test("The controls view keeps real air above the cover and under the times")
     func oneLineTitleBreathes() {
-        #expect(margin(soloColumn(titleLines: 1, chromeShown: true)) >= 40)
+        #expect(margin(soloColumn(Self.plain, chromeShown: true)) >= 40)
     }
 
     /// The common case, not the edge one: of nine sample album titles six wrapped at the old 560pt
-    /// column width and four still wrap at 720. A wrapped title costs a whole title2 line, and it was
-    /// that line the old budget could not pay, so the title was truncated to one instead.
-    @Test("A wrapped album title still fits the band, with the second line intact")
+    /// column width and four still wrap at 720. A wrapped line costs a whole line of the budget, and
+    /// it was that line the old budget could not pay, so the title was truncated to one instead.
+    /// The most the block may ever be: both wrapping lines wrapped at once, the chrome up, and no
+    /// queue to hand the block over to. 14pt a side is thin, and deliberately so, because every
+    /// lighter case has far more: it is the case that must FIT, `oneLineTitleBreathes` is the one
+    /// that must breathe.
+    @Test("A wrapped show name over a wrapped episode title still fits the band")
     func wrappedTitleStillFits() {
-        let column = soloColumn(titleLines: 2, chromeShown: true)
+        let column = soloColumn(Self.worst, chromeShown: true)
 
         #expect(column <= NowPlayingMetrics.tvSafeBandHeight)
-        #expect(margin(column) >= 15)
+        #expect(margin(column) >= 10)
+    }
+
+    /// The defect round 3 reported. Pinned as a difference between two blocks that vary in nothing
+    /// but the length of that one line, so it names no font and survives a retune: clamp the title
+    /// back to a single line and the two heights become equal.
+    ///
+    /// Not measured against `UIFont.lineHeight` on purpose. SwiftUI lays the second title3 line out
+    /// at 56pt where the font table says 57.28, and a budget written from the table is wrong in
+    /// whichever direction the reader did not expect.
+    @Test("An episode title that needs a second line is given one")
+    func episodeTitleKeepsItsSecondLine() {
+        let extra = Self.metadata(Self.podcast) - Self.metadata(Self.podcastShortTitle)
+
+        #expect(extra > 20, "a wrapping episode title has to cost a line, not an ellipsis")
     }
 
     @Test("The lone column is wider than the one beside the queue, which is what keeps titles unwrapped")
@@ -98,8 +151,8 @@ struct NowPlayingVerticalBudgetTests {
     /// the difference between them.
     @Test("The cover barely moves when the queue and the chrome leave")
     func coverTravelsLessThanAJump() {
-        for titleLines: CGFloat in [1, 2] {
-            let travel = abs(wideCoverColumn - ambientColumn(titleLines: titleLines)) / 2
+        for sample in [Self.plain, Self.worst] {
+            let travel = abs(wideCoverColumn - ambientColumn(sample)) / 2
 
             #expect(travel <= 50)
         }
@@ -109,8 +162,8 @@ struct NowPlayingVerticalBudgetTests {
     /// without it the column loses the chrome's full height and the artwork drops 85pt.
     @Test("A single-track album settles rather than jumps when the chrome leaves")
     func singleTrackCoverTravelsLessThanAJump() {
-        let travel = (soloColumn(titleLines: 1, chromeShown: true)
-                      - soloColumn(titleLines: 1, chromeShown: false)) / 2
+        let travel = (soloColumn(Self.plain, chromeShown: true)
+                      - soloColumn(Self.plain, chromeShown: false)) / 2
 
         #expect(travel > 0)
         #expect(travel <= 50)
@@ -126,4 +179,11 @@ struct NowPlayingVerticalBudgetTests {
 
         #expect(column <= NowPlayingMetrics.tvSafeBandHeight)
     }
+}
+
+/// Metadata as the screen gets it: three strings, any of which may be a podcast's.
+struct MetadataSample: Sendable {
+    let context: String
+    let title: String
+    let artist: String
 }

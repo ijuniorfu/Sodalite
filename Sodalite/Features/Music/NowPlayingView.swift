@@ -347,39 +347,19 @@ private struct NowPlayingContent: View {
     // MARK: - Track metadata
 
     private func trackMetadata(centered: Bool) -> some View {
-        VStack(alignment: centered ? .center : .leading, spacing: NowPlayingMetrics.metadataSpacing) {
+        Group {
             if let item = coordinator.currentItem {
-                if let context = coordinator.contextTitle, !context.isEmpty {
-                    Text(context)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .lineLimit(2)
-
-                    Text(item.name)
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                } else {
-                    Text(item.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .lineLimit(2)
-                }
-
-                if let artist = item.trackArtistLine, !artist.isEmpty {
-                    Text(artist)
-                        .font(.callout)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                }
+                NowPlayingMetadata(context: coordinator.contextTitle,
+                                   title: item.name,
+                                   artist: item.trackArtistLine,
+                                   centered: centered)
             } else {
                 Text(String(localized: "nowplaying.notplaying", defaultValue: "Nothing Playing"))
                     .font(.title2)
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
             }
         }
-        .multilineTextAlignment(centered ? .center : .leading)
-        .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
     }
 
     // MARK: - Transport row
