@@ -18,7 +18,11 @@ struct LibraryRow: View {
                 .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
                 .padding(.trailing, metrics.rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(
+                leading: shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset,
+                trailing: metrics.rowInset,
+                vertical: metrics.rowVerticalPadding
+            ) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(libraries) { library in
                         LibraryTile(library: library) {
@@ -26,9 +30,6 @@ struct LibraryRow: View {
                         }
                     }
                 }
-                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
-                .padding(.trailing, metrics.rowInset)
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
         }

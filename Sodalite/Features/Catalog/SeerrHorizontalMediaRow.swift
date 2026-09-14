@@ -20,7 +20,8 @@ struct SeerrHorizontalMediaRow: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, metrics.rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset,
+                          vertical: metrics.rowVerticalPadding) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     // stableKey not id: TMDB ids collide across movie/tv (trending mixes both); duplicate ForEach ids cause ghost cards and focus jumps.
                     ForEach(Array(items.enumerated()), id: \.element.stableKey) { index, media in
@@ -41,8 +42,6 @@ struct SeerrHorizontalMediaRow: View {
                             .frame(width: metrics.posterSize.width, height: metrics.posterSize.height)
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
         }

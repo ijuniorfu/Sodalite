@@ -38,7 +38,8 @@ struct HorizontalMediaRow: View {
             .padding(.leading, leadingInset)
             .padding(.trailing, rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(leading: leadingInset, trailing: rowInset,
+                          vertical: metrics.rowVerticalPadding) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(items) { item in
                         FocusableCard {
@@ -55,9 +56,6 @@ struct HorizontalMediaRow: View {
                         }
                     }
                 }
-                .padding(.leading, leadingInset)
-                .padding(.trailing, rowInset)
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             // A row is its own focus section so vertical navigation can reach it from any column (#80).
             .focusSectionCompat()

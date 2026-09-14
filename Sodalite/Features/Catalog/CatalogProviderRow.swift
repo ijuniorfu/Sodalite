@@ -19,7 +19,8 @@ struct CatalogProviderRow: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, metrics.rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset,
+                          vertical: metrics.rowVerticalPadding) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(providers) { provider in
                         ProviderTile(
@@ -30,8 +31,6 @@ struct CatalogProviderRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
         }

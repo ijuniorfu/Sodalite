@@ -226,7 +226,7 @@ struct SearchView: View {
             sectionHeader(icon: "house.fill", title: "search.section.library", tint: .accentColor)
                 .padding(.horizontal, 50)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(leading: 50, trailing: 50, vertical: 20) {
                 LazyHStack(spacing: 30) {
                     ForEach(items) { item in
                         FocusableCard {
@@ -246,8 +246,6 @@ struct SearchView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 20)
                 .enrichesPosterBadges(items)
             }
             // .focusSection() so vertical nav crosses row boundaries when geometry doesn't line up (right-side catalog card over a one-item library row); else up-press finds nothing overhead and dies.
@@ -289,7 +287,7 @@ struct SearchView: View {
             sectionHeader(icon: "tray.and.arrow.down", title: "search.section.catalog", tint: .orange)
                 .padding(.horizontal, 50)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(leading: 50, trailing: 50, vertical: 20) {
                 LazyHStack(spacing: 30) {
                     ForEach(items) { media in
                         FocusableCard {
@@ -299,8 +297,6 @@ struct SearchView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 50)
-                .padding(.vertical, 20)
             }
             .focusSectionCompat()
         }

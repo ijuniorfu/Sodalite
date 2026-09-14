@@ -19,7 +19,9 @@ struct CatalogGenreRow: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, metrics.rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            // Vertical padding matches SeerrHorizontalMediaRow so the focus halo doesn't clip adjacent rows.
+            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset,
+                          vertical: metrics.rowVerticalPadding) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(genres) { genre in
                         GenreTile(genre: genre) {
@@ -27,9 +29,6 @@ struct CatalogGenreRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
-                // Match SeerrHorizontalMediaRow vertical padding so the focus halo doesn't clip adjacent rows.
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
         }

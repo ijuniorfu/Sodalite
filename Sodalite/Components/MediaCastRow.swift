@@ -80,7 +80,12 @@ struct MediaCastRow: View {
                     .padding(.horizontal, rowInset)
             }
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            // The focused card grows around its centre and the scroll view clips whatever leaves
+            // its bounds. A 276pt tvOS card overshoots 6.9pt per side at 1.05, so the tier's row
+            // padding has to carry it; the flat 12pt here cut the ring off the top of the enlarged
+            // portrait (Sodalite#55 device round).
+            RowScrollView(leading: rowInset, trailing: rowInset,
+                          vertical: metrics.rowVerticalPadding) {
                 // Top-aligned: a two-line role (or a member with no role at all) makes cards
                 // differ in height, and centering would push their portraits out of line.
                 LazyHStack(alignment: .top, spacing: metrics.itemSpacing) {
@@ -93,12 +98,6 @@ struct MediaCastRow: View {
                         )
                     }
                 }
-                .padding(.horizontal, rowInset)
-                // The focused card grows around its centre and the scroll view clips whatever
-                // leaves its bounds. A 276pt tvOS card overshoots 6.9pt per side at 1.05, so the
-                // tier's row padding has to carry it; the flat 12pt here cut the ring off the top
-                // of the enlarged portrait (Sodalite#55 device round).
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
         }

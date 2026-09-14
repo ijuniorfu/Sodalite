@@ -32,6 +32,25 @@ enum SidebarMetrics {
     /// is screen-wide and `FocusResponse.tile` scales it 1.03, so it grows about 25pt per side,
     /// plus its shadow. A media card grows 8. The bigger of the two sets the number.
     static var contentLeading: CGFloat { railLeadingInset }
+
+    /// What a focused tile in a browse row reaches past its own frame. The widest a row can hold is
+    /// the 16:9 landscape tile at Large Cards (360 x 1.3 = 468pt), `FocusResponse.card` scales it
+    /// 1.05 for 11.7pt a side, and `MediaFocusRing` draws another 4pt outside that, scaled with it.
+    static let rowFocusOverhang: CGFloat = 16
+
+    /// Where a horizontal row is clipped, measured from the content's leading edge.
+    ///
+    /// A `ScrollView` clips to its OWN bounds, so a row that pays its whole margin as padding
+    /// inside the scroll view clips at the content area's leading edge, and beside the rail that
+    /// edge IS the rail: a card at rest keeps `contentLeading` from it, the same card scrolled one
+    /// step to the left runs into it with no gap at all. The margin is therefore split, and this is
+    /// the half the scroll view's own frame takes, so the clip line lands here instead.
+    ///
+    /// The rest stays inside as content padding, which is why this is `rowFocusOverhang` short of
+    /// the full margin rather than equal to it: the FIRST card rests against the margin, and a
+    /// focused card grows past its own frame. A clip line on the resting edge would slice it.
+    static var rowClipLeading: CGFloat { contentLeading - rowFocusOverhang }
+
     /// Gap between the icon column and the label.
     static let labelSpacing: CGFloat = 16
 

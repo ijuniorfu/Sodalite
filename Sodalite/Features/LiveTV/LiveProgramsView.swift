@@ -149,7 +149,11 @@ private struct ProgramCategoryRow: View {
                 .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
                 .padding(.trailing, metrics.rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(
+                leading: shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset,
+                trailing: metrics.rowInset,
+                vertical: metrics.rowVerticalPadding
+            ) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(programs) { program in
                         FocusableCard {
@@ -162,9 +166,6 @@ private struct ProgramCategoryRow: View {
                         }
                     }
                 }
-                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
-                .padding(.trailing, metrics.rowInset)
-                .padding(.vertical, metrics.rowVerticalPadding)
             }
             .focusSectionCompat()
         }

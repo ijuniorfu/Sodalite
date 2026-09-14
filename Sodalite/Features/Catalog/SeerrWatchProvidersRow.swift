@@ -15,7 +15,7 @@ struct SeerrWatchProvidersRow: View {
                 .fontWeight(.semibold)
                 .padding(.horizontal, metrics.rowInset)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset, vertical: 8) {
                 LazyHStack(spacing: 16) {
                     ForEach(providers) { provider in
                         VStack(spacing: 6) {
@@ -38,8 +38,6 @@ struct SeerrWatchProvidersRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.rowInset)
-                .padding(.vertical, 8)
             }
             .focusSectionCompat()
         }

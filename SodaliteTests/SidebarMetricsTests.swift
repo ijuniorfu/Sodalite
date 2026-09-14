@@ -1,5 +1,6 @@
 import Testing
 import CoreGraphics
+import SwiftUI
 @testable import Sodalite
 
 /// Sodalite#140. The 76pt pitch is measured off the system sidebar, so it is the fixed point:
@@ -50,6 +51,29 @@ struct SidebarMetricsTests {
         let contentWidth: CGFloat = 1920 - SidebarMetrics.railLeadingInset - SidebarMetrics.collapsedWidth
         let growthPerSide = contentWidth * (tileScale - 1) / 2
         #expect(SidebarMetrics.contentLeading >= growthPerSide)
+    }
+
+    /// A ScrollView clips to its own bounds, so a row that pays its whole margin as padding inside
+    /// it clips at the content's leading edge, which beside the rail is the rail. The margin is
+    /// split so the clip line moves off it without the first card moving with it.
+    @Test("a scrolling row is clipped clear of the rail, and the first card still fits")
+    func rowClipsClearOfTheRail() {
+        #expect(SidebarMetrics.rowClipLeading > 0, "a clip line on the rail is the defect this fixes")
+        #expect(
+            SidebarMetrics.rowClipLeading + SidebarMetrics.rowFocusOverhang == SidebarMetrics.contentLeading,
+            "the two halves ARE the margin: a split that does not add up moves the first card"
+        )
+    }
+
+    /// The half that stays inside the scroll view is what the first card, which rests against it,
+    /// grows into when it takes focus. Measured against the widest tile a row can hold.
+    @Test("what stays inside the scroll view covers the widest tile's focus overhang")
+    func overhangCoversTheWidestTile() {
+        let scale = FocusResponse.card.scale
+        let widest = LayoutMetrics.tv.landscapeSize.width * AppearancePreferences.largeCardScale
+        let lift = widest * (scale - 1) / 2
+        let ring = MediaFocusRing<RoundedRectangle>.outset * scale
+        #expect(SidebarMetrics.rowFocusOverhang >= lift + ring)
     }
 
     @Test("expanding is the only thing that changes the width")
