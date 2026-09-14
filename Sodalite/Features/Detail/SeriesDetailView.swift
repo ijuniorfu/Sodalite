@@ -549,6 +549,12 @@ struct SeriesDetailView: View {
                     // Cast above Related (Sodalite#47): with the season/episode block over
                     // it, the cast row already sits far down the page for viewers who only
                     // want the people.
+                    // Only the FIRST section below the fold redirects; see the movie page for the
+                    // reasoning. Here the season block is almost always first, so these carry the
+                    // flag for the show that has no seasons yet.
+                    let seasonBlockIsFirst = !vm.seasons.isEmpty || vm.isLoadingSeasons
+                    let hasCast = !(vm.item.people?.isEmpty ?? true)
+
                     if let people = vm.item.people, !people.isEmpty {
                         MediaCastRow(
                             members: jellyfinCastMembers(
@@ -558,6 +564,7 @@ struct SeriesDetailView: View {
                             ),
                             onSelect: { handlePersonTap($0) }
                         )
+                        .onFocusMoveUp(active: !seasonBlockIsFirst) { playButtonFocused = true }
                     }
 
                     if !vm.similarItems.isEmpty {
@@ -568,6 +575,7 @@ struct SeriesDetailView: View {
                             onItemSelected: { navigateToItem = $0 },
                             cardStyle: .poster
                         )
+                        .onFocusMoveUp(active: !seasonBlockIsFirst && !hasCast) { playButtonFocused = true }
                     }
 
                     // Same split the search screen teaches: what the server has on top, what it
@@ -578,6 +586,9 @@ struct SeriesDetailView: View {
                             items: vm.catalogSimilar,
                             onItemSelected: { navigateToSeerrRequest = $0 }
                         )
+                        .onFocusMoveUp(active: !seasonBlockIsFirst && !hasCast && vm.similarItems.isEmpty) {
+                            playButtonFocused = true
+                        }
                     }
 
                     // Sodalite#146: one non-focusable line closing the page with what the

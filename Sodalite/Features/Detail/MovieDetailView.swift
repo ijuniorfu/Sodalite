@@ -320,6 +320,15 @@ struct MovieDetailView: View {
                 // No synopsis block here any more (Sodalite#146). Three lines of it sit in the
                 // first viewport and the whole of it is behind More Details, so a third copy under
                 // the fold was the page saying the same thing twice with a focus stop between.
+                // Up out of the FIRST section below the fold has to be REDIRECTED, not merely
+                // resolved. With the secondaries out of the focus engine Play is the only candidate
+                // left, and from a card far to the right it is too far sideways for the engine to
+                // reach at all, so the move simply does not happen (reported on the Apple TV,
+                // 2026-09-14). Sections further down move up into their predecessor, which is a
+                // full-width row, and must NOT redirect or an up-move from Related would skip the
+                // cast row. Hence `active:` rather than a modifier on one row.
+                let hasCast = !(vm.item.people?.isEmpty ?? true)
+
                 if let people = vm.item.people, !people.isEmpty {
                     MediaCastRow(
                         members: jellyfinCastMembers(
@@ -329,6 +338,7 @@ struct MovieDetailView: View {
                         ),
                         onSelect: { handlePersonTap($0) }
                     )
+                    .onFocusMoveUp(active: true) { playButtonFocused = true }
                 }
 
                 if !vm.similarItems.isEmpty {
@@ -339,6 +349,7 @@ struct MovieDetailView: View {
                         onItemSelected: { navigateToItem = $0 },
                         cardStyle: .poster
                     )
+                    .onFocusMoveUp(active: !hasCast) { playButtonFocused = true }
                 }
 
                 // Same split the search screen teaches: what the server has on top, what it would have
@@ -349,6 +360,7 @@ struct MovieDetailView: View {
                         items: vm.catalogSimilar,
                         onItemSelected: { navigateToSeerrRequest = $0 }
                     )
+                    .onFocusMoveUp(active: !hasCast && vm.similarItems.isEmpty) { playButtonFocused = true }
                 }
 
                 // Sodalite#146, after Infuse: one non-focusable line closing the page with what the
