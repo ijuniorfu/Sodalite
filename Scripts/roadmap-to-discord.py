@@ -7,6 +7,17 @@ bucket, because one embed stops at 4096 characters and the roadmap passed that,
 and a bucket that outgrows an embed on its own is split at an entry boundary
 across the next one.
 
+What the channel gets is the opening of each entry, not the entry: its heading
+and its first paragraph, with a link to the file for the rest. Discord caps a
+whole message at 6000 characters across every embed, and the roadmap passed
+that too (6856 against a 5947 budget, measured 2026-09-14), which left a newly
+added bucket showing nothing but its own heading. A summary fits with room to
+grow (4301), and it keeps every bucket and every entry visible, which is what
+the pinned message is for.
+
+That is why a roadmap entry has to open with the thing itself rather than with
+the problem it solves: the first paragraph is the paragraph that travels.
+
 Environment:
   DISCORD_ROADMAP_WEBHOOK     webhook URL of the target channel (required)
   DISCORD_ROADMAP_MESSAGE_ID  id of the message to edit; unset means "post a
@@ -98,21 +109,47 @@ def entries(chunk: str) -> list[str]:
     return [piece for piece in pieces if piece]
 
 
+def summary(piece: str) -> str:
+    """One entry as the channel shows it: its heading and its first paragraph.
+
+    Anything without a `###` heading is the preamble, which travels whole: it
+    is what tells a reader in the channel that the buckets mean something.
+    """
+    if not piece.startswith("### "):
+        return piece
+    kept: list[str] = []
+    started = False
+    for line in piece.splitlines():
+        if line.startswith("#"):
+            kept.append(line)
+        elif not line.strip():
+            if started:
+                break
+            kept.append(line)
+        else:
+            kept.append(line)
+            started = True
+    return "\n".join(kept).strip()
+
+
 def build_descriptions(markdown: str) -> list[str]:
     """Drop the file's own H1 (the embed carries the title) and fit the limits.
 
     A bucket per embed buys room up to the message's own 6000, and a bucket
     that passes 4096 on its own continues in the next embed rather than losing
     its tail entries. Every cut lands on an entry boundary, so the channel
-    never shows half of one, and the link to GitHub stays for the day the whole
-    message runs out.
+    never shows half of one.
+
+    Entries arrive here already summarised, so the message should fit whole.
+    The trimming below stays as the backstop for the day even the summaries
+    outgrow one message, and the link at the end is there either way.
     """
     lines = markdown.splitlines()
     if lines and lines[0].startswith("# "):
         lines = lines[1:]
     body = unwrap("\n".join(lines)).strip()
 
-    tail = f"\n\n[Read the rest on GitHub]({ROADMAP_URL})"
+    tail = f"\n\n[Read the full roadmap on GitHub]({ROADMAP_URL})"
     budget = TOTAL_LIMIT - len(EMBED_TITLE) - len(FOOTER_TEXT)
     out: list[str] = []
     spent = 0
@@ -143,7 +180,7 @@ def build_descriptions(markdown: str) -> list[str]:
 
     for chunk in sections(body):
         pending = ""
-        for piece in entries(chunk):
+        for piece in (summary(entry) for entry in entries(chunk)):
             candidate = f"{pending}\n\n{piece}" if pending else piece
             if len(candidate) <= room():
                 pending = candidate
@@ -159,6 +196,8 @@ def build_descriptions(markdown: str) -> list[str]:
         if pending:
             commit(pending)
 
+    # Unconditional now, because what stands above it is always a summary.
+    close_with_tail()
     return out or [body[:DESCRIPTION_LIMIT]]
 
 
