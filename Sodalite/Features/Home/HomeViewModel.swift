@@ -44,8 +44,34 @@ final class HomeViewModel {
     /// the library id its query needs. Internal so +Rows can reach it. nil between loads.
     var librariesTask: Task<[JellyfinLibrary]?, Never>?
 
-    /// Last successful loadContent(); the view's onAppear uses it to decide whether to refresh, else new server-side content never shows until app restart.
+    /// Last successful loadContent(); the staleness gate below reads it, else new server-side content never shows until app restart.
     var lastLoadedAt: Date?
+
+    /// Age past which the shelf on screen is worth refetching. Tight enough to show additions fast,
+    /// loose enough that tab-hopping does not spam the server.
+    static let refreshStaleSeconds: TimeInterval = 60
+
+    /// Refetch if what is on screen is older than that window, otherwise leave it alone.
+    ///
+    /// One gate, because two triggers ask the same question and must not drift: a return to the
+    /// Home tab, which fires `onAppear`, and a return of the whole app to the foreground, which
+    /// fires nothing of the sort. Measured with a throwaway SwiftUI app on tvOS 26.5 and iOS 26.5:
+    /// a background round trip delivers `scenePhase` transitions and NOTHING else, no second
+    /// `onAppear`, no `onDisappear`, no `.task` re-run. Home hung its only gate on `onAppear`, so a
+    /// suspended app that came back had no path to refresh at all and sat on the shelf it loaded
+    /// before the Apple TV went to sleep, for any length of time (Sodalite#117, DrHurt). The disk
+    /// cache did not cause that and turning it off would not have fixed it: before it, the same
+    /// resumed app showed the same stale rows out of memory.
+    ///
+    /// A view model that has never completed a load is deliberately NOT stale. Launch delivers the
+    /// same transition into `.active` as a return does, and it delivers it while the first load is
+    /// still in flight, so treating nil as stale would fan out twice on every launch. A load that
+    /// failed leaves the previous timestamp standing, which is what lets the next return retry it.
+    func refreshIfStale() async {
+        guard let lastLoadedAt,
+              Date().timeIntervalSince(lastLoadedAt) > Self.refreshStaleSeconds else { return }
+        await loadContent()
+    }
 
     /// Bumped on every loadContent entry; the for-await loop checks it before publishing so a re-entrant run (profile switch, refresh-while-loading) supersedes the older one instead of both writing rows/tagRows.
     private var loadGeneration: Int = 0
