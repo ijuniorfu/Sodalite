@@ -147,16 +147,6 @@ struct SeriesDetailView: View {
         selectedEpisode != nil
     }
 
-    /// Whether the episode card's info mark is a hint (tvOS, focus only) or a control (touch, always
-    /// and pressable). See `EpisodeLandscapeCard.showsInfoHint`.
-    private var isTVOS: Bool {
-        #if os(tvOS)
-        true
-        #else
-        false
-        #endif
-    }
-
     /// Synopsis overview. Slim-sourced episodes (Home/search) lack Overview until the detail fetch backfills it (seconds late on slow CDNs), so fall back to the matching episode-list entry (carries Overview) and the synopsis paints with the episode row (Sodalite#15).
     private var displayOverview: String? {
         if let overview = displayItem.overview, !overview.isEmpty {
@@ -1240,12 +1230,7 @@ struct SeriesDetailView: View {
             isFocused: focusedEpisodeID == episode.id,
             isPlayed: vm.isPlayed(episode),
             isFavorite: vm.isFavorite(episode),
-            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode),
-            // tvOS only, and on the focused card only: it teaches the long-press, which the remote
-            // gives no other sign of. Touch already has a long-press everyone knows, so a permanent
-            // mark on every card there was chrome for a gesture nobody needed taught (Vincent,
-            // device, 2026-09-14).
-            showsInfoHint: isTVOS && focusedEpisodeID == episode.id
+            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode)
         )
     }
 
