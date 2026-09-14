@@ -35,10 +35,13 @@ struct SeriesDetailView: View {
     @FocusState private var focusBridgeActive: Bool
     /// Play button enters the hierarchy only after isLoading flips false, so the focus engine has nothing to auto-land on at first paint; pushed explicitly via .onChange below.
     @FocusState private var playButtonFocused: Bool
-    /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
-    /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
-    @State private var overviewHasFocus = false
+    /// Which control in the action row holds focus, nil while focus is anywhere else on the page.
+    /// The secondaries leave the focus engine for that time, so an up-move out of the content can
+    /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
+    /// away). See `DetailAction`.
+    @FocusState private var focusedAction: DetailAction?
     @State private var isPresentingDeleteSheet: Bool = false
+    @State private var isPresentingMoreDetails = false
     /// Set on episode "Show Details": the context menu restores focus to its anchor card on dismiss, so the focusedEpisodeID observer bounces focus up to the play button.
     @State private var pendingPlayFocusAfterMenu = false
 
@@ -72,6 +75,8 @@ struct SeriesDetailView: View {
         }
     }
 
+    /// Whether Menu has a series state to go back to, or has to leave the page. See the type.
+    @State private var episodeOrigin = EpisodeStateOrigin()
     @State private var episodeRedirectDone = false
     /// Sticky: set when the episode row had focus so the season bar's onChange distinguishes "scrolled up from episodes" from "tabbing between tabs" and snaps focus back to the playing season (else tvOS lands on whichever tab is geographically above the last episode).
     @State private var episodesHadFocus = false
@@ -155,6 +160,20 @@ struct SeriesDetailView: View {
         return nil
     }
 
+    /// Whether a synopsis can still arrive for whatever the page is showing. The hero teaser and the
+    /// box below the fold reserve their space on exactly this value, so the two cannot drift apart
+    /// and reserve for different states.
+    private var overviewMayStillLand: Bool {
+        guard let vm = viewModel else { return true }
+        guard isShowingEpisode else { return !vm.hasFullDetail }
+        guard let episode = selectedEpisode else { return false }
+        // Mirrors the enrichment trigger: an episode already carrying streams is fully detailed, so
+        // a missing overview is final (Sodalite#15).
+        return episode.mediaStreams == nil
+            && episode.mediaSources == nil
+            && !settledEpisodeDetailIDs.contains(episode.id)
+    }
+
     var body: some View {
         ZStack {
             // Solid black behind the spinner; backdrop held back until content is ready to crossfade over it.
@@ -171,109 +190,7 @@ struct SeriesDetailView: View {
             }
 
             if let vm = viewModel, !vm.isLoading {
-                DetailContentOverlay(
-                    heroImageURL: backdropURL,
-                    heroPosterURL: vm.heroPosterURL(for: vm.item),
-                    hero: {
-                    // Series logo, both modes (episode has none); observes the VM so it appears once an episode deep-link's series stub loads imageTags, no scroll needed.
-                    DetailHeroLogo(viewModel: vm)
-                }, primary: {
-                    // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), kept one unit so the id-rebuild and episode crossfade cover both.
-                    VStack(alignment: .leading, spacing: 24) {
-                        glassPanel(vm: vm)
-                            .id(Self.pageTopAnchor)
-                        actionButtonRow(vm: vm)
-                    }
-                    .padding(.horizontal, metrics.rowInset)
-                    // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
-                    .id("\(vm.item.id)-\(vm.isLoading)")
-                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                }) {
-                    // Captured proxy lets player-dismiss scroll the outer ScrollView back to the episode row, else tvOS's scroll-focus-into-view runs against a not-yet-rendered state and jumps to the top.
-                    ScrollViewReader { outerProxy in
-                        VStack(alignment: .leading, spacing: 40) {
-                            // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
-                            if let overview = displayOverview {
-                                // displayItem is the series in series mode and the selected episode
-                                // in episode mode, so the series overview stays visible (the policy
-                                // ignores .series) while the episode overview is veiled.
-                                // Up out of the box lands on the row's last button, Delete, unless it
-                                // is corrected: the engine resolves it from the box's centre (Sodalite#53).
-                                ExpandableTextBox(
-                                    text: overview,
-                                    spoilerItem: displayItem,
-                                    onFocusMovedUp: { playButtonFocused = true },
-                                    onFocusChanged: { overviewHasFocus = $0 }
-                                )
-                                .padding(.horizontal, metrics.rowInset)
-                                .id(displayItem.id)
-                            } else if !isShowingEpisode && !vm.hasFullDetail {
-                                // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
-                                ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, metrics.rowInset)
-                            } else if isShowingEpisode, let ep = selectedEpisode,
-                                      ep.mediaStreams == nil, ep.mediaSources == nil,
-                                      !settledEpisodeDetailIDs.contains(ep.id) {
-                                // Episode-mode slim snapshot, overview may still land (Sodalite#15). The mediaStreams/mediaSources guard mirrors the enrichment trigger: an episode already carrying streams is fully detailed, so a missing overview is final.
-                                ExpandableTextBoxPlaceholder()
-                                    .padding(.horizontal, metrics.rowInset)
-                            }
-
-                            if !vm.seasons.isEmpty {
-                                seasonSection(vm: vm)
-                                    .id("episodeRow")
-                            } else if vm.isLoadingSeasons {
-                                // getSeasons in flight: skeleton tabs + episode row so it isn't a blank gap on a slow CDN. Swapped for the real section once seasons arrive.
-                                seasonSectionSkeleton(vm: vm)
-                                    .id("episodeRow")
-                            }
-
-                            // Cast ahead of the tech strip (Sodalite#47): with the season/episode
-                            // block above it, the cast row sat far down the page for viewers who
-                            // only want the people. Codec details follow one row later.
-                            if let people = vm.item.people, !people.isEmpty {
-                                MediaCastRow(
-                                    members: jellyfinCastMembers(
-                                        from: people,
-                                        imageService: dependencies.jellyfinImageService,
-                                        imageWidth: metrics.castImageWidth
-                                    ),
-                                    onSelect: { handlePersonTap($0) }
-                                )
-                            }
-
-                            if displayItem.mediaStreams != nil || displayItem.mediaSources != nil {
-                                TechInfoBox(item: displayItem, sourceID: versionSelection.preferredSourceID(for: displayItem))
-                                    .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
-                            }
-
-                            if !vm.similarItems.isEmpty {
-                                HorizontalMediaRow(
-                                    title: "detail.similar",
-                                    items: vm.similarItems,
-                                    imageURLProvider: { vm.posterURL(for: $0) },
-                                    onItemSelected: { navigateToItem = $0 },
-                                    cardStyle: .poster
-                                )
-                            }
-
-                            // Same split the search screen teaches: what the server has on top, what it
-                            // would have to fetch below, under the header the catalog already uses.
-                            if !vm.catalogSimilar.isEmpty {
-                                SeerrHorizontalMediaRow(
-                                    title: "search.section.catalog",
-                                    items: vm.catalogSimilar,
-                                    onItemSelected: { navigateToSeerrRequest = $0 }
-                                )
-                            }
-                        }
-                        .onAppear {
-                            episodeRowScrollProxy = outerProxy
-                        }
-                    }
-                }
-                .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
-                .transition(.opacity)
+                contentOverlay(vm: vm)
             } else {
                 // Centred spinner; gating on isLoading avoids the field-fill repaint storm (play title + subtitle + progress all change in a 300ms window) and lands the user on one finished render.
                 ZStack {
@@ -287,6 +204,19 @@ struct SeriesDetailView: View {
             }
         }
         .animation(didSettleIn ? .easeInOut(duration: 0.25) : nil, value: viewModel?.isLoading)
+        // Menu returns to the series state rather than dismissing the page (Sodalite#146). The page
+        // swaps its header for an episode rather than pushing a screen, so tvOS had nothing to pop
+        // and Menu went straight past it to the detail cover: opening an episode cost the whole show
+        // page to get back out of.
+        //
+        // Only when a series state is actually BEHIND this one. An episode opened from Continue
+        // Watching arrives with the page already in the episode state, and intercepting there put a
+        // series page the viewer never asked for between them and Home, which is one press more than
+        // before (Vincent, device, 2026-09-14).
+        //
+        // Via the nil-passing helper, because an empty closure would swallow the press that has to
+        // reach the cover or the navigation stack behind it (Sodalite#140).
+        .onExitCommandIfEnabled(isShowingEpisode && episodeOrigin.hasSeriesStateBehind, perform: closeEpisodeState)
         // iPhone portrait respects the safe area so detail content is not clipped under the status
         // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         .ignoresSafeArea(when: !isPhonePortrait)
@@ -369,6 +299,7 @@ struct SeriesDetailView: View {
             guard let episode = note.userInfo?[PlayerItemSwitchKey.item] as? JellyfinItem,
                   episode.seriesId == item.id else { return }
             playItem = episode
+            episodeOrigin.playerAdvanced(fromSeriesState: selectedEpisode == nil)
             selectedEpisode = episode
             // The row's memory still names the card the player was started from, ten auto-advances
             // ago. Move it along with the session, else every entry into the row (the return from
@@ -476,6 +407,21 @@ struct SeriesDetailView: View {
                 settledEpisodeDetailIDs.insert(episode.id)
             }
         }
+        .menuPresentation(isPresented: $isPresentingMoreDetails, panel: .plain) {
+            DetailMoreOverlay(
+                title: displayItem.name,
+                // Veiled stays veiled: the reader is not a way around the spoiler rule, and the box
+                // below the fold is where it gets lifted.
+                synopsis: SpoilerReveal.isHidden(displayItem, dependencies: dependencies, appState: appState)
+                    ? nil : displayOverview,
+                facts: techFacts(),
+                versionLabel: TechFacts.versionSubtitle(
+                    for: displayItem,
+                    sourceID: versionSelection.preferredSourceID(for: displayItem)
+                ),
+                isPresented: $isPresentingMoreDetails
+            )
+        }
         .menuPresentation(isPresented: $isPresentingDeleteSheet, panel: .plain) {
             if let vm = viewModel {
                 let popDetail = dismiss
@@ -548,6 +494,125 @@ struct SeriesDetailView: View {
         }
     }
 
+    /// The whole scrolling page. Extracted from `body` because the type checker gave up on it as one
+    /// expression once the overlay took another argument, which is the usual signal that a SwiftUI
+    /// body has grown past what it should hold. Same shape MovieDetailView already has.
+    @ViewBuilder
+    private func contentOverlay(vm: DetailViewModel) -> some View {
+        DetailContentOverlay(
+            heroImageURL: backdropURL,
+            heroPosterURL: vm.heroPosterURL(for: vm.item),
+            pinnedMark: pinnedMark(vm: vm),
+            hero: {
+            // Series logo, both modes (episode has none); observes the VM so it appears once an episode deep-link's series stub loads imageTags, no scroll needed.
+            DetailHeroLogo(viewModel: vm)
+        }, primary: {
+            // Glass panel + action buttons as the bottom-aligned first-page block (Sodalite#15 round 6), kept one unit so the id-rebuild and episode crossfade cover both.
+            VStack(alignment: .leading, spacing: 24) {
+                glassPanel(vm: vm)
+                    .id(Self.pageTopAnchor)
+                actionButtonRow(vm: vm)
+            }
+            .padding(.horizontal, metrics.rowInset)
+            // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
+            .id("\(vm.item.id)-\(vm.isLoading)")
+            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+        }) {
+            // Captured proxy lets player-dismiss scroll the outer ScrollView back to the episode row, else tvOS's scroll-focus-into-view runs against a not-yet-rendered state and jumps to the top.
+            ScrollViewReader { outerProxy in
+                VStack(alignment: .leading, spacing: 40) {
+                    // No synopsis block here any more (Sodalite#146). Three lines of it sit in the
+                    // first viewport and the whole of it is behind More Details, so a third copy
+                    // under the fold was the page saying the same thing twice with a focus stop
+                    // between. The season bar is the first stop now, and the up-move out of it is
+                    // handled the way #53 measured: the secondaries leave the focus engine while
+                    // focus is not in the action row.
+                    if !vm.seasons.isEmpty {
+                        seasonSection(vm: vm)
+                            .id("episodeRow")
+                    } else if vm.isLoadingSeasons {
+                        // getSeasons in flight: skeleton tabs + episode row so it isn't a blank gap on a slow CDN. Swapped for the real section once seasons arrive.
+                        seasonSectionSkeleton(vm: vm)
+                            .id("episodeRow")
+                    }
+
+                    // Cast above Related (Sodalite#47): with the season/episode block over
+                    // it, the cast row already sits far down the page for viewers who only
+                    // want the people.
+                    // Only the FIRST section below the fold redirects; see the movie page for the
+                    // reasoning. Here the season block is almost always first, so these carry the
+                    // flag for the show that has no seasons yet.
+                    let seasonBlockIsFirst = !vm.seasons.isEmpty || vm.isLoadingSeasons
+                    let hasCast = !(vm.item.people?.isEmpty ?? true)
+
+                    if let people = vm.item.people, !people.isEmpty {
+                        MediaCastRow(
+                            members: jellyfinCastMembers(
+                                from: people,
+                                imageService: dependencies.jellyfinImageService,
+                                imageWidth: metrics.castImageWidth
+                            ),
+                            onSelect: { handlePersonTap($0) }
+                        )
+                        .onFocusMoveUp(active: !seasonBlockIsFirst) { playButtonFocused = true }
+                    }
+
+                    if !vm.similarItems.isEmpty {
+                        HorizontalMediaRow(
+                            title: "detail.similar",
+                            items: vm.similarItems,
+                            imageURLProvider: { vm.posterURL(for: $0) },
+                            onItemSelected: { navigateToItem = $0 },
+                            cardStyle: .poster
+                        )
+                        .onFocusMoveUp(active: !seasonBlockIsFirst && !hasCast) { playButtonFocused = true }
+                    }
+
+                    // Same split the search screen teaches: what the server has on top, what it
+                    // would have to fetch below, under the header the catalog already uses.
+                    if !vm.catalogSimilar.isEmpty {
+                        SeerrHorizontalMediaRow(
+                            title: "search.section.catalog",
+                            items: vm.catalogSimilar,
+                            onItemSelected: { navigateToSeerrRequest = $0 }
+                        )
+                        .onFocusMoveUp(active: !seasonBlockIsFirst && !hasCast && vm.similarItems.isEmpty) {
+                            playButtonFocused = true
+                        }
+                    }
+
+                    // Sodalite#146: one non-focusable line closing the page with what the
+                    // file actually is, in place of the strip that cost a third of a screen
+                    // for the same facts. It follows the episode on screen.
+                    if let caption = techFacts().caption {
+                        Text(caption)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .padding(.horizontal, metrics.rowInset)
+                            .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
+                    }
+                }
+                .onAppear {
+                    episodeRowScrollProxy = outerProxy
+                }
+            }
+        }
+        .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
+        .transition(.opacity)
+    }
+
+    /// What pins to the top once the hero has scrolled away. Always the SERIES, even in the episode
+    /// state: the mark says whose page this is, and the page is the show's.
+    private func pinnedMark(vm: DetailViewModel) -> PinnedPageMark {
+        PinnedPageMark(
+            itemID: vm.item.id,
+            logo: .from(imageTags: vm.item.imageTags, hasFullDetail: vm.hasFullDetail),
+            title: vm.item.name
+        )
+    }
+
     // MARK: - Glass Panel
 
     private func glassPanel(vm: DetailViewModel) -> some View {
@@ -598,6 +663,14 @@ struct SeriesDetailView: View {
                         .lineLimit(1)
                 }
             }
+
+            // Sodalite#146: series synopsis in the series state, the episode's own in episode state,
+            // which is what displayItem/displayOverview already resolve for the box below the fold.
+            DetailHeroSynopsis(
+                text: displayOverview,
+                isPending: overviewMayStillLand,
+                spoilerItem: displayItem
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(30)
@@ -645,6 +718,19 @@ struct SeriesDetailView: View {
         )
     }
 
+    /// displayItem, so the episode state asks about the episode: the policy ignores a series, which
+    /// is what keeps a show's own synopsis visible while its episodes are veiled.
+    private var isSynopsisVeiled: Bool {
+        SpoilerReveal.isHidden(displayItem, dependencies: dependencies, appState: appState)
+    }
+
+    /// Everything the page can say about the copy it is describing, for the reader and the caption
+    /// line alike, so the two cannot describe different files. displayItem, so both follow the
+    /// episode on screen.
+    private func techFacts() -> TechFacts {
+        TechFacts.resolve(item: displayItem, sourceID: versionSelection.preferredSourceID(for: displayItem))
+    }
+
     /// Episode panel's single metadata line ("43 min · Genre · Genre"); episode runtime + series genres. nil when both absent so the line collapses.
     private func episodeMetadataLine(vm: DetailViewModel) -> String? {
         var parts: [String] = []
@@ -675,7 +761,7 @@ struct SeriesDetailView: View {
                 DetailActionRow {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
-                        .focusSuppressed(overviewHasFocus)
+                        .focusSuppressed(focusedAction == nil)
                 }
             }
         }
@@ -705,6 +791,7 @@ struct SeriesDetailView: View {
                 }
             }
         )
+        .focused($focusedAction, equals: .play)
         .focused($playButtonFocused)
     }
 
@@ -771,6 +858,7 @@ struct SeriesDetailView: View {
                         )
                     }
                 )
+                .focused($focusedAction, equals: .version)
             }
 
             // Shuffle whole series (server SortBy=Random scoped by series id). Hidden in the episode panel.
@@ -801,6 +889,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 )
+                .focused($focusedAction, equals: .shuffle)
             }
 
             // Restart-from-beginning when the play target carries progress (button reads "Resume"), mirroring MovieDetailView. playTarget covers both series root and episode panel.
@@ -814,6 +903,7 @@ struct SeriesDetailView: View {
                         requestPlay(target, fromBeginning: true, fromPlayButton: true)
                     }
                 )
+                .focused($focusedAction, equals: .replay)
             }
 
             if !isShowingEpisode && vm.hasLocalTrailer {
@@ -831,6 +921,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 )
+                .focused($focusedAction, equals: .trailer)
             }
 
             if !isShowingEpisode {
@@ -839,6 +930,7 @@ struct SeriesDetailView: View {
                     systemImage: vm.isFavorite ? "heart.fill" : "heart",
                     action: { Task { await vm.toggleFavorite() } }
                 )
+                .focused($focusedAction, equals: .favorite)
             }
 
             if !isShowingEpisode {
@@ -847,6 +939,7 @@ struct SeriesDetailView: View {
                     systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
                     action: { Task { await vm.togglePlayed() } }
                 )
+                .focused($focusedAction, equals: .watched)
             }
 
             // Shows the EFFECTIVE state for this series, so a tap always reads as "do the other
@@ -861,17 +954,19 @@ struct SeriesDetailView: View {
                     systemImage: hidesNow ? "eye" : "eye.slash",
                     action: { setSpoilerRule(hidesNow ? .shown : .hidden, seriesID: seriesID) }
                 )
+                .focused($focusedAction, equals: .spoiler)
                 .contextMenu { spoilerRuleMenu(seriesID: seriesID) }
             }
 
             if isShowingEpisode {
+                // `tv`, not `xmark` (Sodalite#146): the glyph said "close this panel" while the
+                // label said "show the series", and only one of the two is what pressing it does.
                 GlassActionButton(
                     title: "detail.showSeries",
-                    systemImage: "xmark",
-                    action: {
-                        withAnimation { selectedEpisode = nil }
-                    }
+                    systemImage: "tv",
+                    action: { closeEpisodeState() }
                 )
+                .focused($focusedAction, equals: .goToShow)
             }
 
             // Deliberately selectedEpisode, not playTarget: playTarget also resolves to an episode
@@ -885,6 +980,7 @@ struct SeriesDetailView: View {
                         Task { await vm.setEpisodeFavorite(ep, isFavorite: target) }
                     }
                 )
+                .focused($focusedAction, equals: .favorite)
             }
 
             if isShowingEpisode, let ep = selectedEpisode {
@@ -896,6 +992,7 @@ struct SeriesDetailView: View {
                         Task { await vm.setEpisodePlayed(ep, isPlayed: target) }
                     }
                 )
+                .focused($focusedAction, equals: .watched)
             }
 
             if !isShowingEpisode,
@@ -909,7 +1006,31 @@ struct SeriesDetailView: View {
                         navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
                     }
                 )
+                .focused($focusedAction, equals: .request)
             }
+
+            // Last of the informational controls, and the page's only route to the full synopsis
+            // and the technical detail (Sodalite#146).
+            GlassActionButton(
+                title: isSynopsisVeiled ? "spoiler.reveal" : "detail.moreDetails",
+                systemImage: isSynopsisVeiled ? "eye.circle" : "info.circle",
+                action: {
+                    // One label, one meaning at a time. While the synopsis is veiled this is what
+                    // lifts it, which is the job the focusable box below the fold used to do; the
+                    // reader would otherwise be a way around the spoiler rule (Sodalite#50).
+                    //
+                    // `eye.circle`, not `eye`: the series row already carries a plain `eye` for the
+                    // per-SERIES rule, and two identical glyphs in one row would be a one-off reveal
+                    // and a standing setting wearing the same face. Circular, so it reads as this
+                    // button in another state rather than as a different control.
+                    if isSynopsisVeiled {
+                        SpoilerReveal.reveal(displayItem, dependencies: dependencies, appState: appState)
+                    } else {
+                        isPresentingMoreDetails = true
+                    }
+                }
+            )
+            .focused($focusedAction, equals: .moreDetails)
 
             // Delete last, matching MovieDetailView, so the destructive action sits furthest from Play.
             if canDelete && !isShowingEpisode {
@@ -919,6 +1040,7 @@ struct SeriesDetailView: View {
                     isDestructive: true,
                     action: { isPresentingDeleteSheet = true }
                 )
+                .focused($focusedAction, equals: .delete)
             }
     }
 
@@ -940,29 +1062,49 @@ struct SeriesDetailView: View {
         return vm.episodes.first
     }
 
+    /// Sodalite#146: the label is the state, and on a fresh target it also names the episode, which
+    /// is the one thing the show hero has to say before the press. A special with no index numbers
+    /// has no shorthand to name, and then the plain label stands.
     private func playTitle(vm: DetailViewModel) -> LocalizedStringKey {
-        if let ticks = playTarget(vm: vm)?.userData?.playbackPositionTicks,
-           ticks > 0 {
-            return "detail.resume"
+        guard let target = playTarget(vm: vm) else { return "detail.play" }
+        switch playState(for: target) {
+        case .resume: return "detail.resume"
+        case .again: return "detail.playAgain"
+        case .fresh:
+            let shorthand = episodeShorthand(for: target)
+            return shorthand.isEmpty ? "detail.play" : "detail.play.episode.named \(shorthand)"
         }
-        return "detail.play"
     }
 
-    /// Play-button subtitle: "S1, E5 · 12:34" when resuming, "S1, E5" fresh, nil if no resolvable target.
+    /// Play-button subtitle: "S1, E5 · 42 min" when resuming, "S1, E5" on a re-watch, and nothing at
+    /// all when fresh, because the title already named the episode. Time LEFT rather than the
+    /// position reached, the same thing the bar above it and every card in the app say.
     private func playButtonSubtitle(vm: DetailViewModel) -> String? {
         guard let target = playTarget(vm: vm) else { return nil }
+        guard playState(for: target) != .fresh || episodeShorthand(for: target).isEmpty else { return nil }
 
         var parts: [String] = []
         let episodeLabel = episodeShorthand(for: target)
         if !episodeLabel.isEmpty {
             parts.append(episodeLabel)
         }
-        if let ticks = target.userData?.playbackPositionTicks,
-           ticks > 0,
-           let stamp = ResumeTimeFormatter.format(ticks: ticks) {
-            parts.append(stamp)
+        if let remaining = target.resumeRemainingTicks?.ticksToCompactDisplay {
+            parts.append(remaining)
         }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// Leaving the episode state. One function because Menu and the Go to Show button have to do
+    /// the same thing (Sodalite#146); on tvOS Menu used to dismiss the whole detail cover from here,
+    /// so a viewer who opened an episode lost the show page to get out of it.
+    private func closeEpisodeState() {
+        withAnimation(.easeInOut(duration: 0.3)) { selectedEpisode = nil }
+        episodeOrigin.returnedToSeries()
+    }
+
+    private func playState(for target: JellyfinItem) -> PlayActionState {
+        PlayActionState.resolve(positionTicks: target.userData?.playbackPositionTicks,
+                                isPlayed: target.userData?.played == true)
     }
 
     /// 0…1 progress into the target episode; nil when fresh or no run-time metadata so the button suppresses the overlay instead of drawing an empty bar.
@@ -1002,6 +1144,94 @@ struct SeriesDetailView: View {
         guard let overview = vm.selectedSeason?.overview?.trimmingCharacters(in: .whitespacesAndNewlines),
               !overview.isEmpty else { return nil }
         return overview
+    }
+
+    /// The long-press menu on an episode card. A function because the two platforms attach it
+    /// differently: only touch gets a preview, and only because of the ring (see the call site).
+    @ViewBuilder
+    private func episodeContextMenu(_ episode: JellyfinItem, vm: DetailViewModel) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                selectedEpisode = episode
+            }
+            episodeOrigin.openedFromStrip()
+            #if os(tvOS)
+            // Context menu restores focus to this card on dismiss; flag it so the focusedEpisodeID observer bounces focus up to Play (a fixed delay lost the race against the restore). The delayed write is a fallback when focus never visibly cycles.
+            pendingPlayFocusAfterMenu = true
+            deferOnMain(by: 0.6) {
+                guard pendingPlayFocusAfterMenu else { return }
+                pendingPlayFocusAfterMenu = false
+                playButtonFocused = false
+                DispatchQueue.main.async { playButtonFocused = true }
+            }
+            #else
+            // Touch has no focus engine, so the focus bounce above (the only thing that
+            // scrolls the episode panel into view on tvOS) is inert here: the state flipped
+            // correctly but the panel sits a viewport up and the tech info far below, so the
+            // action read as a no-op. Scroll there explicitly instead. The defer rides out
+            // the context menu's dismiss morph, which otherwise fights the scroll.
+            scrollToEpisodePanel()
+            #endif
+        } label: {
+            Label("detail.episode.showDetails", systemImage: "info.circle")
+        }
+
+        Button {
+            requestPlay(episode, fromBeginning: true, fromPlayButton: false)
+        } label: {
+            Label("detail.play", systemImage: "play.fill")
+        }
+
+        if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
+            Button {
+                requestPlay(episode, fromBeginning: false, fromPlayButton: false)
+            } label: {
+                Label("detail.resume", systemImage: "play.circle")
+            }
+        }
+
+        Button {
+            let target = !vm.isPlayed(episode)
+            Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
+        } label: {
+            Label(
+                vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
+                systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
+            )
+        }
+
+        Button {
+            let target = !vm.isFavorite(episode)
+            Task { await vm.setEpisodeFavorite(episode, isFavorite: target) }
+        } label: {
+            Label(
+                vm.isFavorite(episode) ? "detail.unfavorite" : "detail.favorite",
+                systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
+            )
+        }
+
+        // Sodalite#50. For an episode without a synopsis the box is
+        // not focusable, so this is the only way to uncover its still.
+        if SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState) {
+            Button {
+                SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
+            } label: {
+                Label("spoiler.reveal", systemImage: "eye")
+            }
+        }
+    }
+
+    /// One card, built once, so the row and the long-press preview cannot drift apart.
+    private func episodeCard(_ episode: JellyfinItem, vm: DetailViewModel, playTargetID: String?) -> some View {
+        EpisodeLandscapeCard(
+            episode: episode,
+            imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
+            isPlayTarget: playTargetID == episode.id,
+            isFocused: focusedEpisodeID == episode.id,
+            isPlayed: vm.isPlayed(episode),
+            isFavorite: vm.isFavorite(episode),
+            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode)
+        )
     }
 
     /// Where a move down into the episode row lands. Every entry path (the focus bridge, the one-shot redirect below it, the return from the player) reads this one resolver so they cannot aim at different cards.
@@ -1161,15 +1391,7 @@ struct SeriesDetailView: View {
                                     Button {
                                         requestPlay(episode, fromBeginning: false, fromPlayButton: false)
                                     } label: {
-                                        EpisodeLandscapeCard(
-                                            episode: episode,
-                                            imageURL: dependencies.jellyfinImageService.episodeThumbnailURL(for: episode),
-                                            isPlayTarget: playTargetID == episode.id,
-                                            isFocused: focusedEpisodeID == episode.id,
-                                            isPlayed: vm.isPlayed(episode),
-                                            isFavorite: vm.isFavorite(episode),
-                                            justMarkedPlayed: vm.wasMarkedPlayedInSession(episode)
-                                        )
+                                        episodeCard(episode, vm: vm, playTargetID: playTargetID)
                                     }
                                     .buttonStyle(EpisodeCardButtonStyle())
                                     .focused($focusedEpisodeID, equals: episode.id)
@@ -1181,76 +1403,14 @@ struct SeriesDetailView: View {
                                         }
                                     }
                                     #endif
-                                    .contextMenu {
-                                        Button {
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                selectedEpisode = episode
-                                            }
-                                            #if os(tvOS)
-                                            // Context menu restores focus to this card on dismiss; flag it so the focusedEpisodeID observer bounces focus up to Play (a fixed delay lost the race against the restore). The delayed write is a fallback when focus never visibly cycles.
-                                            pendingPlayFocusAfterMenu = true
-                                            deferOnMain(by: 0.6) {
-                                                guard pendingPlayFocusAfterMenu else { return }
-                                                pendingPlayFocusAfterMenu = false
-                                                playButtonFocused = false
-                                                DispatchQueue.main.async { playButtonFocused = true }
-                                            }
-                                            #else
-                                            // Touch has no focus engine, so the focus bounce above (the only thing that
-                                            // scrolls the episode panel into view on tvOS) is inert here: the state flipped
-                                            // correctly but the panel sits a viewport up and the tech info far below, so the
-                                            // action read as a no-op. Scroll there explicitly instead. The defer rides out
-                                            // the context menu's dismiss morph, which otherwise fights the scroll.
-                                            scrollToEpisodePanel()
-                                            #endif
-                                        } label: {
-                                            Label("detail.episode.showDetails", systemImage: "info.circle")
-                                        }
-
-                                        Button {
-                                            requestPlay(episode, fromBeginning: true, fromPlayButton: false)
-                                        } label: {
-                                            Label("detail.play", systemImage: "play.fill")
-                                        }
-
-                                        if let ticks = episode.userData?.playbackPositionTicks, ticks > 0 {
-                                            Button {
-                                                requestPlay(episode, fromBeginning: false, fromPlayButton: false)
-                                            } label: {
-                                                Label("detail.resume", systemImage: "play.circle")
-                                            }
-                                        }
-
-                                        Button {
-                                            let target = !vm.isPlayed(episode)
-                                            Task { await vm.setEpisodePlayed(episode, isPlayed: target) }
-                                        } label: {
-                                            Label(
-                                                vm.isPlayed(episode) ? "detail.markUnwatched" : "detail.markWatched",
-                                                systemImage: vm.isPlayed(episode) ? "checkmark.circle.fill" : "checkmark.circle"
-                                            )
-                                        }
-
-                                        Button {
-                                            let target = !vm.isFavorite(episode)
-                                            Task { await vm.setEpisodeFavorite(episode, isFavorite: target) }
-                                        } label: {
-                                            Label(
-                                                vm.isFavorite(episode) ? "detail.unfavorite" : "detail.favorite",
-                                                systemImage: vm.isFavorite(episode) ? "heart.fill" : "heart"
-                                            )
-                                        }
-
-                                        // Sodalite#50. For an episode without a synopsis the box is
-                                        // not focusable, so this is the only way to uncover its still.
-                                        if SpoilerReveal.isHidden(episode, dependencies: dependencies, appState: appState) {
-                                            Button {
-                                                SpoilerReveal.reveal(episode, dependencies: dependencies, appState: appState)
-                                            } label: {
-                                                Label("spoiler.reveal", systemImage: "eye")
-                                            }
-                                        }
-                                    }
+                                    // The system preview, deliberately: it snapshots the real view
+                                    // in the real environment, so it carries the accent, the theme
+                                    // and the page's own ground. A hand-built one is a second view
+                                    // hierarchy outside all three, and it showed: default blue and a
+                                    // grey platter (2026-09-14). What the snapshot cannot do is
+                                    // reach outside the card's bounds, which is why the ring now
+                                    // lives inside them (see EpisodeCardStroke.ringMargin).
+                                    .contextMenu { episodeContextMenu(episode, vm: vm) }
 
                                     // Per-card synopsis box; reserves a fixed three-line height even when empty so every column stays the same height.
                                     EpisodeSynopsisBox(

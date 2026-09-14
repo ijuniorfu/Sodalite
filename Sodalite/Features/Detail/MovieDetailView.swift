@@ -20,10 +20,13 @@ struct MovieDetailView: View {
     @State private var showTrailer = false
     @State private var trailerItem: JellyfinItem?
     @State private var isPresentingDeleteSheet: Bool = false
+    @State private var isPresentingMoreDetails = false
     @FocusState private var playButtonFocused: Bool
-    /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
-    /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
-    @State private var overviewHasFocus = false
+    /// Which control in the action row holds focus, nil while focus is anywhere else on the page.
+    /// The secondaries leave the focus engine for that time, so an up-move out of the content can
+    /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
+    /// away). See `DetailAction`.
+    @FocusState private var focusedAction: DetailAction?
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition. The viewModel is built lazily in onAppear, so isLoading flips several times (nil->false->true->false) WHILE the fullScreenCover is dissolving in; animating those flips interpolates the content's not-yet-laid-out frame (origin top-left) and reads as an ugly fly-in. Enabled ~0.35s after appear so the later, deliberate slow-server spinner->content fade still animates.
     @State private var didSettleIn = false
 
@@ -225,6 +228,23 @@ struct MovieDetailView: View {
             // Open the animation gate once the cover's present transition has settled.
             deferOnMain(by: 0.35) { didSettleIn = true }
         }
+        .menuPresentation(isPresented: $isPresentingMoreDetails, panel: .plain) {
+            if let vm = viewModel {
+                DetailMoreOverlay(
+                    title: vm.item.name,
+                    // Veiled stays veiled: the reader is not a way around the spoiler rule, and the
+                    // box below the fold is where it gets lifted.
+                    synopsis: SpoilerReveal.isHidden(vm.item, dependencies: dependencies, appState: appState)
+                        ? nil : vm.item.overview,
+                    facts: techFacts(vm: vm),
+                    versionLabel: TechFacts.versionSubtitle(
+                        for: vm.item,
+                        sourceID: versionSelection.preferredSourceID(for: vm.item)
+                    ),
+                    isPresented: $isPresentingMoreDetails
+                )
+            }
+        }
         .menuPresentation(isPresented: $isPresentingDeleteSheet, panel: .plain) {
             if let vm = viewModel {
                 let popDetail = dismiss
@@ -265,6 +285,15 @@ struct MovieDetailView: View {
         }
     }
 
+    /// What pins to the top once the hero has scrolled away.
+    private func pinnedMark(vm: DetailViewModel) -> PinnedPageMark {
+        PinnedPageMark(
+            itemID: vm.item.id,
+            logo: .from(imageTags: vm.item.imageTags, hasFullDetail: vm.hasFullDetail),
+            title: vm.item.name
+        )
+    }
+
     private func contentView(vm: DetailViewModel) -> some View {
         ZStack {
             DetailBackdrop(
@@ -277,6 +306,7 @@ struct MovieDetailView: View {
             DetailContentOverlay(
                 heroImageURL: vm.backdropURL(for: vm.item),
                 heroPosterURL: vm.heroPosterURL(for: vm.item),
+                pinnedMark: pinnedMark(vm: vm),
                 hero: {
                 DetailHeroLogo(viewModel: vm)
             }, primary: {
@@ -287,25 +317,18 @@ struct MovieDetailView: View {
                 }
                 .padding(.horizontal, metrics.rowInset)
             }) {
-                if let overview = vm.item.overview, !overview.isEmpty {
-                    // Coming back up from the overview lands on the row's last button, Delete, unless
-                    // it is corrected: the engine resolves the move from the box's centre (Sodalite#53).
-                    ExpandableTextBox(
-                        text: overview,
-                        spoilerItem: vm.item,
-                        onFocusMovedUp: { playButtonFocused = true },
-                        onFocusChanged: { overviewHasFocus = $0 }
-                    )
-                    .padding(.horizontal, metrics.rowInset)
-                } else if !vm.hasFullDetail {
-                    // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).
-                    ExpandableTextBoxPlaceholder()
-                        .padding(.horizontal, metrics.rowInset)
-                }
+                // No synopsis block here any more (Sodalite#146). Three lines of it sit in the
+                // first viewport and the whole of it is behind More Details, so a third copy under
+                // the fold was the page saying the same thing twice with a focus stop between.
+                // Up out of the FIRST section below the fold has to be REDIRECTED, not merely
+                // resolved. With the secondaries out of the focus engine Play is the only candidate
+                // left, and from a card far to the right it is too far sideways for the engine to
+                // reach at all, so the move simply does not happen (reported on the Apple TV,
+                // 2026-09-14). Sections further down move up into their predecessor, which is a
+                // full-width row, and must NOT redirect or an up-move from Related would skip the
+                // cast row. Hence `active:` rather than a modifier on one row.
+                let hasCast = !(vm.item.people?.isEmpty ?? true)
 
-                // Cast ahead of the tech strip (Sodalite#47): the four tech cards cost about a
-                // screen third, so the cast row was several remote presses down for viewers who
-                // only want the people. Codec details stay one row further for those who want them.
                 if let people = vm.item.people, !people.isEmpty {
                     MediaCastRow(
                         members: jellyfinCastMembers(
@@ -315,10 +338,7 @@ struct MovieDetailView: View {
                         ),
                         onSelect: { handlePersonTap($0) }
                     )
-                }
-
-                if vm.item.mediaStreams != nil || vm.item.mediaSources != nil {
-                    TechInfoBox(item: vm.item, sourceID: versionSelection.preferredSourceID(for: vm.item))
+                    .onFocusMoveUp(active: true) { playButtonFocused = true }
                 }
 
                 if !vm.similarItems.isEmpty {
@@ -329,6 +349,7 @@ struct MovieDetailView: View {
                         onItemSelected: { navigateToItem = $0 },
                         cardStyle: .poster
                     )
+                    .onFocusMoveUp(active: !hasCast) { playButtonFocused = true }
                 }
 
                 // Same split the search screen teaches: what the server has on top, what it would have
@@ -339,6 +360,20 @@ struct MovieDetailView: View {
                         items: vm.catalogSimilar,
                         onItemSelected: { navigateToSeerrRequest = $0 }
                     )
+                    .onFocusMoveUp(active: !hasCast && vm.similarItems.isEmpty) { playButtonFocused = true }
+                }
+
+                // Sodalite#146, after Infuse: one non-focusable line closing the page with what the
+                // file actually is. The tech strip that used to carry these facts is gone; this is
+                // the part of it worth keeping in sight, and it costs a line instead of a third of
+                // a screen.
+                if let caption = techFacts(vm: vm).caption {
+                    Text(caption)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .padding(.horizontal, metrics.rowInset)
                 }
             }
         }
@@ -384,6 +419,15 @@ struct MovieDetailView: View {
                         .lineLimit(1)
                 }
             }
+
+            // Sodalite#146: the plot belongs in the viewport the viewer actually meets. The box
+            // below the fold keeps the full text; this is the teaser that decides whether they
+            // scroll to it.
+            DetailHeroSynopsis(
+                text: vm.item.overview,
+                isPending: !vm.hasFullDetail,
+                spoilerItem: vm.item
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(isPhonePortrait ? 16 : 30)
@@ -413,6 +457,16 @@ struct MovieDetailView: View {
         )
     }
 
+    private func isSynopsisVeiled(vm: DetailViewModel) -> Bool {
+        SpoilerReveal.isHidden(vm.item, dependencies: dependencies, appState: appState)
+    }
+
+    /// Everything the page can say about the copy it is describing. Read once per body pass and
+    /// handed to both the reader and the caption line, so the two cannot describe different files.
+    private func techFacts(vm: DetailViewModel) -> TechFacts {
+        TechFacts.resolve(item: vm.item, sourceID: versionSelection.preferredSourceID(for: vm.item))
+    }
+
     /// Play starts the version the page shows. It used to open the picker instead, which put a
     /// question between the viewer and every start and told nobody it was coming (Sodalite#139).
     private func requestPlay(fromBeginning: Bool) {
@@ -440,7 +494,7 @@ struct MovieDetailView: View {
                 DetailActionRow {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
-                        .focusSuppressed(overviewHasFocus)
+                        .focusSuppressed(focusedAction == nil)
                 }
             }
         }
@@ -451,12 +505,13 @@ struct MovieDetailView: View {
             title: playButtonTitle(vm: vm),
             systemImage: "play.fill",
             isProminent: true,
-            subtitle: resumeTimestamp(vm: vm),
+            subtitle: resumeRemaining(vm: vm),
             progressFraction: playProgressFraction(vm: vm),
             action: {
                 requestPlay(fromBeginning: false)
             }
         )
+        .focused($focusedAction, equals: .play)
         .focused($playButtonFocused)
     }
 
@@ -480,6 +535,7 @@ struct MovieDetailView: View {
                         )
                     }
                 )
+                .focused($focusedAction, equals: .version)
             }
 
             if hasProgress(vm: vm) {
@@ -490,6 +546,7 @@ struct MovieDetailView: View {
                         requestPlay(fromBeginning: true)
                     }
                 )
+                .focused($focusedAction, equals: .replay)
             }
 
             if vm.hasLocalTrailer {
@@ -505,6 +562,7 @@ struct MovieDetailView: View {
                         }
                     }
                 )
+                .focused($focusedAction, equals: .trailer)
             }
 
             if vm.item.type != .episode {
@@ -513,6 +571,7 @@ struct MovieDetailView: View {
                     systemImage: vm.isFavorite ? "heart.fill" : "heart",
                     action: { Task { await vm.toggleFavorite() } }
                 )
+                .focused($focusedAction, equals: .favorite)
             }
 
             if vm.item.type == .episode, let seriesId = vm.item.seriesId {
@@ -526,6 +585,7 @@ struct MovieDetailView: View {
                         )
                     }
                 )
+                .focused($focusedAction, equals: .goToShow)
             }
 
             // No "Request in Seerr" on movie detail: the movie is already in Jellyfin. The button stays on series detail for continuing shows.
@@ -535,6 +595,30 @@ struct MovieDetailView: View {
                 systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
                 action: { Task { await vm.togglePlayed() } }
             )
+            .focused($focusedAction, equals: .watched)
+
+            // Last of the informational controls, and the page's only route to the full synopsis
+            // and the technical detail (Sodalite#146).
+            GlassActionButton(
+                title: isSynopsisVeiled(vm: vm) ? "spoiler.reveal" : "detail.moreDetails",
+                systemImage: isSynopsisVeiled(vm: vm) ? "eye.circle" : "info.circle",
+                action: {
+                    // One label, one meaning at a time. While the synopsis is veiled this is what
+                    // lifts it, which is the job the focusable box below the fold used to do; the
+                    // reader would otherwise be a way around the spoiler rule (Sodalite#50).
+                    //
+                    // `eye.circle`, not `eye`: the series row already carries a plain `eye` for the
+                    // per-SERIES rule, and two identical glyphs in one row would be a one-off reveal
+                    // and a standing setting wearing the same face. Circular, so it reads as this
+                    // button in another state rather than as a different control.
+                    if isSynopsisVeiled(vm: vm) {
+                        SpoilerReveal.reveal(vm.item, dependencies: dependencies, appState: appState)
+                    } else {
+                        isPresentingMoreDetails = true
+                    }
+                }
+            )
+            .focused($focusedAction, equals: .moreDetails)
 
             // Episodes only reach here via DetailRouterView's no-parent-series fallback; per-episode deletion isn't supported (delete lives on series detail, matching SeriesDetailView's !isShowingEpisode guard).
             if canDelete && item.type != .episode {
@@ -544,6 +628,7 @@ struct MovieDetailView: View {
                     isDestructive: true,
                     action: { isPresentingDeleteSheet = true }
                 )
+                .focused($focusedAction, equals: .delete)
             }
     }
 
@@ -554,17 +639,24 @@ struct MovieDetailView: View {
         return false
     }
 
+    /// Sodalite#146: the label is the state. A finished title used to read "Play", which is true and
+    /// says nothing; naming the replay is what tells the viewer they have seen this without their
+    /// having to find the watched check in the row below.
     private func playButtonTitle(vm: DetailViewModel) -> LocalizedStringKey {
-        if hasProgress(vm: vm) { return "detail.resume" }
-        return "detail.play"
+        switch PlayActionState.resolve(positionTicks: vm.item.userData?.playbackPositionTicks,
+                                       isPlayed: vm.isPlayed) {
+        case .fresh: "detail.play"
+        case .resume: "detail.resume"
+        case .again: "detail.playAgain"
+        }
     }
 
-    /// Formatted resume timestamp for the play-button subtitle, or nil when there's nothing to resume (fresh or finished).
-    private func resumeTimestamp(vm: DetailViewModel) -> String? {
-        guard let ticks = vm.item.userData?.playbackPositionTicks, ticks > 0 else {
-            return nil
-        }
-        return ResumeTimeFormatter.format(ticks: ticks)
+    /// Time left, not the position reached (Sodalite#146). The button draws a progress bar and so
+    /// does every card in the app, and the card's label beside it has read "42 min" since
+    /// Sodalite#99, so a timestamp here was the one place answering a different question. No "left"
+    /// wrapper for the same reason the cards carry none: the bar says what the number counts.
+    private func resumeRemaining(vm: DetailViewModel) -> String? {
+        vm.item.resumeRemainingTicks?.ticksToCompactDisplay
     }
 
     /// 0…1 progress for the play button's overlay; nil when fresh or no run-time metadata.

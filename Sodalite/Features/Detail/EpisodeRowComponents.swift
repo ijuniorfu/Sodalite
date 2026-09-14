@@ -84,6 +84,13 @@ struct EpisodeSkeletonCard: View {
         LayoutMetrics.current(hSizeClass)
             .tileSize(cardScale: dependencies.appearancePreferences.cardScale)
     }
+
+    /// What is left for the artwork once the ring has its margin. The CARD keeps `cardSize`, so the
+    /// row's spacing, the scroll aim and every tile measurement stay exactly where they were.
+    private var artworkSize: CGSize {
+        CGSize(width: cardSize.width - 2 * EpisodeCardStroke.ringMargin,
+               height: cardSize.height - 2 * EpisodeCardStroke.ringMargin)
+    }
     private var synopsisWidth: CGFloat { cardSize.width - 28 }
 
     var body: some View {
@@ -159,6 +166,13 @@ struct EpisodeLandscapeCard: View {
             .tileSize(cardScale: dependencies.appearancePreferences.cardScale)
     }
 
+    /// What is left for the artwork once the ring has its margin. The CARD keeps `cardSize`, so the
+    /// row's spacing, the scroll aim and every tile measurement stay exactly where they were.
+    private var artworkSize: CGSize {
+        CGSize(width: cardSize.width - 2 * EpisodeCardStroke.ringMargin,
+               height: cardSize.height - 2 * EpisodeCardStroke.ringMargin)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomLeading) {
@@ -175,7 +189,7 @@ struct EpisodeLandscapeCard: View {
                                 .foregroundStyle(.tertiary)
                         )
                 }
-                .frame(width: cardSize.width, height: cardSize.height)
+                .frame(width: artworkSize.width, height: artworkSize.height)
                 // Sodalite#50: veiled before the clip, else the blur bleeds past the tile edge and
                 // eats the focus stroke. Progress bar and badges stay sharp, they are the user's
                 // own state rather than content.
@@ -193,7 +207,7 @@ struct EpisodeLandscapeCard: View {
                     ResumeProgressBar(fraction: fraction,
                                       remaining: remainingLabel,
                                       posterWidth: LayoutMetrics.current(hSizeClass).posterSize.width)
-                        .frame(width: cardSize.width, height: cardSize.height)
+                        .frame(width: artworkSize.width, height: artworkSize.height)
                 }
 
                 ArtworkStateBadges(
@@ -203,7 +217,9 @@ struct EpisodeLandscapeCard: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             }
-            .frame(width: cardSize.width, height: cardSize.height)
+            .frame(width: artworkSize.width, height: artworkSize.height)
+            // The ring's room, inside the card rather than outside it.
+            .padding(EpisodeCardStroke.ringMargin)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -231,7 +247,9 @@ struct EpisodeLandscapeCard: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .frame(width: cardSize.width, alignment: .leading)
+            // Inset with the artwork above it, so the episode number still starts on its left edge.
+            .frame(width: artworkSize.width, alignment: .leading)
+            .padding(.horizontal, EpisodeCardStroke.ringMargin)
         }
     }
 
@@ -403,4 +421,15 @@ enum EpisodeCardStroke: CaseIterable {
         case .focused: return 4
         }
     }
+
+    /// The margin a card reserves around its artwork for its own ring.
+    ///
+    /// The stroke is drawn OUTSIDE the artwork so it does not bite into it or cover the resume bar
+    /// (Sodalite#134), and it used to be drawn outside the CARD as well, which is a different thing
+    /// and the reason a lifted card lost its ring: iOS builds a long-press preview by snapshotting
+    /// the view's bounds, and three of the ring's four sides were beyond them (reported on the
+    /// iPhone, 2026-09-14). Reserving the widest stroke keeps the ring off the artwork and inside
+    /// the card, and reserving it CONSTANTLY, rather than per state, is what stops the artwork
+    /// resizing when a card takes focus.
+    static var ringMargin: CGFloat { allCases.map(\.lineWidth).max() ?? 0 }
 }

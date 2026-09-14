@@ -46,7 +46,16 @@ struct DetailBackdrop: View {
 
     private var fixedBackdrop: some View {
         GeometryReader { geo in
-            AsyncCachedImage(url: heroURL) { image in
+            // Resolving here for the same reason the portrait band does it: this is the one view
+            // that ever holds the decoded artwork, and the page below needs its colour (Sodalite#95,
+            // extended to the other tiers in #146).
+            AsyncCachedImage(url: heroURL, onImageLoaded: { image in
+                #if canImport(UIKit)
+                if let url = heroURL {
+                    ArtworkTintStore.shared.resolve(image, for: url)
+                }
+                #endif
+            }) { image in
                 if usesPosterFill {
                     // Poster-as-hero: `.fill` scales to screen width, top-aligned to keep the useful upper half on screen. radius-8 blur (was 32 ambient, Sodalite#15) only smooths upscaling artefacts. drawingGroup bounds the blur to one Metal layer; an unbounded offscreen blur buffer broke detail-overlay sibling compositing on tvOS (glass panel + buttons vanished, nothing focusable, Back escaped the app).
                     image
@@ -83,6 +92,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// `DetailBackdrop` owns the artwork). Same two URLs that surface passes to the backdrop.
     var heroImageURL: URL? = nil
     var heroPosterURL: URL? = nil
+    /// What pins to the top once the hero has scrolled away (Sodalite#146). nil on the overlays that
+    /// have no hero of their own (collection, catalog, person).
+    var pinnedMark: PinnedPageMark? = nil
     @ViewBuilder let hero: () -> Hero
     @ViewBuilder let primary: () -> Primary
     @ViewBuilder let content: () -> Content
@@ -92,6 +104,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
 
     /// tvOS fold marker state. The offset feeds off the same scroll-geometry hook as scrollDim.
     @State private var scrollOffset: CGFloat = 0
+    /// Viewport height, which is also the first page's height (it is `containerRelativeFrame`).
+    /// Read rather than assumed, so the pinned mark arrives with the fold on every tier.
+    @State private var containerHeight: CGFloat = 0
     @State private var belowFoldHeight: CGFloat = 0
     @State private var hintSettled = false
 
@@ -165,12 +180,14 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     init(
         heroImageURL: URL? = nil,
         heroPosterURL: URL? = nil,
+        pinnedMark: PinnedPageMark? = nil,
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.heroImageURL = heroImageURL
         self.heroPosterURL = heroPosterURL
+        self.pinnedMark = pinnedMark
         self.hero = hero
         self.primary = primary
         self.content = content
@@ -223,42 +240,48 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                     .modifier(FirstPageViewportHeight(active: vSizeClass != .compact))
                 }
 
-                VStack(alignment: .leading, spacing: 40) {
-                    content()
-                }
-                // Height of the real below-fold content. The trailing filler below makes every page
-                // technically scrollable, so the hint keys off this instead (Sodalite#53).
-                .onGeometryChange(for: CGFloat.self) { proxy in
-                    proxy.size.height
-                } action: { height in
-                    belowFoldHeight = height
-                }
-                // Inset the content past the island; the scrim stays full-width (no strip / margin).
-                .padding(.leading, safeLeading)
-                .padding(.trailing, safeTrailing)
-                // Bound to the viewport, leading-aligned, so a wide child can't stretch the column
-                // past the screen and shove the whole content block off-center (section titles were
-                // being clipped on the left). Matches the primary slot's constraint.
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 80)
-                .background(Color.Theme.scrim)
-
-                // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.Theme.scrim
-                    .frame(minHeight: trailingFiller)
-                    .overlay(alignment: .bottom) {
-                        // Rubber-band overscroll pulls the content clear of the bottom edge and would
-                        // uncover the bare backdrop there. This band hangs below the content end and
-                        // scrolls with it, so it is off screen at rest and covers exactly the gap the
-                        // bounce opens. An overlay on purpose: it carries no layout weight, so it adds
-                        // no scroll travel of its own. Reading the overscroll from scroll geometry and
-                        // sizing a fixed band instead does not work, the state update never reaches the
-                        // overlay while the drag is in flight (measured, height stayed 0).
-                        Color.Theme.scrim
-                            .frame(height: 600)
-                            .offset(y: 600)
-                            .allowsHitTesting(false)
+                // Content and filler under ONE ground, so the page colour runs to the bottom edge
+                // instead of ending where the last row does.
+                VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 40) {
+                        content()
                     }
+                    // Height of the real below-fold content. The trailing filler below makes every
+                    // page technically scrollable, so the hint keys off this instead (Sodalite#53).
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { height in
+                        belowFoldHeight = height
+                    }
+                    // Inset the content past the island; the ground stays full-width (no strip).
+                    .padding(.leading, safeLeading)
+                    .padding(.trailing, safeTrailing)
+                    // Bound to the viewport, leading-aligned, so a wide child can't stretch the
+                    // column past the screen and shove the whole content block off-center (section
+                    // titles were being clipped on the left). Matches the primary slot's constraint.
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 80)
+
+                    // Trailing filler so a short content block doesn't end in a hard edge; sized
+                    // past any 4K tvOS safe-area inset.
+                    Color.clear
+                        .frame(minHeight: trailingFiller)
+                        .overlay(alignment: .bottom) {
+                            // Rubber-band overscroll pulls the content clear of the bottom edge and
+                            // would uncover the bare backdrop there. This band hangs below the
+                            // content end and scrolls with it, so it is off screen at rest and covers
+                            // exactly the gap the bounce opens. An overlay on purpose: it carries no
+                            // layout weight, so it adds no scroll travel of its own. Reading the
+                            // overscroll from scroll geometry and sizing a fixed band instead does
+                            // not work, the state update never reaches the overlay while the drag is
+                            // in flight (measured, height stayed 0).
+                            artworkPalette.far
+                                .frame(height: 600)
+                                .offset(y: 600)
+                                .allowsHitTesting(false)
+                        }
+                }
+                .background(alignment: .top) { TuckGround(palette: artworkPalette) }
             }
         }
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
@@ -269,12 +292,73 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             scrollDim = min(max(offset / heroWindow, 0), 1) * 0.3
             scrollOffset = offset
         }
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.containerSize.height
+        } action: { _, height in
+            containerHeight = height
+        }
+        .overlay(alignment: .top) { pinnedMarkBar }
         // Hold the hint back through the cover's present transition, so a viewer who immediately
         // presses down never sees it appear.
         .task {
             try? await Task.sleep(for: .milliseconds(800))
             hintSettled = true
         }
+        // The colour arrives after the first paint (the artwork has to decode first), so it fades in
+        // rather than switching.
+        .animation(.easeInOut(duration: 0.4), value: artworkPalette)
+    }
+
+    /// The page's own mark, pinned once the hero has left (Sodalite#146). Deep in the rows a detail
+    /// page is poster art and section headings and nothing that says whose page it is.
+    ///
+    /// It carries a short fade of the page ground with it, or a row scrolling under it would run
+    /// through the mark. Leading, not centred the way Apple pins its own: every heading on the page
+    /// below starts at the same inset, and a centred mark would be the one thing that does not.
+    @ViewBuilder
+    private var pinnedMarkBar: some View {
+        if let pinnedMark, pinnedMarkOpacity > 0 {
+            ContentLogoTitle(itemID: pinnedMark.itemID, logo: pinnedMark.logo, shrink: 0.4) {
+                Text(pinnedMark.title)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, metrics.rowInset)
+            .padding(.top, pinnedMarkTopInset)
+            .padding(.bottom, 24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                LinearGradient(
+                    colors: [artworkPalette.near, artworkPalette.near.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea(edges: .top)
+            }
+            .opacity(pinnedMarkOpacity)
+            .allowsHitTesting(false)
+        }
+    }
+
+    /// Inside the tvOS title-safe band; the page itself is full-bleed, so the inset cannot come from
+    /// the safe area here.
+    private var pinnedMarkTopInset: CGFloat {
+        #if os(tvOS)
+        60
+        #else
+        hSizeClass == .compact ? 12 : 24
+        #endif
+    }
+
+    /// Fades in across the last third of the first page, so the mark arrives as the hero leaves
+    /// rather than on a timing of its own. Driven by the scroll offset, which means it tracks a
+    /// finger one-to-one and follows tvOS's section-sized jumps rather than being caught halfway.
+    private var pinnedMarkOpacity: Double {
+        guard pinnedMark != nil, containerHeight > 0 else { return 0 }
+        let start = containerHeight * 0.55
+        let end = containerHeight * 0.85
+        return min(max((scrollOffset - start) / (end - start), 0), 1)
     }
 
     // MARK: - iPhone portrait
@@ -312,7 +396,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                     Color.clear
                         .frame(minHeight: trailingFiller)
                         .overlay(alignment: .bottom) {
-                            portraitPalette.far
+                            artworkPalette.far
                                 .frame(height: 600)
                                 .offset(y: 600)
                                 .allowsHitTesting(false)
@@ -328,7 +412,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             // point 1). Measured on the reporter's screenshots: under the mark the last band row
             // runs 2.8 to 4.4 levels below the page margin and the next row matches it to within
             // 0.03, and the size of the step tracks the mark's own width (r = -0.93 across three
-            // titles). Both sides of the seam are portraitPalette.near by construction, so the
+            // titles). Both sides of the seam are artworkPalette.near by construction, so the
             // shadow was the only thing that could draw a line there. Drawn last, it just fades out.
             .overlay(alignment: .top) {
                 hero()
@@ -345,7 +429,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         // the band black anyway on a PUSHED detail page (measured, Sodalite#95). This page draws its
         // own top edge and wants neither.
         .scrollEdgeEffectHidden(true, for: .top)
-        .animation(.easeInOut(duration: 0.4), value: portraitPalette)
+        .animation(.easeInOut(duration: 0.4), value: artworkPalette)
     }
 
     /// The band: the artwork's own top edge continued across the Dynamic Island, then the artwork.
@@ -366,11 +450,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .overlay(alignment: .bottom) {
             LinearGradient(
                 stops: [
-                    .init(color: portraitPalette.near.opacity(0), location: 0),
-                    .init(color: portraitPalette.near.opacity(0.12), location: 0.30),
-                    .init(color: portraitPalette.near.opacity(0.45), location: 0.58),
-                    .init(color: portraitPalette.near.opacity(0.85), location: 0.82),
-                    .init(color: portraitPalette.near, location: 1)
+                    .init(color: artworkPalette.near.opacity(0), location: 0),
+                    .init(color: artworkPalette.near.opacity(0.12), location: 0.30),
+                    .init(color: artworkPalette.near.opacity(0.45), location: 0.58),
+                    .init(color: artworkPalette.near.opacity(0.85), location: 0.82),
+                    .init(color: artworkPalette.near, location: 1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -384,7 +468,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         // complaint was the black it revealed, not the travel. Island colour, because that is what
         // the band's own top edge is made of.
         .overlay(alignment: .top) {
-            portraitPalette.near
+            artworkPalette.near
                 .frame(height: 600)
                 .offset(y: -600)
                 .allowsHitTesting(false)
@@ -396,9 +480,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// top half, blurred just enough to hide the upscale, bounded and flattened per the tvOS blur
     /// rule), which also stops its baked-in title from reading as a second logo.
     private var bandArtwork: some View {
-        AsyncCachedImage(url: portraitBandURL, onImageLoaded: { image in
+        AsyncCachedImage(url: artworkURL, onImageLoaded: { image in
             #if canImport(UIKit)
-            if let url = portraitBandURL {
+            if let url = artworkURL {
                 ArtworkTintStore.shared.resolve(image, for: url)
             }
             #endif
@@ -432,11 +516,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         .overlay(alignment: .top) {
             LinearGradient(
                 stops: [
-                    .init(color: portraitPalette.near, location: 0),
-                    .init(color: portraitPalette.near.opacity(0.55), location: 0.20),
-                    .init(color: portraitPalette.near.opacity(0.20), location: 0.45),
-                    .init(color: portraitPalette.near.opacity(0.05), location: 0.72),
-                    .init(color: portraitPalette.near.opacity(0), location: 1)
+                    .init(color: artworkPalette.near, location: 0),
+                    .init(color: artworkPalette.near.opacity(0.55), location: 0.20),
+                    .init(color: artworkPalette.near.opacity(0.20), location: 0.45),
+                    .init(color: artworkPalette.near.opacity(0.05), location: 0.72),
+                    .init(color: artworkPalette.near.opacity(0), location: 1)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -461,7 +545,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// against 150 pt at the bottom. Flat colour and a long dissolve is what the bottom edge does,
     /// and it is what the top edge wanted (Vincent, device, 2026-08-30).
     private var islandStrip: some View {
-        portraitPalette.near
+        artworkPalette.near
             .frame(maxWidth: .infinity, minHeight: safeTop, maxHeight: safeTop)
     }
 
@@ -472,16 +556,16 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     private var tintCanvas: some View {
         LinearGradient(
             stops: [
-                .init(color: portraitPalette.near, location: 0),
-                .init(color: portraitPalette.near, location: 0.10),
-                .init(color: portraitPalette.far, location: 1)
+                .init(color: artworkPalette.near, location: 0),
+                .init(color: artworkPalette.near, location: 0.10),
+                .init(color: artworkPalette.far, location: 1)
             ],
             startPoint: .top,
             endPoint: .bottom
         )
     }
 
-    private var portraitBandURL: URL? {
+    private var artworkURL: URL? {
         heroImageURL ?? heroPosterURL
     }
 
@@ -491,9 +575,9 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
 
     /// Base black until the artwork has been read, so an unresolved tint is invisible rather than a
     /// seam, and the real colour fades in when it lands.
-    private var portraitPalette: ArtworkPalette {
+    private var artworkPalette: ArtworkPalette {
         #if canImport(UIKit)
-        ArtworkTintStore.shared.palette(for: portraitBandURL) ?? .base
+        ArtworkTintStore.shared.palette(for: artworkURL) ?? .base
         #else
         .base
         #endif
@@ -539,6 +623,90 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .padding(.bottom, 8)
         }
     }
+}
+
+/// The ground under everything below the fold (Sodalite#146).
+///
+/// It used to be `Color.Theme.scrim`, black at 0.55, so the backdrop carried on behind the poster
+/// rows and the cast circles at about a third of its luminance. On a bright, saturated backdrop that
+/// is a colour cast over other titles' artwork, which is what "the fanart makes the lower rows hard
+/// to read" means. The artwork hands over to a page ground at the fold instead.
+///
+/// The ground is the artwork's own colour, the same tint iPhone portrait paints below its band
+/// (`ArtworkTint`, Sodalite#95), deepening down the page. A flat neutral was tried first and was the
+/// safer answer on paper, since a 10-foot page below the fold is mostly OTHER titles' posters; it
+/// went back out because the coloured page is what Vincent wanted on the screen (2026-09-14).
+///
+/// The handover band is the phone's own recipe, and every stop is the destination colour at a
+/// different opacity, never `.clear`: `.clear` is transparent BLACK, so fading through it drags the
+/// artwork across a grey band that reads as exactly the edge the dissolve exists to remove. The
+/// eased stops and the 150 pt run are the second half of that, a linear 96 pt ramp still showed the
+/// cut on a bright backdrop (device, 2026-08-30).
+///
+/// Nothing here is scroll-driven, and nothing needs to be: the band is part of the scrolling
+/// content, so it tracks the finger and the remote one-to-one by construction and reverses exactly
+/// on the way back up.
+struct TuckGround: View {
+    /// `.base` (black at both ends) until the artwork has been read, so an unresolved page is the
+    /// black the detail views already put under their ZStack rather than a seam.
+    let palette: ArtworkPalette
+
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
+    /// How far the artwork takes to become the page. A floor rather than a measurement: the phone
+    /// needed 150 pt on a far smaller screen, and the first tuck row peeks about that far above the
+    /// fold, so the dissolve finishes where content starts.
+    ///
+    /// Shorter in a compact width, which here means iPhone LANDSCAPE (portrait draws its own band in
+    /// `portraitBody` and never reaches this): 150 pt is most of a 390 pt landscape viewport, so the
+    /// artwork would still be showing through under the whole first screen of rows.
+    static func handoverHeight(compact: Bool) -> CGFloat { compact ? 100 : 150 }
+
+    private var handover: CGFloat { Self.handoverHeight(compact: hSizeClass == .compact) }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            LinearGradient(
+                stops: [
+                    .init(color: palette.near.opacity(0), location: 0),
+                    .init(color: palette.near.opacity(0.12), location: 0.30),
+                    .init(color: palette.near.opacity(0.45), location: 0.58),
+                    .init(color: palette.near.opacity(0.85), location: 0.82),
+                    .init(color: palette.near, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: handover)
+
+            // The page keeps its colour all the way down, it only deepens. Held flat over the first
+            // tenth so the row nearest the fold looks like it carries the colour rather than like it
+            // is already losing it (Vincent, 2026-08-30).
+            LinearGradient(
+                stops: [
+                    .init(color: palette.near, location: 0),
+                    .init(color: palette.near, location: 0.10),
+                    .init(color: palette.far, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        // Under the band, so its transparent half still carries the hero's own ground and the seam
+        // at the fold has nothing to step over.
+        .background(Color.Theme.scrim)
+    }
+}
+
+/// What identifies a detail page once its hero has scrolled away (Sodalite#146). Three plain values
+/// rather than a view slot, so the overlay can size the mark itself and the pages stay free of the
+/// pinning rule.
+struct PinnedPageMark {
+    /// The item that owns the logo; for an episode this is the SERIES, which has no per-episode mark.
+    let itemID: String
+    let logo: ContentLogoAvailability
+    /// Text title when there is no mark, the same string the hero falls back to.
+    let title: String
 }
 
 /// Legacy shape for overlays without a `primary` slot (collection, catalog, person): fixed 500 pt hero window.

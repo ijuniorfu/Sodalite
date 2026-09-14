@@ -29,22 +29,22 @@ struct TechInfoVersionSubtitleTests {
         {"Id":"m","Name":"M","Type":"Movie",
          "MediaSources":[{"Id":"only","Name":"M (2014)","Container":"mkv"}]}
         """#)
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: nil) == nil)
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: "only") == nil)
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: nil) == nil)
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: "only") == nil)
     }
 
     /// A slim item (a query that never asked for MediaSources) has nothing to name.
     @Test func anItemWithoutSourcesGetsNoSubtitle() throws {
         let item = try decode(#"{"Id":"m","Name":"M","Type":"Movie"}"#)
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: nil) == nil)
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: nil) == nil)
     }
 
     /// The server's version name carries the line. The specs stay out of it: resolution, codec and
     /// size are spelled out in the cards an inch below.
     @Test func theSubtitleNamesTheChosenVersion() throws {
         let item = try decode(Self.twoVersionJSON)
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: "src-transcode") == "5SE3v3")
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: "src-original")
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: "src-transcode") == "5SE3v3")
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: "src-original")
                 == "Captain America The Winter Soldier (2014)")
     }
 
@@ -59,7 +59,7 @@ struct TechInfoVersionSubtitleTests {
          ]}
         """#)
         let selection = VersionSelection()
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: selection.preferredSourceID(for: item)) == "4K")
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: selection.preferredSourceID(for: item)) == "4K")
     }
 
     /// Jellyfin does not promise a name. Where it is missing the derived specs step in, because a
@@ -72,7 +72,7 @@ struct TechInfoVersionSubtitleTests {
            {"Id":"b","Container":"mkv","MediaStreams":[{"Index":0,"Type":"Video","Codec":"h264","Width":1920,"Height":1080}]}
          ]}
         """#)
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: "b") == "1080p · H264")
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: "b") == "1080p · H264")
     }
 
     /// A name of nothing but spaces is the same case as no name at all.
@@ -84,14 +84,14 @@ struct TechInfoVersionSubtitleTests {
            {"Id":"b","Name":"Second","Container":"mkv"}
          ]}
         """#)
-        #expect(TechInfoBox.versionSubtitle(for: item, sourceID: "a") == "4K · HEVC")
+        #expect(TechFacts.versionSubtitle(for: item, sourceID: "a") == "4K · HEVC")
     }
 
     /// A source id from another item, or from a version the server dropped between fetches, resolves
     /// to the default rather than to nothing: the cards do the same, and the two must not disagree.
     @Test func aStaleSourceIDStillNamesWhatTheCardsShow() throws {
         let item = try decode(Self.twoVersionJSON)
-        let subtitle = TechInfoBox.versionSubtitle(for: item, sourceID: "from-another-item")
+        let subtitle = TechFacts.versionSubtitle(for: item, sourceID: "from-another-item")
         #expect(subtitle == item.effectiveMediaSource(id: "from-another-item")?.name)
         #expect(subtitle != nil)
     }
