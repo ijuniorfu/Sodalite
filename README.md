@@ -171,7 +171,8 @@ The Seerr integration isn't a tacked-on link to a web view. It's a first-class p
 - **Overview tab**: Live TV opens on a category-based overview of what's on right now, with rows mirroring the native Jellyfin guide, before you drop into the full grid
 - **Programme guide**: full EPG grid with a sticky channel column, wall-clock time ruler, live now-line and current-program highlighting; open a program for info, watch and record actions
 - **Channel favorites**: star channels in the guide, favorites sort to the top
-- **Timeshift**: pause live TV, scrub back up to 10 minutes with on-device frame previews, snap back with Return to Live
+- **Timeshift**: pause live TV and scrub back through the buffer with on-device frame previews, or snap back with Return to Live. How much a channel keeps is a Playback setting, four depths from a few minutes to the ninety the app defaults to, and a pause that outlasts the buffer says what it cost rather than resuming somewhere else in silence
+- **The bar is the programme, not a window**: the live meter frames the programme on air as a block of wall clock, with its start and end on the two rails, quarter-hour marks across it, the clock of the picture on screen tracking the knob, and the recording painted inside it: what you have watched, what the channel has recorded ahead of you, and what has not aired yet. What follows is named under the right rail
 - **Recordings & timers**: record a program or a whole series from the guide, manage scheduled timers, and play finished or still-recording shows
 - **Direct from the source**: most channels play straight from their upstream, starting in seconds with no server transcoding, with automatic fallback through Jellyfin when a source needs it
 - **Same engine as movies**: H.264 / HEVC channels ride the native pipeline, MPEG-2 / VC-1 and friends decode in software, and dead sources fail fast with a clear message instead of an endless spinner
