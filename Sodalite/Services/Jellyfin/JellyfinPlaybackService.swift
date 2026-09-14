@@ -4,6 +4,9 @@ import Foundation
 /// two and nothing else, and a narrow face keeps it testable without the twenty methods below.
 protocol JellyfinPlaybackServiceProtocol: EpisodeCatalogQuerying {
     var baseURL: URL? { get }
+    /// Stable per-install device id, the one the auth header and the stream URLs carry. Exposed
+    /// because the tuner sweep has to tell our own session apart from every other client's (#147).
+    var deviceID: String { get }
     func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]?) async throws -> PlaybackInfoResponse
     /// Live PlaybackInfo: AutoOpenLiveStream probes the stream (known codecs → DirectStream/copy, real LiveStreamId for tuner release); maxStreamingBitrate caps a transcode.
     func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]?, maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse
@@ -12,6 +15,9 @@ protocol JellyfinPlaybackServiceProtocol: EpisodeCatalogQuerying {
     func reportPlaybackStopped(_ report: PlaybackStopReport) async throws
     func closeLiveStream(liveStreamID: String) async throws
     func stopActiveEncodings(playSessionID: String) async throws
+    /// Who the server thinks is playing what. The tuner sweep reads it before closing a leftover
+    /// handle, because that handle names the CHANNEL and could belong to another client by now (#147).
+    func getSessions() async throws -> [JellyfinSessionInfo]
     func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments
     func buildStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
     func buildAudioStreamURL(itemID: String, mediaSourceID: String, container: String?, isStatic: Bool) -> URL?
@@ -34,6 +40,8 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     let client: JellyfinClient
 
     var baseURL: URL? { client.baseURL }
+
+    var deviceID: String { client.deviceID }
 
     init(client: JellyfinClient) {
         self.client = client
@@ -132,6 +140,13 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     func closeLiveStream(liveStreamID: String) async throws {
         try await client.request(
             endpoint: JellyfinEndpoint.closeLiveStream(liveStreamID: liveStreamID)
+        )
+    }
+
+    func getSessions() async throws -> [JellyfinSessionInfo] {
+        try await client.request(
+            endpoint: JellyfinEndpoint.sessions,
+            responseType: [JellyfinSessionInfo].self
         )
     }
 

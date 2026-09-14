@@ -40,6 +40,7 @@ struct PrefetchedPlaybackInfoIdentityTests {
     /// does for an ordinary single-version item.
     final class MockPlaybackService: JellyfinPlaybackServiceProtocol, @unchecked Sendable {
         var baseURL: URL? { URL(string: "http://server") }
+        var deviceID: String { "device" }
         private(set) var requestedItemIDs: [String] = []
 
         func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]?) async throws -> PlaybackInfoResponse {
@@ -60,6 +61,7 @@ struct PrefetchedPlaybackInfoIdentityTests {
         func reportPlaybackStopped(_ report: PlaybackStopReport) async throws {}
         func closeLiveStream(liveStreamID: String) async throws {}
         func stopActiveEncodings(playSessionID: String) async throws {}
+        func getSessions() async throws -> [JellyfinSessionInfo] { [] }
         func getSeasons(seriesID: String, userID: String) async throws -> [JellyfinItem] { [] }
         func getEpisodes(seriesID: String, seasonID: String, userID: String) async throws -> [JellyfinItem] { [] }
         func getEpisodeSegments(itemID: String) async throws -> EpisodeSegments { throw NotUsed() }

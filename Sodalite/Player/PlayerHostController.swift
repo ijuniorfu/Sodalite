@@ -77,6 +77,10 @@ final class PlayerHostController: AVPlayerViewController {
     private var backgroundedAt: Date?
     private var backgroundPlayhead: Double = 0
     private var backgroundWasPlaying = false
+    /// Sodalite#147: the pending server-side release of a live session that is on its way into
+    /// suspension, and the assertion that keeps the app running long enough to send it.
+    private var liveSuspensionRelease: Task<Void, Never>?
+    private var liveSuspensionAssertion: UIBackgroundTaskIdentifier = .invalid
     /// Set synchronously by the AVKit PiP delegate (willStart) BEFORE PiP dismisses this VC, so
     /// viewWillDisappear can tell a PiP handoff from a real dismiss and not stopPlayback (which would
     /// idle the engine and immediately close PiP). nonisolated(unsafe): written from the nonisolated
@@ -833,6 +837,49 @@ final class PlayerHostController: AVPlayerViewController {
         // Background audio / PiP keep the session running on purpose; the outage watchdog must not end one
         // the viewer cannot see, so it stops probing until we are back.
         viewModel.setAppActive(false)
+        armLiveSuspensionRelease()
+    }
+
+    /// How long a backgrounded live session waits for the engine to give its pipeline up before the
+    /// tuner is closed (#147). Comfortably past iOS's own 15 s paused-teardown grace window, and
+    /// inside the background-task assertion that holds the app up for the wait, so the close has a
+    /// runway rather than the last moment before suspension. tvOS tears down on the way in and never
+    /// reaches the far end of this.
+    static let liveSuspensionTeardownWait: TimeInterval = 18
+
+    /// Sodalite#147: close a live session server-side when the app is going away rather than when the
+    /// viewer leaves the player.
+    ///
+    /// A session that ends with the Apple TV (sleep, a television switched off, a kill while
+    /// suspended) runs no teardown at all, and Jellyfin never reaps an open live stream, so the tuner
+    /// and its growing `.ts` are held until the server restarts (#70). The app is still running at
+    /// this moment, so this is the last point where anything can be said about it.
+    private func armLiveSuspensionRelease() {
+        viewModel.liveTunerReleasedWhileSuspended = false
+        guard viewModel.isLiveSession, viewModel.activeLiveStreamID != nil else { return }
+        liveSuspensionRelease?.cancel()
+        // Without the assertion the wait and the close both die at suspension, which is the same as
+        // never having sent them. Both closures hold this controller strongly on purpose: an
+        // assertion nobody ends is a termination, and a weak reference that has gone is exactly the
+        // case where nobody would.
+        liveSuspensionAssertion = UIApplication.shared.beginBackgroundTask(
+            withName: "live-tuner-release"
+        ) {
+            self.liveSuspensionRelease?.cancel()
+            self.endLiveSuspensionAssertion()
+        }
+        liveSuspensionRelease = Task { @MainActor in
+            await self.viewModel.releaseLiveSessionForSuspension(
+                waitingForTeardownUpTo: Self.liveSuspensionTeardownWait)
+            self.liveSuspensionRelease = nil
+            self.endLiveSuspensionAssertion()
+        }
+    }
+
+    private func endLiveSuspensionAssertion() {
+        guard liveSuspensionAssertion != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(liveSuspensionAssertion)
+        liveSuspensionAssertion = .invalid
     }
 
     /// AetherEngine #127 host adoption: the engine's paused-background grace window (and PiP keepalive)
@@ -868,10 +915,14 @@ final class PlayerHostController: AVPlayerViewController {
 
     nonisolated static func liveForegroundReturn(
         needsReload: Bool,
+        tunerReleased: Bool = false,
         wasPlaying: Bool,
         backgroundSeconds: TimeInterval,
         playheadAdvance: TimeInterval
     ) -> LiveForegroundReturn {
+        // Sodalite#147: the suspension closed this session server-side, so there is no stream left to
+        // resume onto whatever the engine still believes about its own transport.
+        if tunerReleased { return .retune }
         if needsReload { return .retune }
         guard wasPlaying, backgroundSeconds > liveForegroundStaleSeconds else { return .resume }
         return playheadAdvance >= backgroundSeconds - liveForegroundAdvanceSlack ? .resume : .retune
@@ -881,6 +932,9 @@ final class PlayerHostController: AVPlayerViewController {
         // Before every early return below: the watchdog is armed by the engine phase, not by this routine,
         // and it must resume probing on any return to the foreground.
         viewModel.setAppActive(true)
+        // Cancels the WAIT only (#147). A release already past that point owns its own close, and the
+        // flag it set is what the live branch below reads.
+        liveSuspensionRelease?.cancel()
         guard viewModel.hasStartedPlaying else { return }
 
         // App switcher lands here without didEnterBackground; decoders + audio are still alive, so nothing to rebuild.
@@ -910,8 +964,10 @@ final class PlayerHostController: AVPlayerViewController {
         if viewModel.isLiveSession {
             let gapSeconds = backgroundedAt.map { Date().timeIntervalSince($0) } ?? 0
             let advance = viewModel.player.currentTime - backgroundPlayhead
+            let tunerReleased = viewModel.liveTunerReleasedWhileSuspended
             let decision = Self.liveForegroundReturn(
                 needsReload: needsReload,
+                tunerReleased: tunerReleased,
                 wasPlaying: backgroundWasPlaying,
                 backgroundSeconds: gapSeconds,
                 playheadAdvance: advance)
@@ -919,10 +975,11 @@ final class PlayerHostController: AVPlayerViewController {
             // session that played through, and a report about one cannot be read without them.
             LogTap.shared.note(String(
                 format: "[Live] #104 foreground return: away %.1fs, playhead %+.1fs, "
-                + "was %@, pipeline %@ -> %@",
+                + "was %@, pipeline %@, tuner %@ -> %@",
                 gapSeconds, advance,
                 backgroundWasPlaying ? "playing" : "paused",
                 needsReload ? "torn down" : "alive",
+                tunerReleased ? "released on the way out" : "held",
                 decision == .retune ? "tuning again" : "resuming in place")
                 + (viewModel.player.sessionReloadRefusal.map { " (engine refuses a rebuild: \($0))" }
                    ?? ""))

@@ -152,6 +152,17 @@ extension PlayerViewModel {
                 "[Live] tuner opened stream=\(Self.liveLogToken(Self.liveTunerStreamID(fromSourcePath: source?.path)))"
                 + " key=\(Self.liveLogToken(key))"
             )
+            // And the durable half of it (#147). A log line dies with the process; this handle has to
+            // outlive it, because a session that ends with the Apple TV rather than with a Back press
+            // runs no teardown at all and Jellyfin never reaps what nobody closed.
+            LiveTunerLedger.shared.remember(OpenLiveStreamRecord(
+                userID: userID,
+                itemID: itemID,
+                liveStreamID: key,
+                mediaSourceID: source?.id,
+                playSessionID: info.playSessionId,
+                openedAt: Date()
+            ))
         } else {
             // Not a tuner channel, or an answer that opened nothing. Said out loud because the one thing
             // worse than a tuner we forgot to close is a tuner we were never given a handle for.
@@ -178,12 +189,20 @@ extension PlayerViewModel {
     func releaseTuner(_ liveStreamID: String, reason: String) -> Task<Void, Never> {
         let svc = playbackService
         let token = Self.liveLogToken(liveStreamID)
+        // Out of the durable ledger on the way to the request, back into it if the request never
+        // arrived (#147). "Accepted" would not be proof of anything here (Jellyfin answers 204 for any
+        // id at all), but a close that THREW is one no server ever saw, and that handle is one the
+        // next launch should still find.
+        let stranded = LiveTunerLedger.shared.take(liveStreamID: liveStreamID)
         return LiveTunerGate.shared.close {
             do {
                 try await svc.closeLiveStream(liveStreamID: liveStreamID)
                 LogTap.shared.note("[Live] tuner close accepted key=\(token) (\(reason))")
             } catch {
                 LogTap.shared.note("[Live] tuner close FAILED key=\(token) (\(reason)): \(error)")
+                if let stranded {
+                    await MainActor.run { LiveTunerLedger.shared.restore(stranded) }
+                }
             }
         }
     }
@@ -950,6 +969,59 @@ extension PlayerViewModel {
         guard let liveStreamID = activeLiveStreamID else { return }
         activeLiveStreamID = nil
         releaseTuner(liveStreamID, reason: "session teardown")
+    }
+
+    /// Sodalite#147: the app is on its way out of the foreground, so close the session server-side
+    /// while there is still a process able to speak.
+    ///
+    /// Every other release hangs off a teardown that only runs on screen: a stop, a failed load, a
+    /// retune. A session that ends because the DEVICE went away runs none of them, and what is left
+    /// behind is a tuner and a `.ts` that grow until the server restarts, because Jellyfin has no
+    /// reaper for an open live stream (#70).
+    ///
+    /// The signal is the engine's own pipeline, not a guess about the app. While a pipeline is up it
+    /// is READING that tuner, which is exactly what the tvOS PiP window and iOS background playback
+    /// are for, and closing underneath it would take the picture away from a viewer who still has it.
+    /// Once the engine has torn it down, nothing is reading and the handle is dead weight. tvOS tears
+    /// down on the way into the background (no grace window there), iOS defers a paused teardown by
+    /// its 15 s window, so the wait covers both and gives up rather than guessing.
+    ///
+    /// Returns whether the tuner was released, which is what makes the return a tune rather than a
+    /// resume: there is nothing left to resume onto.
+    func releaseLiveSessionForSuspension(waitingForTeardownUpTo timeout: TimeInterval) async -> Bool {
+        guard isLiveSession, activeLiveStreamID != nil else { return false }
+        let deadline = Date().addingTimeInterval(timeout)
+        while player.playbackBackend != .none, Date() < deadline, !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: 250_000_000)
+        }
+        // Coming back to the foreground cancels the WAIT and nothing else. A session still holding a
+        // live pipeline is one the viewer can still see, and the retune the return decides on closes
+        // the old tuner itself before it opens the next.
+        guard !Task.isCancelled else { return false }
+        guard player.playbackBackend == .none else {
+            LogTap.shared.note(
+                "[Live] #147 suspension: the pipeline is still up after \(Int(timeout))s "
+                + "(PiP or background playback), leaving the tuner open")
+            return false
+        }
+
+        liveTunerReleasedWhileSuspended = true
+        let deadTuner = activeLiveStreamID
+        let deadSession = playSessionID
+        // Same three as a retune, and in the same order: the stop report carries the handle and is
+        // also what clears the session the server still lists as playing, the encoding kill is
+        // addressed to this device and this play session, and the explicit close is the belt to that
+        // report's braces.
+        await reportStop(liveStreamID: deadTuner)
+        hasReportedStart = false
+        if let deadSession {
+            try? await playbackService.stopActiveEncodings(playSessionID: deadSession)
+        }
+        releaseLiveTunerIfNeeded()
+        LogTap.shared.note(
+            "[Live] #147 suspension: closed the live session server-side, key="
+            + "\(Self.liveLogToken(deadTuner))")
+        return true
     }
 
     /// Whether the server's probe failed to identify the source's video codec (no streams, or a video stream without a codec). Jellyfin can't stream-copy what it couldn't identify, so the high copy ceiling silently becomes a 200 Mbps ENCODE target (HTTP 500); route through the bounded re-encode cap up front, where ffmpeg's runtime probe may still read it.

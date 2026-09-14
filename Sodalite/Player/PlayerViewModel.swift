@@ -660,6 +660,10 @@ final class PlayerViewModel {
     private(set) var isLiveSession = false
     /// Jellyfin tuner handle for the current live stream; captured on load, released on teardown. Nil for VOD.
     var activeLiveStreamID: String?
+    /// Sodalite#147: set when a backgrounding closed this session server-side. A session whose tuner
+    /// is gone has nothing left to resume onto, so the foreground return has to be a tune whatever
+    /// the engine's own bookkeeping says. Cleared by the host when it arms the next release.
+    var liveTunerReleasedWhileSuspended = false
     /// Live-edge mirror fields, populated by PlayerViewModel+Live from the engine's live surfaces.
     var liveSeekableRange: ClosedRange<Double>?
     var isAtLiveEdge: Bool = true

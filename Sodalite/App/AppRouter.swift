@@ -141,6 +141,7 @@ struct AppRouter: View {
                 await recheckLocalNetworkAccess()
                 #endif
                 await refreshPending()
+                await sweepOrphanedLiveStreams()
                 await dependencies.cloudSync?.fetchNow()
                 #if os(iOS)
                 dependencies.scheduleRouteResolve()
@@ -524,6 +525,11 @@ struct AppRouter: View {
 
         await performRestore()
 
+        // Sodalite#147: a live session that ended with the Apple TV rather than with a Back press
+        // left a tuner open on the server, and this is the first moment a session exists to close it
+        // with. Detached: it is a repair of the last run, not something the splash should wait on.
+        Task { await sweepOrphanedLiveStreams() }
+
         // Hold the splash for at least the minimum so the brand moment
         // isn't reduced to a flash on a fast restore path.
         let elapsed = Date().timeIntervalSince(splashStart)
@@ -532,6 +538,14 @@ struct AppRouter: View {
             try? await Task.sleep(for: .seconds(remaining))
         }
         appState.isLoading = false
+    }
+
+    /// Close live streams an earlier run left open on the server (#147). Cheap when there is nothing
+    /// to do: the ledger is a local read, and a run with no leftovers makes no request at all.
+    private func sweepOrphanedLiveStreams() async {
+        guard appState.isAuthenticated, let userID = dependencies.activeUserID else { return }
+        await LiveTunerLedger.shared.sweep(
+            userID: userID, using: dependencies.jellyfinPlaybackService)
     }
 
     private func performRestore() async {
