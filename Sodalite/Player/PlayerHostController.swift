@@ -74,6 +74,9 @@ final class PlayerHostController: AVPlayerViewController {
 
     /// True only between `didEnterBackground` and the next `didBecomeActive`; the app switcher (double Home) fires only willResignActive, so this stays false and we skip the reload-and-pause routine for it.
     private var wasFullyBackgrounded = false
+    private var backgroundedAt: Date?
+    private var backgroundPlayhead: Double = 0
+    private var backgroundWasPlaying = false
     /// Set synchronously by the AVKit PiP delegate (willStart) BEFORE PiP dismisses this VC, so
     /// viewWillDisappear can tell a PiP handoff from a real dismiss and not stopPlayback (which would
     /// idle the engine and immediately close PiP). nonisolated(unsafe): written from the nonisolated
@@ -822,6 +825,11 @@ final class PlayerHostController: AVPlayerViewController {
 
     @objc private func appDidEnterBackground() {
         wasFullyBackgrounded = true
+        // Sodalite#104: what the session looked like on the way out, so the return can tell one that
+        // kept playing from one that was suspended. See `liveForegroundReturn`.
+        backgroundedAt = Date()
+        backgroundPlayhead = viewModel.player.currentTime
+        backgroundWasPlaying = viewModel.player.state == .playing
         // Background audio / PiP keep the session running on purpose; the outage watchdog must not end one
         // the viewer cannot see, so it stops probing until we are back.
         viewModel.setAppActive(false)
@@ -832,6 +840,41 @@ final class PlayerHostController: AVPlayerViewController {
     /// pays the reload. Reloading a live pipeline would throw away exactly the rebuild the window avoided.
     nonisolated static func foregroundReturnNeedsReload(state: PlaybackState, backend: PlaybackBackend) -> Bool {
         state != .playing && backend == .none
+    }
+
+    /// Sodalite#104: what a LIVE session needs when the app comes back from a real backgrounding.
+    ///
+    /// A suspended app reads nothing, so a live session that was playing when it went away comes back
+    /// behind reality by the whole suspension, and its producer's frontier is that far in the past.
+    /// Nothing in the DVR window can close the gap, because the window holds what was READ and the
+    /// reading stopped where the suspension began: the badge can even read LIVE, since the playhead
+    /// really is next to a frontier that stopped moving. Only a tune reaches the broadcast again.
+    /// That is the "turn the television off and on and the channel is behind, with no way back to
+    /// live" half of the report.
+    ///
+    /// The signal is not the engine's state but whether the playhead MOVED across the gap: background
+    /// audio and the tvOS PiP keepalive keep a session running, and one that kept playing is exactly
+    /// as live as it was. A session the viewer had PAUSED keeps its position, because the pause is
+    /// theirs and the engine's resume clamp already says what the buffer could still hold; a torn-down
+    /// pipeline tunes whatever the intent was, since there is nothing left to resume.
+    enum LiveForegroundReturn: Equatable { case retune, resume }
+
+    /// A gap this short leaves the session inside one segment of live, which the edge tolerance
+    /// covers, and a tune would cost a rebuffer for nothing.
+    nonisolated static let liveForegroundStaleSeconds: TimeInterval = 5
+    /// The playhead is sampled either side of a gap measured on a different clock, and a session that
+    /// played through pays a moment of it to the resume itself.
+    nonisolated static let liveForegroundAdvanceSlack: TimeInterval = 2
+
+    nonisolated static func liveForegroundReturn(
+        needsReload: Bool,
+        wasPlaying: Bool,
+        backgroundSeconds: TimeInterval,
+        playheadAdvance: TimeInterval
+    ) -> LiveForegroundReturn {
+        if needsReload { return .retune }
+        guard wasPlaying, backgroundSeconds > liveForegroundStaleSeconds else { return .resume }
+        return playheadAdvance >= backgroundSeconds - liveForegroundAdvanceSlack ? .resume : .retune
     }
 
     @objc private func appDidBecomeActive() {
@@ -850,11 +893,8 @@ final class PlayerHostController: AVPlayerViewController {
         // disabled, or the paused-in-background teardown after the window) needs the reload below.
         // Cross-platform since tvOS PiP keepalive (5.11.0): a fullscreen restore from the Home screen
         // arrives with a live, playing pipeline; the unconditional tvOS reload paused it for nothing.
-        if !Self.foregroundReturnNeedsReload(state: viewModel.player.state,
-                                             backend: viewModel.player.playbackBackend) { return }
-
-        // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
-        try? AVAudioSession.sharedInstance().setActive(true)
+        let needsReload = Self.foregroundReturnNeedsReload(state: viewModel.player.state,
+                                                           backend: viewModel.player.playbackBackend)
 
         // A live session cannot be reloaded at a position, and this is where that used to end in a
         // spinner that never stopped. The direct-ingest path is a custom, forward-only source: the
@@ -865,11 +905,31 @@ final class PlayerHostController: AVPlayerViewController {
         //
         // The answer for live is not a rebuild, it is a tune: the DVR window died with the producer,
         // so there is no position to come back to and the live edge is where the viewer is going.
+        // Sodalite#104: and a live session that survived the backgrounding is not automatically live,
+        // so the decision is `liveForegroundReturn` rather than the torn-down gate alone.
         if viewModel.isLiveSession {
-            LogTap.shared.note(
-                "[Live] foreground return on a torn-down live session; tuning again"
+            let gapSeconds = backgroundedAt.map { Date().timeIntervalSince($0) } ?? 0
+            let advance = viewModel.player.currentTime - backgroundPlayhead
+            let decision = Self.liveForegroundReturn(
+                needsReload: needsReload,
+                wasPlaying: backgroundWasPlaying,
+                backgroundSeconds: gapSeconds,
+                playheadAdvance: advance)
+            // Always, whichever way it goes: the numbers are what tells a suspension apart from a
+            // session that played through, and a report about one cannot be read without them.
+            LogTap.shared.note(String(
+                format: "[Live] #104 foreground return: away %.1fs, playhead %+.1fs, "
+                + "was %@, pipeline %@ -> %@",
+                gapSeconds, advance,
+                backgroundWasPlaying ? "playing" : "paused",
+                needsReload ? "torn down" : "alive",
+                decision == .retune ? "tuning again" : "resuming in place")
                 + (viewModel.player.sessionReloadRefusal.map { " (engine refuses a rebuild: \($0))" }
                    ?? ""))
+            guard decision == .retune else { return }
+            // tvOS deactivates the AVAudioSession on background; without re-arming it the resume drives
+            // a synchronizer with no live session (state .playing but no audio, no frames advance).
+            try? AVAudioSession.sharedInstance().setActive(true)
             viewModel.beginBackgroundReload()
             Task { @MainActor in
                 await viewModel.retuneLiveStream()
@@ -877,6 +937,11 @@ final class PlayerHostController: AVPlayerViewController {
             }
             return
         }
+
+        guard needsReload else { return }
+
+        // tvOS deactivates the AVAudioSession on background; without re-arming it the post-reload resume drives a synchronizer with no live session (state .playing but no audio, no frames advance).
+        try? AVAudioSession.sharedInstance().setActive(true)
 
         // Real background return: VT + AVIO are dead, reload from current position then hold paused on the resumed frame (auto-resume after a sleep gap is startling). load() returns once the panel handshake settles, NOT once audio flows, so the trailing pause can land while AVPlayer is still waitingToPlayAtSpecifiedRate re-buffering the AVIO reconnect. If the user presses Play during the slow reload that intent must win or it clobbers the resume ("play does nothing, press again"); beginBackgroundReload/finishBackgroundReload arbitrate.
         viewModel.beginBackgroundReload()
