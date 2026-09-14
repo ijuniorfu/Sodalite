@@ -98,3 +98,22 @@ is worth doing properly, and doing it properly is a good deal bigger than the re
 today.
 
 Plex has been weighed next to it and would be larger again. Neither goes in front of 1.0.
+
+## Considering
+
+### A Home that keeps up on its own ([#117](https://github.com/superuser404notfound/Sodalite/issues/117))
+
+Home refetches at moments Sodalite can recognise: coming back to the tab, the app coming back to
+the foreground, and anything you changed yourself. That covers what it can see, and it will always
+be a guess about what it cannot. Start a film on a laptop in another room and it appears in
+Continue Watching the next time one of those moments comes round, rather than the moment it
+happens.
+
+Jellyfin can say so instead of being asked. The server keeps a socket open and announces what
+changed, and Home could follow it live: the row moves while you are looking at it, and the question
+of how old the shelf is stops being a question.
+
+What is not settled is whether it earns its keep. It means a second live connection held open on a
+device that spends most of its life asleep, and reconnect handling for every way that connection
+can quietly die, to replace something that already refreshes when you come back. That is why it
+sits here rather than in Later. Thoughts welcome in the issue.
