@@ -193,7 +193,7 @@ struct LiveTransportBar: View {
                     )
                 }
 
-                liveBadge
+                LiveBadge(isAtLiveEdge: viewModel.isAtLiveEdge)
             }
             // Same treatment as the VOD row, and for the same reason: a transaction (not
             // .animation(value:), which lags a frame so only the immediate neighbour glides) puts
@@ -202,10 +202,16 @@ struct LiveTransportBar: View {
                 txn.animation = .smooth(duration: 0.32)
             }
 
-            VStack(spacing: 4) {
+            // The rail row keeps its distance from the track: the knob grows to 22 pt at exactly the
+            // moment a readout is drawn beside the clock, so the 4 pt this used to be was the
+            // tightest gap in the bar and it was tightest under the one gesture that has to stay
+            // legible (#104 round 2).
+            VStack(spacing: 8) {
                 scrubber
-                LiveRailLabels(viewModel: viewModel)
-                LiveNextUpLine(viewModel: viewModel)
+                VStack(spacing: 4) {
+                    LiveRailLabels(viewModel: viewModel)
+                    LiveNextUpLine(viewModel: viewModel)
+                }
             }
         }
         .padding(.horizontal, 80)
@@ -215,21 +221,6 @@ struct LiveTransportBar: View {
         .animation(.smooth(duration: 0.25), value: viewModel.isPlaying)
         .animation(.smooth(duration: 0.32), value: viewModel.controlsFocus)
         .animation(.smooth(duration: 0.32), value: viewModel.trackDropdown)
-    }
-
-    // MARK: - Live Badge
-
-    /// "LIVE" pill: tinted at the edge, muted while behind live.
-    private var liveBadge: some View {
-        Text("livetv.liveBadge")
-            .font(.callout.bold())
-            .foregroundStyle(viewModel.isAtLiveEdge ? Color.white : .white.opacity(0.5))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(viewModel.isAtLiveEdge ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.Theme.restFillStrong))
-            )
     }
 
     // MARK: - Scrub Preview

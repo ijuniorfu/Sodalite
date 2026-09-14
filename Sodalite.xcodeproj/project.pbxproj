@@ -321,6 +321,7 @@
 		45747BFDA8037D4C6E9C6C69 /* EpisodeRowComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6476801A57CD47661C981732 /* EpisodeRowComponents.swift */; };
 		459C0F637B0778E0067D6FCD /* PosterBadgeEnrichment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */; };
 		45A9E601A7F5BE0E379B4173 /* SeerrEpisodeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77412030533E48E44E837CAC /* SeerrEpisodeCard.swift */; };
+		46103C78CD81689F46A6724B /* LiveRailChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C22420A548F6C0072EBCC1 /* LiveRailChromeTests.swift */; };
 		46A7988A5B20B7F35E16F6F6 /* SodaliteIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F52845EFD489AE02A52FF2 /* SodaliteIntents.swift */; };
 		46B31ACF5E8768417EDBDC42 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB11FC05D955CAA82390899 /* SearchView.swift */; };
 		46DFC36A6F470D9AB58E4422 /* JellyfinServer+DualURLPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDEC2C2F2CA5E9291CBB42D /* JellyfinServer+DualURLPrompt.swift */; };
@@ -1038,6 +1039,7 @@
 		E6983E3A1744D003EE2DB2E2 /* SpoilerRevealMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36F43F707952CA5FA82A9367 /* SpoilerRevealMemory.swift */; };
 		E6A9B7649D104588FE2A0863 /* LiveDirectStreamMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112D849959DE17DC6C5CEED2 /* LiveDirectStreamMemory.swift */; };
 		E6D5E5506FF2F022802F629C /* PlayerHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8A9D90F21B8186EDDE6925 /* PlayerHUD.swift */; };
+		E6E359711921218A2C77630B /* LiveForegroundReturnTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD24D657BE84806F5EFDCAF1 /* LiveForegroundReturnTests.swift */; };
 		E6FAED89AD61AA5A2D4D648B /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015C965A64CF0A6364D1C065 /* Notifications.swift */; };
 		E7240C694C3F8E4B4E05BC9E /* SeerrDiscoverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453749D3E8ADA040F6D60D56 /* SeerrDiscoverService.swift */; };
 		E73A95E567506DCDA467C213 /* SwiftAssRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = F779D9B88DAF51BF2441C24D /* SwiftAssRenderer */; };
@@ -1610,6 +1612,7 @@
 		95BBB8A2288349CD1F679DE0 /* MusicAlbumLoadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicAlbumLoadTests.swift; sourceTree = "<group>"; };
 		961E6A3B7932ED4F14791880 /* SeerrLibraryDedupeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrLibraryDedupeTests.swift; sourceTree = "<group>"; };
 		964D87B3751E5E786DE9A1A7 /* LibraryGridFieldsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryGridFieldsTests.swift; sourceTree = "<group>"; };
+		96C22420A548F6C0072EBCC1 /* LiveRailChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRailChromeTests.swift; sourceTree = "<group>"; };
 		96DEE022060CA00DACCEFDD6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		973120A7DD065FCEB8706D3D /* LiveTVTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTVTabView.swift; sourceTree = "<group>"; };
 		973E8EC25E9E5BB871AC73E7 /* SeerrStatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrStatusBadge.swift; sourceTree = "<group>"; };
@@ -1660,6 +1663,7 @@
 		ABC77BDA6A3B780DF2964CC4 /* ArtworkStateBadges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkStateBadges.swift; sourceTree = "<group>"; };
 		ACAF0DCC3698E211D9E6132F /* CatalogGenreRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogGenreRow.swift; sourceTree = "<group>"; };
 		ACD612B8B5146AAF6925E6A3 /* StoreKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitService.swift; sourceTree = "<group>"; };
+		AD24D657BE84806F5EFDCAF1 /* LiveForegroundReturnTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveForegroundReturnTests.swift; sourceTree = "<group>"; };
 		AD92F70D67DC2DE192A24567 /* ServerManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerManagementView.swift; sourceTree = "<group>"; };
 		ADEF73FE46A03A9182049B99 /* GuideFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuideFilterTests.swift; sourceTree = "<group>"; };
 		AE687783643BAC165016644A /* ActiveUserBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveUserBadge.swift; sourceTree = "<group>"; };
@@ -2203,7 +2207,9 @@
 				4659373CDBBBC7FDC2FFBD79 /* LiveAudioSupportTests.swift */,
 				0CB947C8BD6A86ECA77BE57F /* LiveAudioSwitchTests.swift */,
 				49126AE352E74C931F7DCF0C /* LiveDirectStreamMemoryTests.swift */,
+				AD24D657BE84806F5EFDCAF1 /* LiveForegroundReturnTests.swift */,
 				AEF2E79C20604BD9758A6906 /* LiveProgramsFreshnessTests.swift */,
+				96C22420A548F6C0072EBCC1 /* LiveRailChromeTests.swift */,
 				DABD54A37321E5D6A5380099 /* LiveRailGeometryTests.swift */,
 				7CF3DE694589967D57F43EFD /* LiveRouteChoiceTests.swift */,
 				ED2184A04D5F19994423DC00 /* LiveStreamCloseRouteTests.swift */,
@@ -3798,7 +3804,9 @@
 				AEBDAE90E9D9E1ABA22D9FE5 /* LiveAudioSupportTests.swift in Sources */,
 				99E5202679956A50AC8B6BAA /* LiveAudioSwitchTests.swift in Sources */,
 				D61D6855CD530803B4257585 /* LiveDirectStreamMemoryTests.swift in Sources */,
+				E6E359711921218A2C77630B /* LiveForegroundReturnTests.swift in Sources */,
 				343951C741A10B80D7A15FEF /* LiveProgramsFreshnessTests.swift in Sources */,
+				46103C78CD81689F46A6724B /* LiveRailChromeTests.swift in Sources */,
 				50AC05242DDAD481A91E524E /* LiveRailGeometryTests.swift in Sources */,
 				12AA475E59B238E9FBF519ED /* LiveRouteChoiceTests.swift in Sources */,
 				18EE8C57C3B7131C994AAD71 /* LiveStreamCloseRouteTests.swift in Sources */,
