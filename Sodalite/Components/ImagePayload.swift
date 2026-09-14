@@ -131,6 +131,17 @@ enum ImageFetch {
             configuration: config, delegate: ServerTrustDelegate.shared, delegateQueue: nil)
     }()
 
+    /// Bytes of artwork on disk, and the way to drop them, for the Settings screen that shows what
+    /// Sodalite keeps on this device (Sodalite#117). The decoded images in `ImageCache` sit in an
+    /// `NSCache`, which reports no size at all, so they carry no figure and are only cleared.
+    nonisolated static var cacheDiskUsage: Int {
+        session.configuration.urlCache?.currentDiskUsage ?? 0
+    }
+
+    nonisolated static func clearCache() {
+        session.configuration.urlCache?.removeAllCachedResponses()
+    }
+
     nonisolated static func load(_ request: URLRequest, attempt: Int = 0) async -> Outcome {
         var request = request
         request.cachePolicy = cachePolicy(forAttempt: attempt)

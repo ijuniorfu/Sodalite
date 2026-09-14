@@ -161,6 +161,21 @@ nonisolated final class FilterCache: @unchecked Sendable {
         removeEntries { $0.serverID == serverID }
     }
 
+    /// Bytes these entries occupy, for the Settings screen that shows what Sodalite keeps on this
+    /// device (Sodalite#117). Summed over the files rather than tracked as the cache is written,
+    /// because a counter kept alongside the directory is a second source of truth that drifts the
+    /// first time anything else touches it, the system's own cache eviction included.
+    ///
+    /// Synchronous file IO like everything else here, so call it off the main actor.
+    func diskUsage() -> Int {
+        guard let entries = try? FileManager.default.contentsOfDirectory(
+            at: directory, includingPropertiesForKeys: [.fileSizeKey], options: [.skipsHiddenFiles]
+        ) else { return 0 }
+        return entries.reduce(0) { total, url in
+            total + ((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+        }
+    }
+
     /// Clears every entry regardless of identity; the factory reset.
     func clearAll() {
         guard let entries = try? FileManager.default.contentsOfDirectory(

@@ -17,6 +17,8 @@ final class DependencyContainer {
     }()
     let keychainService: KeychainServiceProtocol
     let httpClient: HTTPClientProtocol
+    /// Seerr's own client, kept so the caches screen can reach the handle it holds on the shared response store.
+    let seerrHTTPClient: HTTPClient
 
     /// Which server certificates this device has been told to accept. The store itself is
     /// process-wide (see `ServerTrustDelegate.shared`, which the first `HTTPClient` needs before this
@@ -176,6 +178,9 @@ final class DependencyContainer {
 
         // Seerr gets its OWN HTTPClient so Catalog browsing doesn't compete with the Home fan-out for the same 6 in-flight permits against a tarpitted Jellyfin CDN (see HTTPClient inFlightLimiter).
         let seerrHTTPClient = HTTPClient()
+        // Kept rather than handed straight to SeerrClient: it holds the second handle on the shared
+        // response cache, and Settings clears both (see DependencyContainer+Caches).
+        self.seerrHTTPClient = seerrHTTPClient
         self.seerrClient = SeerrClient(httpClient: seerrHTTPClient)
         self.seerrServerDiscoveryService = SeerrServerDiscoveryService(httpClient: discoveryClient)
         self.seerrAuthService = SeerrAuthService(client: seerrClient)
