@@ -205,8 +205,8 @@ struct PlayerTouchControls: View {
             // Sodalite#104: the same programme framing the ten-foot bar carries, in the type scale
             // this one already gives its two time slots. Both read one implementation.
             if viewModel.isLiveSession {
-                LiveRailLabels(viewModel: viewModel, font: .caption, rowHeight: 20)
-                LiveNextUpLine(viewModel: viewModel, font: .caption)
+                LiveRailLabels(viewModel: viewModel)
+                LiveNextUpLine(viewModel: viewModel)
             }
 
             HStack {
@@ -289,18 +289,9 @@ struct PlayerTouchControls: View {
         .buttonStyle(.plain)
     }
 
-    /// The same pill the tvOS bar carries: tinted at the live edge, muted while behind it.
+    /// The same pill the tvOS bar carries, in this bar's metrics.
     private var liveBadge: some View {
-        Text("livetv.liveBadge")
-            .font(.caption.bold())
-            .foregroundStyle(viewModel.isAtLiveEdge ? Color.white : .white.opacity(0.5))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(
-                Capsule().fill(viewModel.isAtLiveEdge
-                               ? AnyShapeStyle(.tint)
-                               : AnyShapeStyle(Color.Theme.restFillStrong))
-            )
+        LiveBadge(isAtLiveEdge: viewModel.isAtLiveEdge, horizontalPadding: 10, verticalPadding: 5)
     }
 
     /// The affordance tvOS offers as a focusable pill, with its label: a bare glyph in a row of

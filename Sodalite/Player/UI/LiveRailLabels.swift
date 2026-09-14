@@ -9,10 +9,34 @@ import SwiftUI
 /// type scale and in nothing else, so that is the only thing they pass in.
 struct LiveRailLabels: View {
     let viewModel: PlayerViewModel
+    var font: Font = defaultFont
+    var rowHeight: CGFloat = defaultRowHeight
+
     /// `.callout` on the ten-foot bar, `.caption` on the phone, matching what each transport already
-    /// gives the two slots this row replaces.
-    var font: Font = .callout
-    var rowHeight: CGFloat = 30
+    /// gives the two slots this row replaces. The pair lives here rather than at the call sites so
+    /// the row and its height cannot be set from two different readings of the same platform.
+    static var defaultFont: Font {
+        #if os(tvOS)
+        .callout
+        #else
+        .caption
+        #endif
+    }
+
+    /// As tall as the tallest thing it draws, which is not a free number.
+    ///
+    /// This row was 30 pt on both platforms, a height measured for the phone's `.caption`. tvOS
+    /// `.callout` is 31 pt with a 36.99 pt line and its SF Symbol measures 39.5, so on the television
+    /// the clock sat 3.5 pt above its own row and the press readout, a two-line column of 66 pt, sat
+    /// 18 pt above it: that is where the 4 pt gap to the scrubber went, and the knob grows to 22 pt at
+    /// exactly the moment the readout exists.
+    static var defaultRowHeight: CGFloat {
+        #if os(tvOS)
+        40
+        #else
+        20
+        #endif
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -34,13 +58,17 @@ struct LiveRailLabels: View {
                 // sooner than the television does, which is the right answer on a 350pt rail.
                 if let playheadClock, !clockCollides(width: width) {
                     HStack(spacing: 8) {
-                        if viewModel.seekReadout?.direction == -1 { SeekReadoutView(viewModel: viewModel) }
+                        if let readout = viewModel.seekReadout, readout.direction == -1 {
+                            SeekReadoutView(readout: readout, font: font)
+                        }
                         Text(playheadClock)
                             .font(font)
                             .fontWeight(.medium)
                             .monospacedDigit()
                             .foregroundStyle(.white)
-                        if viewModel.seekReadout?.direction == 1 { SeekReadoutView(viewModel: viewModel) }
+                        if let readout = viewModel.seekReadout, readout.direction == 1 {
+                            SeekReadoutView(readout: readout, font: font)
+                        }
                     }
                     .fixedSize()
                     .position(x: knobX(width), y: rowHeight / 2)
@@ -73,7 +101,7 @@ struct LiveRailLabels: View {
 /// counts toward.
 struct LiveNextUpLine: View {
     let viewModel: PlayerViewModel
-    var font: Font = .callout
+    var font: Font = LiveRailLabels.defaultFont
 
     var body: some View {
         if let next = viewModel.liveNextProgram, let starts = next.startDate {
@@ -108,18 +136,24 @@ struct LiveNextUpLine: View {
 /// nothing else: a 15x to 240x scan has no countable step, so a fixed-interval glyph over it would be
 /// a lie. Nothing draws here on the touch transport, where a skip commits on the tap that asked for
 /// it and flashes its own HUD.
+///
+/// Both readouts stay on ONE line, beside the clock rather than over it: a column of glyph over
+/// count is 66 pt against the clock's 37 on tvOS, and a stack centred on the clock's line spends the
+/// difference upwards, into the gap that separates this row from a knob which is 22 pt wide exactly
+/// while the readout is drawn. The burst count reads the same beside the glyph as under it.
 struct SeekReadoutView: View {
-    let viewModel: PlayerViewModel
+    let readout: SeekReadout
+    var font: Font = LiveRailLabels.defaultFont
 
     var body: some View {
-        switch viewModel.seekReadout {
+        switch readout {
         case .press(let seconds, let count, let direction):
-            VStack(spacing: 2) {
+            HStack(spacing: 4) {
                 Image(systemName: SkipGlyph.name(seconds: seconds, direction: direction))
-                    .font(.callout)
+                    .font(font)
                 if count > 1 {
                     Text(verbatim: "\(count)x")
-                        .font(.caption2)
+                        .font(font)
                         .monospacedDigit()
                 }
             }
@@ -128,15 +162,43 @@ struct SeekReadoutView: View {
         case .hold(let rate, let direction):
             HStack(spacing: 4) {
                 Image(systemName: direction < 0 ? "chevron.left.2" : "chevron.right.2")
-                    .font(.callout)
+                    .font(font)
                 Text(verbatim: "\(rate)x")
-                    .font(.caption)
+                    .font(font)
                     .monospacedDigit()
             }
             .foregroundStyle(.white)
             .transition(.opacity)
-        case nil:
-            EmptyView()
         }
+    }
+}
+
+/// Sodalite#104: whether the picture is live is a STATUS, so the badge says it in the palette's
+/// status colour and not in the accent.
+///
+/// It cannot be focused and it cannot be pressed, and it was filled with the exact colour every
+/// focusable control in its row wears; on the phone it sat beside the Return to Live BUTTON in the
+/// same tint, one of the two pressable and one not. The chip keeps the tint precisely so that the two
+/// stop looking alike.
+///
+/// The colour moves to the WORD rather than the fill, which is both where the palette puts `success`
+/// everywhere else and the only legible way round: a white label on a system-green fill measures
+/// 2.0:1, under any reading of large text, while the green word on the rest fill measures 8.2:1 on
+/// black and 3.4:1 against the brightest picture the control scrim lets through. The pill itself
+/// therefore never changes, which is the honest drawing too, since what changes is the word.
+struct LiveBadge: View {
+    let isAtLiveEdge: Bool
+    var font: Font = LiveRailLabels.defaultFont
+    var horizontalPadding: CGFloat = 12
+    var verticalPadding: CGFloat = 8
+
+    var body: some View {
+        Text("livetv.liveBadge")
+            .font(font.bold())
+            .foregroundStyle(isAtLiveEdge ? AnyShapeStyle(Color.Theme.success)
+                                          : AnyShapeStyle(Color.white.opacity(0.5)))
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(Capsule().fill(Color.Theme.restFillStrong))
     }
 }
