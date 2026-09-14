@@ -308,6 +308,14 @@ struct SettingsView: View {
             ) {
                 DiagnosticLogView()
             }
+
+            SettingsTile(
+                icon: "internaldrive",
+                title: "settings.cachedData.title",
+                subtitle: "settings.cachedData.subtitle"
+            ) {
+                CachedDataView()
+            }
         }
     }
 

@@ -26,6 +26,23 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
+    // MARK: - Response cache
+
+    /// Bytes the response cache holds on disk, for the Settings screen that shows it
+    /// (Sodalite#117).
+    ///
+    /// Read from ONE client, never summed across them: every client this app builds passes the same
+    /// `diskPath`, so they are handles on one store and adding their figures would count the same
+    /// bytes twice. Clearing does walk every client, because the memory half is per instance.
+    nonisolated var cacheDiskUsage: Int {
+        session.configuration.urlCache?.currentDiskUsage ?? 0
+    }
+
+    /// Drops every cached response this client can reach, on disk and in memory.
+    nonisolated func clearCache() {
+        session.configuration.urlCache?.removeAllCachedResponses()
+    }
+
     /// Caps in-flight requests: unthrottled Home fan-out (60-90 reqs) trips a CDN/WAF in front of Jellyfin into tarpitting + timeout-nil rows (Sodalite#12/#14). 6 = browser-like per-host; per-client so Jellyfin/Seerr don't share a budget.
     private let inFlightLimiter = AsyncSemaphore(limit: 6)
 
