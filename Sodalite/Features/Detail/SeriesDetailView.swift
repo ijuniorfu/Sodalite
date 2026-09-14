@@ -1407,23 +1407,14 @@ struct SeriesDetailView: View {
                                         }
                                     }
                                     #endif
-                                    #if os(tvOS)
+                                    // The system preview, deliberately: it snapshots the real view
+                                    // in the real environment, so it carries the accent, the theme
+                                    // and the page's own ground. A hand-built one is a second view
+                                    // hierarchy outside all three, and it showed: default blue and a
+                                    // grey platter (2026-09-14). What the snapshot cannot do is
+                                    // reach outside the card's bounds, which is why the ring now
+                                    // lives inside them (see EpisodeCardStroke.ringMargin).
                                     .contextMenu { episodeContextMenu(episode, vm: vm) }
-                                    #else
-                                    // With a preview of its own, because the default one is a
-                                    // snapshot of the card's BOUNDS and the play-target ring is
-                                    // drawn outside them (an outer stroke at -3 pt, so the artwork
-                                    // keeps its full size, Sodalite#134). Lifted, three of its four
-                                    // sides were cut off. Given the stroke's own width as padding it
-                                    // fits inside what the snapshot takes. Predates this branch,
-                                    // reported 2026-09-14.
-                                    .contextMenu {
-                                        episodeContextMenu(episode, vm: vm)
-                                    } preview: {
-                                        episodeCard(episode, vm: vm, playTargetID: playTargetID)
-                                            .padding(EpisodeCardStroke.focused.lineWidth)
-                                    }
-                                    #endif
 
                                     // Per-card synopsis box; reserves a fixed three-line height even when empty so every column stays the same height.
                                     EpisodeSynopsisBox(
