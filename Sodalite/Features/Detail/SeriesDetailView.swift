@@ -956,29 +956,41 @@ struct SeriesDetailView: View {
         return vm.episodes.first
     }
 
+    /// Sodalite#146: the label is the state, and on a fresh target it also names the episode, which
+    /// is the one thing the show hero has to say before the press. A special with no index numbers
+    /// has no shorthand to name, and then the plain label stands.
     private func playTitle(vm: DetailViewModel) -> LocalizedStringKey {
-        if let ticks = playTarget(vm: vm)?.userData?.playbackPositionTicks,
-           ticks > 0 {
-            return "detail.resume"
+        guard let target = playTarget(vm: vm) else { return "detail.play" }
+        switch playState(for: target) {
+        case .resume: return "detail.resume"
+        case .again: return "detail.playAgain"
+        case .fresh:
+            let shorthand = episodeShorthand(for: target)
+            return shorthand.isEmpty ? "detail.play" : "detail.play.episode.named \(shorthand)"
         }
-        return "detail.play"
     }
 
-    /// Play-button subtitle: "S1, E5 · 12:34" when resuming, "S1, E5" fresh, nil if no resolvable target.
+    /// Play-button subtitle: "S1, E5 · 42 min" when resuming, "S1, E5" on a re-watch, and nothing at
+    /// all when fresh, because the title already named the episode. Time LEFT rather than the
+    /// position reached, the same thing the bar above it and every card in the app say.
     private func playButtonSubtitle(vm: DetailViewModel) -> String? {
         guard let target = playTarget(vm: vm) else { return nil }
+        guard playState(for: target) != .fresh || episodeShorthand(for: target).isEmpty else { return nil }
 
         var parts: [String] = []
         let episodeLabel = episodeShorthand(for: target)
         if !episodeLabel.isEmpty {
             parts.append(episodeLabel)
         }
-        if let ticks = target.userData?.playbackPositionTicks,
-           ticks > 0,
-           let stamp = ResumeTimeFormatter.format(ticks: ticks) {
-            parts.append(stamp)
+        if let remaining = target.resumeRemainingTicks?.ticksToCompactDisplay {
+            parts.append(remaining)
         }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private func playState(for target: JellyfinItem) -> PlayActionState {
+        PlayActionState.resolve(positionTicks: target.userData?.playbackPositionTicks,
+                                isPlayed: target.userData?.played == true)
     }
 
     /// 0…1 progress into the target episode; nil when fresh or no run-time metadata so the button suppresses the overlay instead of drawing an empty bar.

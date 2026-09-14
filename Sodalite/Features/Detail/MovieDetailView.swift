@@ -460,7 +460,7 @@ struct MovieDetailView: View {
             title: playButtonTitle(vm: vm),
             systemImage: "play.fill",
             isProminent: true,
-            subtitle: resumeTimestamp(vm: vm),
+            subtitle: resumeRemaining(vm: vm),
             progressFraction: playProgressFraction(vm: vm),
             action: {
                 requestPlay(fromBeginning: false)
@@ -563,17 +563,24 @@ struct MovieDetailView: View {
         return false
     }
 
+    /// Sodalite#146: the label is the state. A finished title used to read "Play", which is true and
+    /// says nothing; naming the replay is what tells the viewer they have seen this without their
+    /// having to find the watched check in the row below.
     private func playButtonTitle(vm: DetailViewModel) -> LocalizedStringKey {
-        if hasProgress(vm: vm) { return "detail.resume" }
-        return "detail.play"
+        switch PlayActionState.resolve(positionTicks: vm.item.userData?.playbackPositionTicks,
+                                       isPlayed: vm.isPlayed) {
+        case .fresh: "detail.play"
+        case .resume: "detail.resume"
+        case .again: "detail.playAgain"
+        }
     }
 
-    /// Formatted resume timestamp for the play-button subtitle, or nil when there's nothing to resume (fresh or finished).
-    private func resumeTimestamp(vm: DetailViewModel) -> String? {
-        guard let ticks = vm.item.userData?.playbackPositionTicks, ticks > 0 else {
-            return nil
-        }
-        return ResumeTimeFormatter.format(ticks: ticks)
+    /// Time left, not the position reached (Sodalite#146). The button draws a progress bar and so
+    /// does every card in the app, and the card's label beside it has read "42 min" since
+    /// Sodalite#99, so a timestamp here was the one place answering a different question. No "left"
+    /// wrapper for the same reason the cards carry none: the bar says what the number counts.
+    private func resumeRemaining(vm: DetailViewModel) -> String? {
+        vm.item.resumeRemainingTicks?.ticksToCompactDisplay
     }
 
     /// 0…1 progress for the play button's overlay; nil when fresh or no run-time metadata.
