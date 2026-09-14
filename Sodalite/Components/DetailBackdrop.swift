@@ -241,10 +241,11 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 // being clipped on the left). Matches the primary slot's constraint.
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 80)
-                .background(Color.Theme.scrim)
+                .background(alignment: .top) { tuckGround }
 
-                // Trailing filler so a short content block doesn't end in a hard gradient edge; same scrim, sized past any 4K tvOS safe-area inset.
-                Color.Theme.scrim
+                // Trailing filler so a short content block doesn't end in a hard edge; the page
+                // ground continues, sized past any 4K tvOS safe-area inset.
+                Color.Theme.surface
                     .frame(minHeight: trailingFiller)
                     .overlay(alignment: .bottom) {
                         // Rubber-band overscroll pulls the content clear of the bottom edge and would
@@ -254,7 +255,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         // no scroll travel of its own. Reading the overscroll from scroll geometry and
                         // sizing a fixed band instead does not work, the state update never reaches the
                         // overlay while the drag is in flight (measured, height stayed 0).
-                        Color.Theme.scrim
+                        Color.Theme.surface
                             .frame(height: 600)
                             .offset(y: 600)
                             .allowsHitTesting(false)
@@ -523,6 +524,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         #endif
     }
 
+    private var tuckGround: some View { TuckGround() }
+
     // Hero rides as a gradient overlay (not a stacked layer) to keep the sibling structure the focus engine scrolls; drawn on top so the logo stays visible. Full-bleed redesign (Sodalite#15): backdrop stays behind a scrim, text containers carry their own material.
     private var gradientWithHero: some View {
         LinearGradient(
@@ -538,6 +541,64 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .padding(.trailing, safeTrailing)
                 .padding(.bottom, 8)
         }
+    }
+}
+
+/// The ground under everything below the fold (Sodalite#146).
+///
+/// It used to be `Color.Theme.scrim`, black at 0.55, so the backdrop carried on behind the poster
+/// rows and the cast circles at about a third of its luminance. On a bright, saturated backdrop that
+/// is a colour cast over other titles' artwork, which is what "the fanart makes the lower rows hard
+/// to read" means. The page ground is flat and neutral now, and the artwork hands over to it across
+/// a band at the fold.
+///
+/// Flat, not a hue sampled from the artwork the way iPhone portrait does (Sodalite#95). The phone's
+/// page below its band is a narrow column that is mostly margin; a 10-foot page is a wall of OTHER
+/// titles' posters, and a hue pulled from this one sitting behind them reads as a cast rather than
+/// as atmosphere. Two layouts, two answers.
+///
+/// The band is the phone's own recipe, and every stop is the destination colour at a different
+/// opacity, never `.clear`: `.clear` is transparent BLACK, so fading through it drags the artwork
+/// across a grey band that reads as exactly the edge the dissolve exists to remove. The eased stops
+/// and the 150 pt run are the second half of that, a linear 96 pt ramp still showed the cut on a
+/// bright backdrop (device, 2026-08-30).
+///
+/// Nothing here is scroll-driven, and nothing needs to be: the band is part of the scrolling
+/// content, so it tracks the finger and the remote one-to-one by construction and reverses exactly
+/// on the way back up.
+struct TuckGround: View {
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+
+    /// How far the artwork takes to become the page. A floor rather than a measurement: the phone
+    /// needed 150 pt on a far smaller screen, and the first tuck row peeks about that far above the
+    /// fold, so the dissolve finishes where content starts.
+    ///
+    /// Shorter in a compact width, which here means iPhone LANDSCAPE (portrait draws its own band in
+    /// `portraitBody` and never reaches this): 150 pt is most of a 390 pt landscape viewport, so the
+    /// artwork would still be showing through under the whole first screen of rows.
+    static func handoverHeight(compact: Bool) -> CGFloat { compact ? 100 : 150 }
+
+    private var handover: CGFloat { Self.handoverHeight(compact: hSizeClass == .compact) }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            LinearGradient(
+                stops: [
+                    .init(color: Color.Theme.surface.opacity(0), location: 0),
+                    .init(color: Color.Theme.surface.opacity(0.12), location: 0.30),
+                    .init(color: Color.Theme.surface.opacity(0.45), location: 0.58),
+                    .init(color: Color.Theme.surface.opacity(0.85), location: 0.82),
+                    .init(color: Color.Theme.surface, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: handover)
+            Color.Theme.surface
+        }
+        // Under the band, so its transparent half still carries the hero's own ground and the seam
+        // at the fold has nothing to step over.
+        .background(Color.Theme.scrim)
     }
 }
 
