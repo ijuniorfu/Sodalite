@@ -35,9 +35,11 @@ struct SeriesDetailView: View {
     @FocusState private var focusBridgeActive: Bool
     /// Play button enters the hierarchy only after isLoading flips false, so the focus engine has nothing to auto-land on at first paint; pushed explicitly via .onChange below.
     @FocusState private var playButtonFocused: Bool
-    /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
-    /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
-    @State private var overviewHasFocus = false
+    /// Which control in the action row holds focus, nil while focus is anywhere else on the page.
+    /// The secondaries leave the focus engine for that time, so an up-move out of the content can
+    /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
+    /// away). See `DetailAction`.
+    @FocusState private var focusedAction: DetailAction?
     @State private var isPresentingDeleteSheet: Bool = false
     @State private var isPresentingMoreDetails = false
     /// Set on episode "Show Details": the context menu restores focus to its anchor card on dismiss, so the focusedEpisodeID observer bounces focus up to the play button.
@@ -73,6 +75,8 @@ struct SeriesDetailView: View {
         }
     }
 
+    /// Whether Menu has a series state to go back to, or has to leave the page. See the type.
+    @State private var episodeOrigin = EpisodeStateOrigin()
     @State private var episodeRedirectDone = false
     /// Sticky: set when the episode row had focus so the season bar's onChange distinguishes "scrolled up from episodes" from "tabbing between tabs" and snaps focus back to the playing season (else tvOS lands on whichever tab is geographically above the last episode).
     @State private var episodesHadFocus = false
@@ -213,10 +217,16 @@ struct SeriesDetailView: View {
         // Menu returns to the series state rather than dismissing the page (Sodalite#146). The page
         // swaps its header for an episode rather than pushing a screen, so tvOS had nothing to pop
         // and Menu went straight past it to the detail cover: opening an episode cost the whole show
-        // page to get back out of. Enabled only while the episode state is open, and via the
-        // nil-passing helper, because an empty closure would swallow the press that has to reach the
-        // cover or the navigation stack behind it (Sodalite#140).
-        .onExitCommandIfEnabled(isShowingEpisode, perform: closeEpisodeState)
+        // page to get back out of.
+        //
+        // Only when a series state is actually BEHIND this one. An episode opened from Continue
+        // Watching arrives with the page already in the episode state, and intercepting there put a
+        // series page the viewer never asked for between them and Home, which is one press more than
+        // before (Vincent, device, 2026-09-14).
+        //
+        // Via the nil-passing helper, because an empty closure would swallow the press that has to
+        // reach the cover or the navigation stack behind it (Sodalite#140).
+        .onExitCommandIfEnabled(isShowingEpisode && episodeOrigin.hasSeriesStateBehind, perform: closeEpisodeState)
         // iPhone portrait respects the safe area so detail content is not clipped under the status
         // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         .ignoresSafeArea(when: !isPhonePortrait)
@@ -299,6 +309,7 @@ struct SeriesDetailView: View {
             guard let episode = note.userInfo?[PlayerItemSwitchKey.item] as? JellyfinItem,
                   episode.seriesId == item.id else { return }
             playItem = episode
+            episodeOrigin.playerAdvanced(fromSeriesState: selectedEpisode == nil)
             selectedEpisode = episode
             // The row's memory still names the card the player was started from, ten auto-advances
             // ago. Move it along with the session, else every entry into the row (the return from
@@ -520,27 +531,12 @@ struct SeriesDetailView: View {
             // Captured proxy lets player-dismiss scroll the outer ScrollView back to the episode row, else tvOS's scroll-focus-into-view runs against a not-yet-rendered state and jumps to the top.
             ScrollViewReader { outerProxy in
                 VStack(alignment: .leading, spacing: 40) {
-                    // Navigable synopsis box, both modes; a top-level item keyed on item id renders reliably on data-land, unlike an in-panel teaser the ScrollView left blank until a scroll.
-                    if let overview = displayOverview {
-                        // displayItem is the series in series mode and the selected episode
-                        // in episode mode, so the series overview stays visible (the policy
-                        // ignores .series) while the episode overview is veiled.
-                        // Up out of the box lands on the row's last button, Delete, unless it
-                        // is corrected: the engine resolves it from the box's centre (Sodalite#53).
-                        ExpandableTextBox(
-                            text: overview,
-                            spoilerItem: displayItem,
-                            onFocusMovedUp: { playButtonFocused = true },
-                            onFocusChanged: { overviewHasFocus = $0 }
-                        )
-                        .padding(.horizontal, metrics.rowInset)
-                        .id(displayItem.id)
-                    } else if overviewMayStillLand {
-                        // Slim-snapshot paint, overview in flight: reserve the footprint so it doesn't pop in and shove the season row down (Sodalite#15).
-                        ExpandableTextBoxPlaceholder()
-                            .padding(.horizontal, metrics.rowInset)
-                    }
-
+                    // No synopsis block here any more (Sodalite#146). Three lines of it sit in the
+                    // first viewport and the whole of it is behind More Details, so a third copy
+                    // under the fold was the page saying the same thing twice with a focus stop
+                    // between. The season bar is the first stop now, and the up-move out of it is
+                    // handled the way #53 measured: the secondaries leave the focus engine while
+                    // focus is not in the action row.
                     if !vm.seasons.isEmpty {
                         seasonSection(vm: vm)
                             .id("episodeRow")
@@ -721,6 +717,12 @@ struct SeriesDetailView: View {
         )
     }
 
+    /// displayItem, so the episode state asks about the episode: the policy ignores a series, which
+    /// is what keeps a show's own synopsis visible while its episodes are veiled.
+    private var isSynopsisVeiled: Bool {
+        SpoilerReveal.isHidden(displayItem, dependencies: dependencies, appState: appState)
+    }
+
     /// Everything the page can say about the copy it is describing, for the reader and the caption
     /// line alike, so the two cannot describe different files. displayItem, so both follow the
     /// episode on screen.
@@ -758,7 +760,7 @@ struct SeriesDetailView: View {
                 DetailActionRow {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
-                        .focusSuppressed(overviewHasFocus)
+                        .focusSuppressed(focusedAction == nil)
                 }
             }
         }
@@ -788,6 +790,7 @@ struct SeriesDetailView: View {
                 }
             }
         )
+        .focused($focusedAction, equals: .play)
         .focused($playButtonFocused)
     }
 
@@ -854,6 +857,7 @@ struct SeriesDetailView: View {
                         )
                     }
                 )
+                .focused($focusedAction, equals: .version)
             }
 
             // Shuffle whole series (server SortBy=Random scoped by series id). Hidden in the episode panel.
@@ -884,6 +888,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 )
+                .focused($focusedAction, equals: .shuffle)
             }
 
             // Restart-from-beginning when the play target carries progress (button reads "Resume"), mirroring MovieDetailView. playTarget covers both series root and episode panel.
@@ -897,6 +902,7 @@ struct SeriesDetailView: View {
                         requestPlay(target, fromBeginning: true, fromPlayButton: true)
                     }
                 )
+                .focused($focusedAction, equals: .replay)
             }
 
             if !isShowingEpisode && vm.hasLocalTrailer {
@@ -914,6 +920,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 )
+                .focused($focusedAction, equals: .trailer)
             }
 
             if !isShowingEpisode {
@@ -922,6 +929,7 @@ struct SeriesDetailView: View {
                     systemImage: vm.isFavorite ? "heart.fill" : "heart",
                     action: { Task { await vm.toggleFavorite() } }
                 )
+                .focused($focusedAction, equals: .favorite)
             }
 
             if !isShowingEpisode {
@@ -930,6 +938,7 @@ struct SeriesDetailView: View {
                     systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
                     action: { Task { await vm.togglePlayed() } }
                 )
+                .focused($focusedAction, equals: .watched)
             }
 
             // Shows the EFFECTIVE state for this series, so a tap always reads as "do the other
@@ -944,6 +953,7 @@ struct SeriesDetailView: View {
                     systemImage: hidesNow ? "eye" : "eye.slash",
                     action: { setSpoilerRule(hidesNow ? .shown : .hidden, seriesID: seriesID) }
                 )
+                .focused($focusedAction, equals: .spoiler)
                 .contextMenu { spoilerRuleMenu(seriesID: seriesID) }
             }
 
@@ -955,6 +965,7 @@ struct SeriesDetailView: View {
                     systemImage: "tv",
                     action: { closeEpisodeState() }
                 )
+                .focused($focusedAction, equals: .goToShow)
             }
 
             // Deliberately selectedEpisode, not playTarget: playTarget also resolves to an episode
@@ -968,6 +979,7 @@ struct SeriesDetailView: View {
                         Task { await vm.setEpisodeFavorite(ep, isFavorite: target) }
                     }
                 )
+                .focused($focusedAction, equals: .favorite)
             }
 
             if isShowingEpisode, let ep = selectedEpisode {
@@ -979,6 +991,7 @@ struct SeriesDetailView: View {
                         Task { await vm.setEpisodePlayed(ep, isPlayed: target) }
                     }
                 )
+                .focused($focusedAction, equals: .watched)
             }
 
             if !isShowingEpisode,
@@ -992,15 +1005,31 @@ struct SeriesDetailView: View {
                         navigateToSeerrRequest = .stub(tmdbID: tmdbID, mediaType: .tv)
                     }
                 )
+                .focused($focusedAction, equals: .request)
             }
 
             // Last of the informational controls, and the page's only route to the full synopsis
             // and the technical detail (Sodalite#146).
             GlassActionButton(
-                title: "detail.moreDetails",
-                systemImage: "info.circle",
-                action: { isPresentingMoreDetails = true }
+                title: isSynopsisVeiled ? "spoiler.reveal" : "detail.moreDetails",
+                systemImage: isSynopsisVeiled ? "eye.circle" : "info.circle",
+                action: {
+                    // One label, one meaning at a time. While the synopsis is veiled this is what
+                    // lifts it, which is the job the focusable box below the fold used to do; the
+                    // reader would otherwise be a way around the spoiler rule (Sodalite#50).
+                    //
+                    // `eye.circle`, not `eye`: the series row already carries a plain `eye` for the
+                    // per-SERIES rule, and two identical glyphs in one row would be a one-off reveal
+                    // and a standing setting wearing the same face. Circular, so it reads as this
+                    // button in another state rather than as a different control.
+                    if isSynopsisVeiled {
+                        SpoilerReveal.reveal(displayItem, dependencies: dependencies, appState: appState)
+                    } else {
+                        isPresentingMoreDetails = true
+                    }
+                }
             )
+            .focused($focusedAction, equals: .moreDetails)
 
             // Delete last, matching MovieDetailView, so the destructive action sits furthest from Play.
             if canDelete && !isShowingEpisode {
@@ -1010,6 +1039,7 @@ struct SeriesDetailView: View {
                     isDestructive: true,
                     action: { isPresentingDeleteSheet = true }
                 )
+                .focused($focusedAction, equals: .delete)
             }
     }
 
@@ -1068,6 +1098,7 @@ struct SeriesDetailView: View {
     /// so a viewer who opened an episode lost the show page to get out of it.
     private func closeEpisodeState() {
         withAnimation(.easeInOut(duration: 0.3)) { selectedEpisode = nil }
+        episodeOrigin.returnedToSeries()
     }
 
     private func playState(for target: JellyfinItem) -> PlayActionState {
@@ -1296,6 +1327,7 @@ struct SeriesDetailView: View {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 selectedEpisode = episode
                                             }
+                                            episodeOrigin.openedFromStrip()
                                             scrollToEpisodePanel()
                                         } label: {
                                             EpisodeInfoHint(posterWidth: metrics.posterSize.width)
@@ -1318,6 +1350,7 @@ struct SeriesDetailView: View {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 selectedEpisode = episode
                                             }
+                                            episodeOrigin.openedFromStrip()
                                             #if os(tvOS)
                                             // Context menu restores focus to this card on dismiss; flag it so the focusedEpisodeID observer bounces focus up to Play (a fixed delay lost the race against the restore). The delayed write is a fallback when focus never visibly cycles.
                                             pendingPlayFocusAfterMenu = true

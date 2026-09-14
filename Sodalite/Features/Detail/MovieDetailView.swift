@@ -22,9 +22,11 @@ struct MovieDetailView: View {
     @State private var isPresentingDeleteSheet: Bool = false
     @State private var isPresentingMoreDetails = false
     @FocusState private var playButtonFocused: Bool
-    /// Overview box below the fold holds focus: the secondary buttons leave the focus engine for
-    /// that time so an up-move can only land on Play (Sodalite#53 follow-up).
-    @State private var overviewHasFocus = false
+    /// Which control in the action row holds focus, nil while focus is anywhere else on the page.
+    /// The secondaries leave the focus engine for that time, so an up-move out of the content can
+    /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
+    /// away). See `DetailAction`.
+    @FocusState private var focusedAction: DetailAction?
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition. The viewModel is built lazily in onAppear, so isLoading flips several times (nil->false->true->false) WHILE the fullScreenCover is dissolving in; animating those flips interpolates the content's not-yet-laid-out frame (origin top-left) and reads as an ugly fly-in. Enabled ~0.35s after appear so the later, deliberate slow-server spinner->content fade still animates.
     @State private var didSettleIn = false
 
@@ -315,25 +317,9 @@ struct MovieDetailView: View {
                 }
                 .padding(.horizontal, metrics.rowInset)
             }) {
-                if let overview = vm.item.overview, !overview.isEmpty {
-                    // Coming back up from the overview lands on the row's last button, Delete, unless
-                    // it is corrected: the engine resolves the move from the box's centre (Sodalite#53).
-                    ExpandableTextBox(
-                        text: overview,
-                        spoilerItem: vm.item,
-                        onFocusMovedUp: { playButtonFocused = true },
-                        onFocusChanged: { overviewHasFocus = $0 }
-                    )
-                    .padding(.horizontal, metrics.rowInset)
-                } else if !vm.hasFullDetail {
-                    // Overview in flight after a snapshot paint: reserve the footprint (Sodalite#15).
-                    ExpandableTextBoxPlaceholder()
-                        .padding(.horizontal, metrics.rowInset)
-                }
-
-                // Cast ahead of the tech strip (Sodalite#47): the four tech cards cost about a
-                // screen third, so the cast row was several remote presses down for viewers who
-                // only want the people. Codec details stay one row further for those who want them.
+                // No synopsis block here any more (Sodalite#146). Three lines of it sit in the
+                // first viewport and the whole of it is behind More Details, so a third copy under
+                // the fold was the page saying the same thing twice with a focus stop between.
                 if let people = vm.item.people, !people.isEmpty {
                     MediaCastRow(
                         members: jellyfinCastMembers(
@@ -459,6 +445,10 @@ struct MovieDetailView: View {
         )
     }
 
+    private func isSynopsisVeiled(vm: DetailViewModel) -> Bool {
+        SpoilerReveal.isHidden(vm.item, dependencies: dependencies, appState: appState)
+    }
+
     /// Everything the page can say about the copy it is describing. Read once per body pass and
     /// handed to both the reader and the caption line, so the two cannot describe different files.
     private func techFacts(vm: DetailViewModel) -> TechFacts {
@@ -492,7 +482,7 @@ struct MovieDetailView: View {
                 DetailActionRow {
                     primaryActionButton(vm: vm)
                     secondaryActionButtons(vm: vm)
-                        .focusSuppressed(overviewHasFocus)
+                        .focusSuppressed(focusedAction == nil)
                 }
             }
         }
@@ -509,6 +499,7 @@ struct MovieDetailView: View {
                 requestPlay(fromBeginning: false)
             }
         )
+        .focused($focusedAction, equals: .play)
         .focused($playButtonFocused)
     }
 
@@ -532,6 +523,7 @@ struct MovieDetailView: View {
                         )
                     }
                 )
+                .focused($focusedAction, equals: .version)
             }
 
             if hasProgress(vm: vm) {
@@ -542,6 +534,7 @@ struct MovieDetailView: View {
                         requestPlay(fromBeginning: true)
                     }
                 )
+                .focused($focusedAction, equals: .replay)
             }
 
             if vm.hasLocalTrailer {
@@ -557,6 +550,7 @@ struct MovieDetailView: View {
                         }
                     }
                 )
+                .focused($focusedAction, equals: .trailer)
             }
 
             if vm.item.type != .episode {
@@ -565,6 +559,7 @@ struct MovieDetailView: View {
                     systemImage: vm.isFavorite ? "heart.fill" : "heart",
                     action: { Task { await vm.toggleFavorite() } }
                 )
+                .focused($focusedAction, equals: .favorite)
             }
 
             if vm.item.type == .episode, let seriesId = vm.item.seriesId {
@@ -578,6 +573,7 @@ struct MovieDetailView: View {
                         )
                     }
                 )
+                .focused($focusedAction, equals: .goToShow)
             }
 
             // No "Request in Seerr" on movie detail: the movie is already in Jellyfin. The button stays on series detail for continuing shows.
@@ -587,14 +583,30 @@ struct MovieDetailView: View {
                 systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
                 action: { Task { await vm.togglePlayed() } }
             )
+            .focused($focusedAction, equals: .watched)
 
             // Last of the informational controls, and the page's only route to the full synopsis
             // and the technical detail (Sodalite#146).
             GlassActionButton(
-                title: "detail.moreDetails",
-                systemImage: "info.circle",
-                action: { isPresentingMoreDetails = true }
+                title: isSynopsisVeiled(vm: vm) ? "spoiler.reveal" : "detail.moreDetails",
+                systemImage: isSynopsisVeiled(vm: vm) ? "eye.circle" : "info.circle",
+                action: {
+                    // One label, one meaning at a time. While the synopsis is veiled this is what
+                    // lifts it, which is the job the focusable box below the fold used to do; the
+                    // reader would otherwise be a way around the spoiler rule (Sodalite#50).
+                    //
+                    // `eye.circle`, not `eye`: the series row already carries a plain `eye` for the
+                    // per-SERIES rule, and two identical glyphs in one row would be a one-off reveal
+                    // and a standing setting wearing the same face. Circular, so it reads as this
+                    // button in another state rather than as a different control.
+                    if isSynopsisVeiled(vm: vm) {
+                        SpoilerReveal.reveal(vm.item, dependencies: dependencies, appState: appState)
+                    } else {
+                        isPresentingMoreDetails = true
+                    }
+                }
             )
+            .focused($focusedAction, equals: .moreDetails)
 
             // Episodes only reach here via DetailRouterView's no-parent-series fallback; per-episode deletion isn't supported (delete lives on series detail, matching SeriesDetailView's !isShowingEpisode guard).
             if canDelete && item.type != .episode {
@@ -604,6 +616,7 @@ struct MovieDetailView: View {
                     isDestructive: true,
                     action: { isPresentingDeleteSheet = true }
                 )
+                .focused($focusedAction, equals: .delete)
             }
     }
 

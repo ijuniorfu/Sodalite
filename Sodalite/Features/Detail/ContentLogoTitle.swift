@@ -139,8 +139,8 @@ struct ContentLogoTitle<Fallback: View>: View {
             }
         }
         // Fixed-height slot, bottom-anchored: the mark and the text title share a baseline, so a
-        // late-arriving logo cannot move the block's top edge (the pattern ExpandableTextBoxPlaceholder
-        // uses for the overview, Sodalite#15). Also the thing that measures the column.
+        // late-arriving logo cannot move the block's top edge (the pattern DetailHeroSynopsis uses
+        // for the synopsis, Sodalite#15). Also the thing that measures the column.
         //
         // budget.maxHeight is the CEILING, what a 1:1 mark draws, not the nominal. Reserving it costs
         // no layout anywhere: every tier hands the hero to an OVERLAY in a fixed band (200pt gradient
