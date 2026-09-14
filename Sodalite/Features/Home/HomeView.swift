@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: HomeViewModel?
     @State private var selectedItem: JellyfinItem?
     @State private var selectedFilter: FilterDestination?
@@ -31,7 +32,9 @@ struct HomeView: View {
     /// no URL editor).
     @State private var showAddURLSheet = false
 
-    private static let refreshStaleSeconds: TimeInterval = 60
+    /// True while something is presented over Home: a detail page or a filtered grid. Home is not
+    /// the screen then, which is what the two refresh observers below ask about.
+    private var isCovered: Bool { selectedItem != nil || selectedFilter != nil }
 
     var body: some View {
         ThemeNavigationStack {
@@ -83,11 +86,32 @@ struct HomeView: View {
                     serverID: appState.activeServer?.id ?? userID
                 )
                 Task { await viewModel?.loadContent() }
-            } else if let last = viewModel?.lastLoadedAt,
-                      Date().timeIntervalSince(last) > Self.refreshStaleSeconds {
-                // Pick up new server-side content on return after 60 s: tight enough to show additions fast, loose enough that tab-hopping doesn't spam the server.
-                Task { await viewModel?.loadContent() }
+            } else {
+                // Pick up new server-side content on the way back to the tab; the view model owns
+                // the age that is worth a refetch, because the foreground observer below asks it
+                // the same question.
+                Task { await viewModel?.refreshIfStale() }
             }
+        }
+        // The app coming back to the foreground, which is the return `onAppear` does not cover: a
+        // background round trip fires scenePhase transitions and nothing else (measured on tvOS
+        // 26.5 and iOS 26.5). Without this, an Apple TV that slept with Sodalite open showed the
+        // shelf from before it slept until the app was force quit (Sodalite#117).
+        //
+        // Not while something is presented over Home. The screen the user is actually on owns the
+        // moment, and a fan-out landing on the shared request limiter next to a player that is
+        // rebuilding its pipeline is the class of burst that starves a stream (Sodalite#12). The
+        // observer below picks it up when the cover goes.
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, !isCovered else { return }
+            Task { await viewModel?.refreshIfStale() }
+        }
+        // Home becoming the screen again. A cover dismiss fires no `onAppear` either (measured,
+        // iOS 26.5), so this is the other half of the same gate: what the user changed behind the
+        // cover already arrives by notification, what passed in the meantime does not.
+        .onChange(of: isCovered) { _, covered in
+            guard !covered else { return }
+            Task { await viewModel?.refreshIfStale() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeConfigDidChange)) { _ in
             viewModel?.reloadConfig()
