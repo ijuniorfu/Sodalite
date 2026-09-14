@@ -21,6 +21,19 @@ struct LayoutMetricsTests {
         #expect(LayoutMetrics.tv.posterSize == CGSize(width: 220, height: 330))
     }
 
+    /// Sodalite#140. Home asked `contentLeading` beside the rail while Catalog and Search kept
+    /// charging their own `rowInset` on top of it, so two tabs indented 10pt apart on the same TV.
+    /// One question, one answer, for every tier.
+    @Test func everyTierAnswersTheShellsEdgeBesideTheRail() {
+        for m in [LayoutMetrics.tv, .regular, .compact] {
+            #expect(m.rowLeading(shellPaysLeading: true) == SidebarMetrics.contentLeading)
+            #expect(m.screenLeading(shellPaysLeading: true) == SidebarMetrics.contentLeading)
+            // Without a rail nothing moves: each tier keeps the margin it always had.
+            #expect(m.rowLeading(shellPaysLeading: false) == m.rowInset)
+            #expect(m.screenLeading(shellPaysLeading: false) == m.screenHInset)
+        }
+    }
+
     @Test func sizeForStyleMapsCorrectly() {
         #expect(LayoutMetrics.tv.size(for: .poster) == CGSize(width: 220, height: 330))
         #expect(LayoutMetrics.tv.size(for: .landscape) == CGSize(width: 360, height: 202))

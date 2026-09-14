@@ -4,7 +4,10 @@ struct SearchView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    /// The edge the section headings and their rows share with every other tab (Sodalite#140).
+    private var leadingInset: CGFloat { metrics.rowLeading(shellPaysLeading: shellPaysLeading) }
     @State private var viewModel: SearchViewModel?
     @State private var destination: Destination?
     #if os(tvOS)
@@ -163,7 +166,8 @@ struct SearchView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.Theme.restFill)
             )
-            .padding(.horizontal, LayoutMetrics.current(hSizeClass).screenHInset)
+            .padding(.leading, metrics.screenLeading(shellPaysLeading: shellPaysLeading))
+            .padding(.trailing, metrics.screenHInset)
             .padding(.top, 38)
             .padding(.bottom, 18)
         }
@@ -224,9 +228,10 @@ struct SearchView: View {
     private func librarySection(items: [JellyfinItem]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader(icon: "house.fill", title: "search.section.library", tint: .accentColor)
-                .padding(.horizontal, 50)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, 50)
 
-            RowScrollView(leading: 50, trailing: 50, vertical: 20) {
+            RowScrollView(leading: leadingInset, trailing: 50, vertical: 20) {
                 LazyHStack(spacing: 30) {
                     ForEach(items) { item in
                         FocusableCard {
@@ -272,9 +277,10 @@ struct SearchView: View {
 
         return VStack(alignment: .leading, spacing: 12) {
             sectionHeader(icon: "person.2.fill", title: "search.section.people", tint: .purple)
-                .padding(.horizontal, 50)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, 50)
 
-            MediaCastRow(title: nil, members: members, inset: 50) { member in
+            MediaCastRow(title: nil, members: members, inset: leadingInset) { member in
                 guard let tmdbID = member.personID else { return }
                 destination = .person(PersonRoute(tmdbID: tmdbID, name: member.name))
             }
@@ -285,9 +291,10 @@ struct SearchView: View {
     private func catalogSection(items: [SeerrMedia]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader(icon: "tray.and.arrow.down", title: "search.section.catalog", tint: .orange)
-                .padding(.horizontal, 50)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, 50)
 
-            RowScrollView(leading: 50, trailing: 50, vertical: 20) {
+            RowScrollView(leading: leadingInset, trailing: 50, vertical: 20) {
                 LazyHStack(spacing: 30) {
                     ForEach(items) { media in
                         FocusableCard {

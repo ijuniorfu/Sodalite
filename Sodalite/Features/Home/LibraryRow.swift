@@ -15,11 +15,11 @@ struct LibraryRow: View {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.leading, shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset)
+                .padding(.leading, metrics.rowLeading(shellPaysLeading: shellPaysLeading))
                 .padding(.trailing, metrics.rowInset)
 
             RowScrollView(
-                leading: shellPaysLeading ? SidebarMetrics.contentLeading : metrics.rowInset,
+                leading: metrics.rowLeading(shellPaysLeading: shellPaysLeading),
                 trailing: metrics.rowInset,
                 vertical: metrics.rowVerticalPadding
             ) {

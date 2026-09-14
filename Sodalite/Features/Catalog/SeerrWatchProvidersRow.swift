@@ -6,16 +6,19 @@ struct SeerrWatchProvidersRow: View {
     let providers: [SeerrWatchProvider]
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var leadingInset: CGFloat { metrics.rowLeading(shellPaysLeading: shellPaysLeading) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, metrics.rowInset)
 
-            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset, vertical: 8) {
+            RowScrollView(leading: leadingInset, trailing: metrics.rowInset, vertical: 8) {
                 LazyHStack(spacing: 16) {
                     ForEach(providers) { provider in
                         VStack(spacing: 6) {

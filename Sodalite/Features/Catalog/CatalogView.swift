@@ -4,7 +4,9 @@ struct CatalogView: View {
     @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var leadingInset: CGFloat { metrics.rowLeading(shellPaysLeading: shellPaysLeading) }
     @State private var viewModel: CatalogViewModel?
     @State private var selectedMedia: SeerrMedia?
     @State private var selectedFilter: CatalogFilter?
@@ -29,7 +31,8 @@ struct CatalogView: View {
                             }
                         }
                         .pickerStyle(.segmented)
-                        .padding(.horizontal, metrics.rowInset)
+                        .padding(.leading, leadingInset)
+                        .padding(.trailing, metrics.rowInset)
                         .padding(.top, 20)
 
                         switch selectedSection {

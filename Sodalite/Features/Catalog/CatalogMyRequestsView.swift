@@ -2,6 +2,9 @@ import SwiftUI
 
 struct CatalogMyRequestsView: View {
     @Environment(\.appState) private var appState
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     @Bindable var viewModel: CatalogViewModel
     @State private var selectedMedia: SeerrMedia?
 
@@ -32,7 +35,8 @@ struct CatalogMyRequestsView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 50)
+                    .padding(.leading, metrics.rowLeading(shellPaysLeading: shellPaysLeading))
+                    .padding(.trailing, 50)
                     .padding(.vertical, 40)
                 }
             }

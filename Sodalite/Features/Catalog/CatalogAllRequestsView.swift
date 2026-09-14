@@ -9,12 +9,15 @@ struct CatalogAllRequestsView: View {
     @State private var toastMessage: String?
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var leadingInset: CGFloat { metrics.rowLeading(shellPaysLeading: shellPaysLeading) }
 
     var body: some View {
         VStack(spacing: 0) {
             filterChips
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, metrics.rowInset)
                 .padding(.top, 24)
                 .padding(.bottom, 12)
 
@@ -153,7 +156,8 @@ struct CatalogAllRequestsView: View {
                         ProgressView().padding(.vertical, 20)
                     }
                 }
-                .padding(.horizontal, 50)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, 50)
                 .padding(.bottom, 40)
             }
         }

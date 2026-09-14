@@ -11,16 +11,19 @@ struct SeerrHorizontalMediaRow: View {
     private let prefetchThreshold = 5
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var leadingInset: CGFloat { metrics.rowLeading(shellPaysLeading: shellPaysLeading) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, metrics.rowInset)
 
-            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset,
+            RowScrollView(leading: leadingInset, trailing: metrics.rowInset,
                           vertical: metrics.rowVerticalPadding) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     // stableKey not id: TMDB ids collide across movie/tv (trending mixes both); duplicate ForEach ids cause ghost cards and focus jumps.

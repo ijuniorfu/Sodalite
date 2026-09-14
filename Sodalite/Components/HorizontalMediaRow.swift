@@ -20,9 +20,12 @@ struct HorizontalMediaRow: View {
     @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
     private var rowInset: CGFloat { inset ?? metrics.rowInset }
-    /// With the sidebar beside the content (Sodalite#140) the rail and its gap ARE the left margin,
-    /// so the row keeps only enough room for a focused card to grow into.
-    private var leadingInset: CGFloat { shellPaysLeading ? SidebarMetrics.contentLeading : rowInset }
+    /// With the sidebar beside the content (Sodalite#140) the rail and its gap ARE the left margin.
+    /// `inset` overrides the tier but not the shell: a host screen that insets differently still
+    /// has to start where every other row on the same TV starts.
+    private var leadingInset: CGFloat {
+        shellPaysLeading ? metrics.rowLeading(shellPaysLeading: true) : rowInset
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

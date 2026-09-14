@@ -58,6 +58,23 @@ struct LayoutMetrics: Equatable {
         gridMinimum * cardScale
     }
 
+    /// The leading edge a browse row shares with its heading, and through the rows with every
+    /// other screen of the app.
+    ///
+    /// Beside the sidebar the rail plus its gap IS the screen margin (Sodalite#140), so a row that
+    /// keeps charging its own `rowInset` on top of it starts 10pt further in than one that asks
+    /// here, and two tabs then indent differently on the same TV. In the top bar, where no rail
+    /// pays anything, both answers are `rowInset` and nothing moves.
+    func rowLeading(shellPaysLeading: Bool) -> CGFloat {
+        shellPaysLeading ? SidebarMetrics.contentLeading : rowInset
+    }
+
+    /// The same question for a screen-wide control or field, which rests on the wider screen inset
+    /// rather than the row's.
+    func screenLeading(shellPaysLeading: Bool) -> CGFloat {
+        shellPaysLeading ? SidebarMetrics.contentLeading : screenHInset
+    }
+
     func size(for style: MediaCardStyle) -> CGSize {
         switch style {
         case .poster: posterSize

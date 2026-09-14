@@ -10,16 +10,19 @@ struct CatalogProviderRow: View {
     var backdropFor: (CatalogProvider) -> URL? = { _ in nil }
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.shellPaysLeadingInset) private var shellPaysLeading
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+    private var leadingInset: CGFloat { metrics.rowLeading(shellPaysLeading: shellPaysLeading) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(titleKey)
                 .font(.title3)
                 .fontWeight(.semibold)
-                .padding(.horizontal, metrics.rowInset)
+                .padding(.leading, leadingInset)
+                .padding(.trailing, metrics.rowInset)
 
-            RowScrollView(leading: metrics.rowInset, trailing: metrics.rowInset,
+            RowScrollView(leading: leadingInset, trailing: metrics.rowInset,
                           vertical: metrics.rowVerticalPadding) {
                 LazyHStack(spacing: metrics.itemSpacing) {
                     ForEach(providers) { provider in
