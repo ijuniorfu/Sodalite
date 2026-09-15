@@ -87,11 +87,79 @@ struct TechFactsTests {
         #expect(hd != uhd)
     }
 
-    /// A series root carries no media of its own, so there is nothing to caption and no section to
+    /// An item with neither media nor catalogue metadata has nothing to caption and no section to
     /// draw. The page has to collapse both rather than paint an empty reader.
-    @Test func anItemWithoutMediaSaysNothing() throws {
+    @Test func anItemWithoutMediaOrMetadataSaysNothing() throws {
         let facts = TechFacts.resolve(item: try decode(#"{"Id":"s","Name":"S","Type":"Series"}"#), sourceID: nil)
         #expect(facts.isEmpty)
         #expect(facts.caption == nil)
+    }
+
+    // MARK: - What the title is, rather than what the file is (Sodalite#146 round 2)
+
+    private static let seriesJSON = #"""
+    {"Id":"series-1","Name":"Lost","Type":"Series","Status":"Ended",
+     "PremiereDate":"2004-09-22T00:00:00.0000000Z","ChildCount":6,
+     "Genres":["Drama","Mystery","Adventure"],
+     "Studios":[{"Name":"ABC"},{"Name":"Bad Robot"},{"Name":"Touchstone"},{"Name":"Grass Skirt"}]}
+    """#
+
+    /// The reason the reader exists on a show at all. A series carries no media streams, so every
+    /// other section is empty for it and More Details was the synopsis over again, which is what a
+    /// reporter called redundant with the show screen.
+    @Test func aSeriesRootStillHasSomethingToSay() throws {
+        let facts = TechFacts.resolve(item: try decode(Self.seriesJSON), sourceID: nil)
+        let about = try #require(facts.sections.first { $0.id == "about" })
+        #expect(about.rows.map(\.id) == ["status", "premiere", "seasons", "genres", "studios"])
+        #expect(about.rows.first { $0.id == "seasons" }?.value == "6")
+        #expect(about.rows.first { $0.id == "genres" }?.value == "Drama, Mystery, Adventure")
+    }
+
+    /// It leads, because it describes the title and everything below it describes a file.
+    @Test func whatTheTitleIsComesFirst() throws {
+        let facts = TechFacts.resolve(item: try decode(Self.seriesJSON), sourceID: nil)
+        #expect(facts.sections.first?.id == "about")
+    }
+
+    /// Jellyfin writes seven fractional digits, which ISO8601DateFormatter rejects at every setting,
+    /// so only the day is parsed. The rendering is the viewer's locale, hence the year rather than a
+    /// literal.
+    @Test func thePremiereIsADateAndNotAServerTimestamp() throws {
+        let facts = TechFacts.resolve(item: try decode(Self.seriesJSON), sourceID: nil)
+        let premiere = try #require(facts.sections.first { $0.id == "about" }?
+            .rows.first { $0.id == "premiere" }?.value)
+        #expect(premiere.contains("2004"))
+        #expect(!premiere.contains("T00:00"))
+    }
+
+    /// Three, the same cut the glass panel made. Past that it is a distributor list, not a credit.
+    @Test func studiosStopAtThree() throws {
+        let facts = TechFacts.resolve(item: try decode(Self.seriesJSON), sourceID: nil)
+        let studios = try #require(facts.sections.first { $0.id == "about" }?
+            .rows.first { $0.id == "studios" }?.value)
+        #expect(studios == "ABC, Bad Robot, Touchstone")
+    }
+
+    /// A status the server invents is passed through rather than swallowed: an unknown word says
+    /// more than a blank row.
+    @Test func anUnknownStatusIsPassedThrough() throws {
+        let json = #"{"Id":"s","Name":"S","Type":"Series","Status":"Unreleased"}"#
+        let facts = TechFacts.resolve(item: try decode(json), sourceID: nil)
+        let status = try #require(facts.sections.first { $0.id == "about" }?
+            .rows.first { $0.id == "status" }?.value)
+        #expect(status == "Unreleased")
+    }
+
+    /// Status, premiere and season count are a SERIES's facts. A movie gets the two rows that apply
+    /// to it and no empty ones.
+    @Test func aMovieGetsOnlyTheRowsThatApplyToIt() throws {
+        let json = #"""
+        {"Id":"m","Name":"M","Type":"Movie","Status":"Ended","ChildCount":3,
+         "PremiereDate":"2017-10-04T00:00:00.0000000Z",
+         "Genres":["Sci-Fi"],"Studios":[{"Name":"Warner Bros."}]}
+        """#
+        let facts = TechFacts.resolve(item: try decode(json), sourceID: nil)
+        let about = try #require(facts.sections.first { $0.id == "about" })
+        #expect(about.rows.map(\.id) == ["genres", "studios"])
     }
 }

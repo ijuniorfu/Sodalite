@@ -54,6 +54,40 @@ struct TechFacts: Equatable {
 
         var sections: [Section] = []
 
+        // What the TITLE is, ahead of what the file is. Genres and studios used to sit in the glass
+        // panel on the first viewport, where a page that already carries three lines of synopsis had
+        // no room for them (Sodalite#146 round 2). They are also what gives a series root something
+        // to say here: a series carries no media streams, so every section below this one is empty
+        // for it and the reader was the synopsis over again, which is the "redundant with the show
+        // screen" in that report.
+        var about: [Row] = []
+        if item.type == .series {
+            if let status = seriesStatus(item.status) {
+                about.append(Row(id: "status", label: .key("detail.tech.status"), value: status))
+            }
+            if let premiere = premiereText(item.premiereDate) {
+                about.append(Row(id: "premiere", label: .key("detail.tech.premiere"), value: premiere))
+            }
+            // Jellyfin's ChildCount on a series is its season count. Absent on a slim item, and zero
+            // on a series whose seasons have not been scanned, so both fall out.
+            if let seasons = item.childCount, seasons > 0 {
+                about.append(Row(id: "seasons", label: .key("detail.tech.seasons"), value: "\(seasons)"))
+            }
+        }
+        if let genres = item.genres, !genres.isEmpty {
+            about.append(Row(id: "genres", label: .key("detail.tech.genres"),
+                             value: genres.joined(separator: ", ")))
+        }
+        if let studios = item.studios, !studios.isEmpty {
+            // The same three the panel used to print: past that it is a distributor list, not a
+            // credit.
+            about.append(Row(id: "studios", label: .key("detail.studios"),
+                             value: studios.prefix(3).map(\.name).joined(separator: ", ")))
+        }
+        if !about.isEmpty {
+            sections.append(Section(id: "about", icon: "info.circle", title: "detail.tech.about", rows: about))
+        }
+
         if let video {
             var rows: [Row] = []
             if let w = video.width, let h = video.height {
@@ -147,6 +181,30 @@ struct TechFacts: Equatable {
         }
         if let bitrate = source.bitrate { parts.append(formatBitrate(bitrate)) }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    /// Jellyfin's series status, which is the raw English word it stores ("Continuing" / "Ended").
+    /// Anything else the server invents is passed through rather than swallowed.
+    private static func seriesStatus(_ raw: String?) -> String? {
+        guard let raw, !raw.isEmpty else { return nil }
+        switch raw {
+        case "Continuing": return String(localized: "detail.status.continuing", defaultValue: "Continuing")
+        case "Ended": return String(localized: "detail.status.ended", defaultValue: "Ended")
+        default: return raw
+        }
+    }
+
+    /// The premiere as a date in the viewer's locale. Only the day is parsed: Jellyfin writes seven
+    /// fractional digits ("2005-02-21T00:00:00.0000000Z"), which `ISO8601DateFormatter` rejects at
+    /// any setting of `.withFractionalSeconds`, and a premiere has no time of day worth printing.
+    private static func premiereText(_ raw: String?) -> String? {
+        guard let raw, raw.count >= 10 else { return nil }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        guard let date = formatter.date(from: String(raw.prefix(10))) else { return nil }
+        return date.formatted(date: .abbreviated, time: .omitted)
     }
 
     private static func filename(of source: MediaSource) -> String? {

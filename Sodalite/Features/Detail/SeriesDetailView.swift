@@ -643,12 +643,12 @@ struct SeriesDetailView: View {
                     .frame(maxWidth: .infinity, alignment: isPhonePortrait ? .center : .leading)
             }
 
-            // Metadata+tagline row one, genres+credits row two, baseline-aligned so columns sit level; series-level tagline/crew/studios in both modes so the episode panel matches the root.
+            // Metadata line with the series tagline set against it, in both modes so the episode
+            // panel matches the root; genres and studios moved into More Details (Sodalite#146
+            // round 2).
             DetailInfoRows(
                 item: vm.item,
-                hasFullDetail: vm.hasFullDetail,
-                hasLeftSecondary: !isShowingEpisode && !(vm.item.genres?.isEmpty ?? true),
-                leftSecondaryPending: !isShowingEpisode && !vm.hasFullDetail && vm.item.genres == nil
+                hasFullDetail: vm.hasFullDetail
             ) {
                 if isShowingEpisode {
                     // Single metadata line (runtime + series genres). S/E pair left the panel (Sodalite#15 round 6) since the play-button subtitle already carries it; keeps the episode panel at title + one line.
@@ -669,14 +669,6 @@ struct SeriesDetailView: View {
                     }
                 } else {
                     ItemMetadataRow(item: vm.item, showRuntime: false, extras: seasonCount(vm: vm))
-                }
-            } leftSecondary: {
-                // Series genres, one line only: a long list (e.g. One Piece's seven) wraps to two lines and makes the panel tall enough to land at a different scroll position.
-                if !isShowingEpisode, let genres = vm.item.genres, !genres.isEmpty {
-                    Text(genres.joined(separator: " · "))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
                 }
             }
 
@@ -747,14 +739,13 @@ struct SeriesDetailView: View {
         TechFacts.resolve(item: displayItem, sourceID: versionSelection.preferredSourceID(for: displayItem))
     }
 
-    /// Episode panel's single metadata line ("43 min · Genre · Genre"); episode runtime + series genres. nil when both absent so the line collapses.
+    /// Episode panel's single metadata line, which is the episode's runtime and nothing else since
+    /// the genres left the page (Sodalite#146 round 2): keeping them here would have been the one
+    /// place they survived, on the state that has the least room for them. nil when there is no
+    /// runtime, so the line collapses rather than drawing empty.
     private func episodeMetadataLine(vm: DetailViewModel) -> String? {
-        var parts: [String] = []
-        if let runtime = selectedEpisode?.runTimeTicks {
-            parts.append(runtime.ticksToDisplay)
-        }
-        parts.append(contentsOf: vm.item.genres ?? [])
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        guard let runtime = selectedEpisode?.runTimeTicks, runtime > 0 else { return nil }
+        return runtime.ticksToDisplay
     }
 
     // MARK: - Action Buttons
@@ -1144,8 +1135,6 @@ struct SeriesDetailView: View {
         return status == "Continuing"
     }
 
-    /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.
-    /// The series id, not the selected episode's: TMDB credits a person on the show (Sodalite#143).
     /// Where a move down into the cast row lands; see `MovieDetailView.aimFirstCastEntry` for why the
     /// geometric landing is arbitrary here and why only the first entry is corrected.
     private func aimFirstCastEntry(at newID: String?, in cast: [CastMember]) {
@@ -1155,6 +1144,8 @@ struct SeriesDetailView: View {
         DispatchQueue.main.async { focusedCastID = first }
     }
 
+    /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.
+    /// The series id, not the selected episode's: TMDB credits a person on the show (Sodalite#143).
     private func handlePersonTap(_ member: CastMember) {
         navigateToPerson = PersonRoute(
             member: member,

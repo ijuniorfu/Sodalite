@@ -410,12 +410,11 @@ struct MovieDetailView: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Metadata+tagline row one, genres+credits row two, baseline-aligned so columns sit level.
+            // Metadata line with the tagline set against it; genres and studios moved into More
+            // Details (Sodalite#146 round 2).
             DetailInfoRows(
                 item: vm.item,
-                hasFullDetail: vm.hasFullDetail,
-                hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true),
-                leftSecondaryPending: !vm.hasFullDetail && vm.item.genres == nil
+                hasFullDetail: vm.hasFullDetail
             ) {
                 // Portrait puts the pills on a line of their own: the panel is one narrow column
                 // there, and four of them on the metadata line pushed it past the screen edge and
@@ -430,13 +429,6 @@ struct MovieDetailView: View {
                     }
                 } else {
                     ItemMetadataRow(item: vm.item, extras: formatBadges(vm: vm))
-                }
-            } leftSecondary: {
-                if let genres = vm.item.genres, !genres.isEmpty {
-                    Text(genres.joined(separator: " · "))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
                 }
             }
 
