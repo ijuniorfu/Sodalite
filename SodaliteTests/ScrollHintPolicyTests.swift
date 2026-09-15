@@ -43,7 +43,24 @@ struct ScrollHintPolicyTests {
     /// first page jumps when it fades out.
     @Test("reserved band is independent of visibility")
     func bandIsConstant() {
-        #expect(ScrollHintPolicy.primaryBottomInset(reservesHint: true) == 64)
+        #expect(ScrollHintPolicy.primaryBottomInset(reservesHint: true) == 180)
         #expect(ScrollHintPolicy.primaryBottomInset(reservesHint: false) == 24)
+    }
+
+    /// The band's value is the focus engine's parking distance, and that is not a coincidence to be
+    /// tidied away: at anything less, tvOS scrolls the page down by the difference the moment it can,
+    /// which is how the page ended up resting 116 pt off its own fold (Sodalite#146 round 2).
+    @Test("the band is what the focus engine wants below the focused control")
+    func bandMeetsTheParkingDistance() {
+        #expect(ScrollHintPolicy.primaryBottomInset(reservesHint: true)
+                == ScrollHintPolicy.focusParkingDistance)
+    }
+
+    /// The chevron belongs to the block above it, not to the screen edge.
+    @Test("the chevron stays under the action row")
+    func hintSitsUnderTheActions() {
+        let gap = ScrollHintPolicy.primaryBottomInset(reservesHint: true)
+            - ScrollHintPolicy.hintBottomInset(reservesHint: true)
+        #expect(gap == 54)
     }
 }
