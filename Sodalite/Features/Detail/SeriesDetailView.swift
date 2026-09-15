@@ -390,15 +390,21 @@ struct SeriesDetailView: View {
             // Open the animation gate once the cover's present transition has settled.
             deferOnMain(by: 0.35) { didSettleIn = true }
         }
-        .onChange(of: viewModel?.isLoading) { _, loading in
+        .onChange(of: viewModel?.isLoading) { _, _ in
             updateBackdropURL()
-            // Play button is out of the tree at first paint; push focus once isLoading flips false. Tiny defer rides out the focus-commit race.
-            if loading == false {
-                deferOnMain(by: 0.1) {
-                    playButtonFocused = true
-                }
-            }
         }
+        // Play is where a detail page opens, and HOW it gets there is the whole question
+        // (Sodalite#146 round 2). It used to be a deferred `@FocusState` write once `isLoading`
+        // flipped, which is a focus MOVE, and a move is what makes tvOS scroll the newly focused
+        // control into its preferred place: about 180 pt above the bottom edge, against the 64 pt the
+        // page reserves, which is the 116 pt the page was found resting at. `defaultFocus` is the
+        // same destination without the move: it names where focus BELONGS when this subtree is first
+        // evaluated, so there is no arrival to scroll to.
+        //
+        // It also explains why the defect came and went. A push racing the first focus evaluation is
+        // either redundant or a move, depending on which lands first, and that is decided by how fast
+        // the detail fetch returns.
+        .defaultFocus($playButtonFocused, true)
         .onChange(of: selectedEpisode?.id) { _, newID in
             updateBackdropURL()
             // Episode lists are slim (no MediaStreams/MediaSources); on opening into episode mode pull full detail and swap in (same id) so the TechInfoBox can render codec/resolution.

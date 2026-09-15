@@ -90,10 +90,10 @@ struct DetailHeroBudgetTests {
         let heroGradient: CGFloat = 200
         // Metadata line: the tallest segment is the certification box, caption plus its 3 pt inset.
         let metadataLine = max(subheadline, caption + 6)
-        let genreLine = subheadline
         let synopsis = height(DetailHeroSynopsis(text: longSynopsis), width: textWidth)
-        // glassPanel: 30 pt padding, two info rows 16 pt apart, then the teaser 16 pt below them.
-        let panel = 2 * 30 + metadataLine + 16 + genreLine + 16 + synopsis
+        // glassPanel: 30 pt padding, the metadata line, then the teaser 16 pt below it. The genre
+        // line left the panel with the studios in Sodalite#146 round 2, both are in More Details.
+        let panel = 2 * 30 + metadataLine + 16 + synopsis
         // GlassActionButtonLabel: callout plus 12 pt vertical padding. The resume bar is drawn
         // inside that block and is layout-neutral by construction.
         let actionRow = callout + 2 * 12
