@@ -89,6 +89,10 @@ struct SeriesDetailView: View {
     @State private var pendingSeasonOverviewFocus = false
     /// Which card the episode row aims at, so a return from above lands there instead of scrolling the row back to the start. Fed by the way OUT of the row and by the player's in-session item switches; see EpisodeRowAim for why it is never fed on the way in.
     @State private var episodeAim = EpisodeRowAim()
+    /// Which cast card holds focus, for the row's entry aim (Sodalite#146 round 2). Same rule as the
+    /// movie page: the first entry lands on the first card, after that the row remembers.
+    @FocusState private var focusedCastID: String?
+    @State private var castEntryAimed = false
     /// Horizontal offset of the episode row, so a season switch can return it to the row's real start (its inset included) instead of to the first card's leading edge.
     @State private var episodeRowPosition = ScrollPosition()
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition (the viewModel is built lazily in onAppear, so isLoading flips while the fullScreenCover dissolves in and animating those flips reads as an ugly top-left fly-in). Same fix as MovieDetailView.
@@ -546,15 +550,20 @@ struct SeriesDetailView: View {
                     let hasCast = !(vm.item.people?.isEmpty ?? true)
 
                     if let people = vm.item.people, !people.isEmpty {
+                        let cast = jellyfinCastMembers(
+                            from: people,
+                            imageService: dependencies.jellyfinImageService,
+                            imageWidth: metrics.castImageWidth
+                        )
                         MediaCastRow(
-                            members: jellyfinCastMembers(
-                                from: people,
-                                imageService: dependencies.jellyfinImageService,
-                                imageWidth: metrics.castImageWidth
-                            ),
+                            members: cast,
+                            focusedID: $focusedCastID,
                             onSelect: { handlePersonTap($0) }
                         )
                         .onFocusMoveUp(active: !seasonBlockIsFirst) { playButtonFocused = true }
+                        .onChange(of: focusedCastID) { _, newID in
+                            aimFirstCastEntry(at: newID, in: cast)
+                        }
                     }
 
                     if !vm.similarItems.isEmpty {
@@ -1130,6 +1139,15 @@ struct SeriesDetailView: View {
 
     /// Resolve a cast member to a TMDB person id and open the person page; inert when the server has no TMDB id.
     /// The series id, not the selected episode's: TMDB credits a person on the show (Sodalite#143).
+    /// Where a move down into the cast row lands; see `MovieDetailView.aimFirstCastEntry` for why the
+    /// geometric landing is arbitrary here and why only the first entry is corrected.
+    private func aimFirstCastEntry(at newID: String?, in cast: [CastMember]) {
+        guard let newID, !castEntryAimed else { return }
+        castEntryAimed = true
+        guard let first = cast.first?.id, newID != first else { return }
+        DispatchQueue.main.async { focusedCastID = first }
+    }
+
     private func handlePersonTap(_ member: CastMember) {
         navigateToPerson = PersonRoute(
             member: member,
@@ -1268,6 +1286,17 @@ struct SeriesDetailView: View {
                                 }
                             )
                             .id(season.id)
+                            // Up out of the first section below the fold has to be REDIRECTED, not
+                            // merely resolved, exactly as on the movie page. The secondaries are out
+                            // of the focus engine while focus is not in the action row, so Play is
+                            // the only candidate left, and from a tab past the row's width it is too
+                            // far sideways for the engine to reach at all: the move simply does not
+                            // happen, and the page is a dead end until the viewer walks back to the
+                            // leftmost tab (Sodalite#146 round 2, reported on a device). On the tab
+                            // and not on the block around it: an `onMoveCommand` out there would
+                            // also catch the up-moves out of the episode row and the season
+                            // synopsis, which have their own, nearer destinations.
+                            .onFocusMoveUp(active: true) { playButtonFocused = true }
                             .contextMenu {
                                 Button {
                                     let target = !vm.isPlayed(season)

@@ -27,6 +27,11 @@ struct MovieDetailView: View {
     /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
     /// away). See `DetailAction`.
     @FocusState private var focusedAction: DetailAction?
+    /// Which cast card holds focus, for the row's entry aim (Sodalite#146 round 2).
+    @FocusState private var focusedCastID: String?
+    /// One-shot, so only the row's FIRST entry is aimed; after that it remembers where the viewer
+    /// left it, the way every other row on tvOS does.
+    @State private var castEntryAimed = false
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition. The viewModel is built lazily in onAppear, so isLoading flips several times (nil->false->true->false) WHILE the fullScreenCover is dissolving in; animating those flips interpolates the content's not-yet-laid-out frame (origin top-left) and reads as an ugly fly-in. Enabled ~0.35s after appear so the later, deliberate slow-server spinner->content fade still animates.
     @State private var didSettleIn = false
 
@@ -330,15 +335,20 @@ struct MovieDetailView: View {
                 let hasCast = !(vm.item.people?.isEmpty ?? true)
 
                 if let people = vm.item.people, !people.isEmpty {
+                    let cast = jellyfinCastMembers(
+                        from: people,
+                        imageService: dependencies.jellyfinImageService,
+                        imageWidth: metrics.castImageWidth
+                    )
                     MediaCastRow(
-                        members: jellyfinCastMembers(
-                            from: people,
-                            imageService: dependencies.jellyfinImageService,
-                            imageWidth: metrics.castImageWidth
-                        ),
+                        members: cast,
+                        focusedID: $focusedCastID,
                         onSelect: { handlePersonTap($0) }
                     )
                     .onFocusMoveUp(active: true) { playButtonFocused = true }
+                    .onChange(of: focusedCastID) { _, newID in
+                        aimFirstCastEntry(at: newID, in: cast)
+                    }
                 }
 
                 if !vm.similarItems.isEmpty {
@@ -677,6 +687,24 @@ struct MovieDetailView: View {
 
     /// Open the person page. Jellyfin cast carries no TMDB id, so the page resolves one itself and
     /// gets this movie's id along for the same-name tie-break (Sodalite#143).
+    /// Where a move down into the cast row lands. tvOS resolves it geometrically from the centre of
+    /// whatever had focus, so an entry from a button halfway along the action row lands halfway along
+    /// the cast row, and the column then travels on into Related (Sodalite#146 round 2). Nothing in
+    /// the row has been visited at that point, so there is no remembered place to honour and the
+    /// arbitrary one is simply arbitrary.
+    ///
+    /// Only the first entry is corrected. Redirecting every entry would also undo the row's own
+    /// memory, so coming back up out of Related would lose the card the viewer was on, which is not
+    /// what anyone asked for and not what tvOS does anywhere else.
+    private func aimFirstCastEntry(at newID: String?, in cast: [CastMember]) {
+        guard let newID, !castEntryAimed else { return }
+        castEntryAimed = true
+        guard let first = cast.first?.id, newID != first else { return }
+        // A @FocusState write made synchronously inside its own onChange is dropped on tvOS; a hop
+        // through the main queue is honoured (the season bar carries the same note).
+        DispatchQueue.main.async { focusedCastID = first }
+    }
+
     private func handlePersonTap(_ member: CastMember) {
         navigateToPerson = PersonRoute(
             member: member,
