@@ -39,39 +39,6 @@ extension View {
         #endif
     }
 
-    /// The page's own mark, once it has scrolled past its hero (Sodalite#146 round 2).
-    ///
-    /// tvOS draws it on the page itself, because it has no navigation bar. iOS has one, in the same
-    /// corner, and a second mark there sat behind the back button on every detail page. So on iOS
-    /// the mark goes where the platform puts a title, centred in the bar and clear of the button.
-    ///
-    /// **Nothing here may change the bar's layout.** The first attempt set the title and made the bar
-    /// take its background when the mark appeared, and both change the navigation bar's metrics,
-    /// which the scroll view answers by shifting its content offset. Over a few scrolls down and back
-    /// the shifts accumulated and the page crept upward until only the backdrop was left (iPhone,
-    /// landscape, 2026-09-15). So the item is always present and only its opacity moves, and the bar
-    /// keeps the hidden background it has always had.
-    ///
-    /// Visibility is driven by the page's own scroll signal rather than by the bar's scroll-edge
-    /// effect: the detail pages are full bleed and ignore the safe area, so what the bar makes of
-    /// their scroll view is not something to bet the first viewport on.
-    @ViewBuilder
-    func pinnedBarMark(itemID: String, logo: ContentLogoAvailability, title: String, isVisible: Bool) -> some View {
-        #if os(iOS)
-        toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    PinnedBarMark(itemID: itemID, logo: logo, title: title)
-                        .opacity(isVisible ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.25), value: isVisible)
-                        .allowsHitTesting(false)
-                }
-            }
-        #else
-        self
-        #endif
-    }
-
     @ViewBuilder
     func themedNavigationDestination() -> some View {
         #if os(iOS)

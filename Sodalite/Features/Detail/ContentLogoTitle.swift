@@ -42,6 +42,19 @@ struct ContentLogoTitle<Fallback: View>: View {
     /// second download of the same mark, and a URL that moves after the image lands re-fires
     /// AsyncCachedImage's `task(id:)` and flashes.
     var shrink: CGFloat = 1
+    /// Centres the mark in the width it is given. iPhone portrait does this anyway, to match its
+    /// centred primary action; the pinned copy asks for it on iOS, where the top leading corner
+    /// belongs to the navigation bar's back button (Sodalite#146 round 2).
+    var centered: Bool = false
+    /// Whether the slot holds the tier's ceiling open whatever the mark turns out to be.
+    ///
+    /// True in the hero, and that is the whole point of it there: the mark and the text title share a
+    /// baseline, so a logo arriving late cannot move the block's top edge (Sodalite#15). The PINNED
+    /// copy sets it false, because it is an overlay and sizes nothing, and because reserving the
+    /// ceiling there had a visible cost: the mark is bottom-anchored in its slot, so a wide wordmark
+    /// sat 49 pt lower than it is tall and the band behind it had to be that much deeper, reaching
+    /// down into the episode row (Apple TV, 2026-09-15).
+    var reservesHeight: Bool = true
     @ViewBuilder let fallback: () -> Fallback
 
     @Environment(\.dependencies) private var dependencies
@@ -71,6 +84,8 @@ struct ContentLogoTitle<Fallback: View>: View {
 
     /// iPhone portrait centers the title to match the centered primary action button.
     private var isPhonePortrait: Bool { tier == .phonePortrait }
+
+    private var centersMark: Bool { centered || isPhonePortrait }
 
     /// tvOS draws its 1920x1080 point grid at 2x on the 4K box and reports no useful `displayScale`,
     /// so it asks for the same fixed 2x LayoutMetrics.castImageWidth assumes.
@@ -134,8 +149,8 @@ struct ContentLogoTitle<Fallback: View>: View {
                 Color.clear
             } else {
                 fallback()
-                    .multilineTextAlignment(isPhonePortrait ? .center : .leading)
-                    .frame(maxWidth: .infinity, alignment: isPhonePortrait ? .center : .leading)
+                    .multilineTextAlignment(centersMark ? .center : .leading)
+                    .frame(maxWidth: .infinity, alignment: centersMark ? .center : .leading)
             }
         }
         // Fixed-height slot, bottom-anchored: the mark and the text title share a baseline, so a
@@ -149,9 +164,9 @@ struct ContentLogoTitle<Fallback: View>: View {
         // floats, and the panel below it does not move (rendered at 1920x1080, Sodalite#97 round 2).
         .frame(
             maxWidth: .infinity,
-            minHeight: budget.maxHeight,
-            maxHeight: budget.maxHeight,
-            alignment: isPhonePortrait ? .bottom : .bottomLeading
+            minHeight: reservesHeight ? budget.maxHeight : nil,
+            maxHeight: reservesHeight ? budget.maxHeight : nil,
+            alignment: centersMark ? .bottom : .bottomLeading
         )
         .onGeometryChange(for: CGFloat.self) { proxy in
             proxy.size.width
@@ -188,77 +203,3 @@ struct DetailHeroLogo: View {
     }
 }
 
-/// The page's mark for the iOS navigation bar (Sodalite#146 round 2).
-///
-/// Deliberately not `ContentLogoTitle`. That view reserves the tier's ceiling as a fixed,
-/// bottom-anchored slot so a late-arriving logo cannot move the hero block, which is the right rule
-/// on the page and the wrong one in a bar: here the height is the bar's, and a mark that does not
-/// fit it either grows the bar or is clipped. Same URL and the same request box, so the two copies
-/// still read one cache entry and one download.
-///
-/// It is always in the toolbar and only its opacity moves. A toolbar item that comes and goes, a
-/// title that changes between empty and set, or a bar background that appears on scroll all change
-/// the navigation bar's layout, and the scroll view compensates by shifting its content offset.
-/// Repeated over a few scrolls that accumulates: the page crept upward until only the backdrop was
-/// left (iPhone, landscape, 2026-09-15). Opacity cannot move a layout.
-struct PinnedBarMark: View {
-    let itemID: String
-    let logo: ContentLogoAvailability
-    let title: String
-
-    @Environment(\.dependencies) private var dependencies
-    @Environment(\.displayScale) private var displayScale
-    @Environment(\.horizontalSizeClass) private var hSizeClass
-    @Environment(\.verticalSizeClass) private var vSizeClass
-
-    @State private var loadFailed = false
-
-    /// What a navigation bar gives a mark without growing: the compact bar is 32 pt in landscape and
-    /// 44 elsewhere, and the mark has to leave a margin inside it.
-    private var markHeight: CGFloat { vSizeClass == .compact ? 24 : 30 }
-    /// So a banner-shaped wordmark cannot push the bar's buttons aside.
-    private var maxWidth: CGFloat { hSizeClass == .compact ? 200 : 280 }
-
-    private var tier: ContentLogoTier {
-        ContentLogoTier.tier(isTV: false, compact: hSizeClass == .compact, portrait: vSizeClass != .compact)
-    }
-
-    /// The hero's URL, box and all: a second box would be a second download of the same mark.
-    private var logoURL: URL? {
-        guard dependencies.appearancePreferences.showContentLogos else { return nil }
-        let box = tier.requestPixels(scale: displayScale)
-        return dependencies.jellyfinImageService.imageURL(
-            itemID: itemID,
-            imageType: .logo,
-            maxWidth: box.width,
-            maxHeight: box.height
-        )
-    }
-
-    /// Blank rather than the text title while a mark may still be on its way, so a logo-bearing title
-    /// never paints its name for a frame and then replaces it (Sodalite#125).
-    private var reservesSilently: Bool {
-        logo.reservesSlot && logoURL != nil && !loadFailed
-    }
-
-    var body: some View {
-        AsyncCachedImage(url: logoURL, onLoadFailed: { loadFailed = $0 }) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        } placeholder: {
-            if reservesSilently {
-                Color.clear
-            } else {
-                Text(title)
-                    .font(.headline)
-                    .lineLimit(1)
-            }
-        }
-        .frame(maxWidth: maxWidth, maxHeight: markHeight)
-        // The bar has no background of its own here, so the mark carries its own separation the way
-        // the hero mark does: a wide soft glow for a dark logo, a dark drop for a light one.
-        .shadow(color: .white.opacity(0.30), radius: 10)
-        .shadow(color: .black.opacity(0.55), radius: 8, y: 2)
-    }
-}

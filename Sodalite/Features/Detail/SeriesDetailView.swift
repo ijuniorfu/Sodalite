@@ -92,9 +92,6 @@ struct SeriesDetailView: View {
     @State private var pendingSeasonOverviewFocus = false
     /// Which card the episode row aims at, so a return from above lands there instead of scrolling the row back to the start. Fed by the way OUT of the row and by the player's in-session item switches; see EpisodeRowAim for why it is never fed on the way in.
     @State private var episodeAim = EpisodeRowAim()
-    /// iOS: whether the navigation bar carries the page's name yet. tvOS draws its own mark and
-    /// ignores this (Sodalite#146 round 2).
-    @State private var showsBarTitle = false
     /// Which cast card holds focus, for the row's entry aim (Sodalite#146 round 2). Same rule as the
     /// movie page: the first entry lands on the first card, after that the row remembers.
     @FocusState private var focusedCastID: String?
@@ -230,13 +227,7 @@ struct SeriesDetailView: View {
         // iPhone portrait respects the safe area so detail content is not clipped under the status
         // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         .ignoresSafeArea(when: !isPhonePortrait)
-        .pinnedBarMark(
-            itemID: viewModel?.item.id ?? item.id,
-            logo: .from(imageTags: viewModel?.item.imageTags,
-                        hasFullDetail: viewModel?.hasFullDetail ?? false),
-            title: viewModel?.item.name ?? item.name,
-            isVisible: showsBarTitle
-        )
+        .hidesToolbarBackground()
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -519,7 +510,6 @@ struct SeriesDetailView: View {
             heroImageURL: backdropURL,
             heroPosterURL: vm.heroPosterURL(for: vm.item),
             pinnedMark: pinnedMark(vm: vm),
-            onPinnedTitleVisible: { showsBarTitle = $0 },
             hero: {
             // Series logo, both modes (episode has none); observes the VM so it appears once an episode deep-link's series stub loads imageTags, no scroll needed.
             DetailHeroLogo(viewModel: vm)
