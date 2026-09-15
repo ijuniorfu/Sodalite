@@ -361,21 +361,23 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         }
     }
 
-    /// Leading on tvOS, where every heading on the page below starts at the same inset and nothing
-    /// else occupies that corner. Centred on iOS, where the navigation bar's back button owns it: a
-    /// mark drawn behind that button is what shipped and was photographed (Sodalite#146 round 2).
+    /// Centred, on both platforms, which is what Apple pins on either of them.
     ///
-    /// The route through the navigation bar itself was tried first and abandoned. A toolbar item is
+    /// It was leading on tvOS first, argued from the page below: every heading there starts at
+    /// `rowInset`, so a leading mark lines up with them. That turned out to be the argument against
+    /// it. Sharing the inset with the headings is exactly why "Besetzung" ran THROUGH the mark
+    /// instead of under it (Sodalite#146 round 2, photographed): the band covers that now, but
+    /// centring removes the case rather than covering it, and the reporter asked for centred in the
+    /// same breath.
+    ///
+    /// On iOS there is a second reason and it is not optional: the top leading corner belongs to the
+    /// navigation bar's back button, and a mark drawn behind it is what shipped.
+    ///
+    /// The route through the navigation bar itself was tried and abandoned. A toolbar item is
     /// something the scroll view measures, so it can only appear on scroll by changing the bar's
     /// metrics, and the scroll view answers that by shifting its content offset. It crept upward
     /// over a few scrolls, and the mark a bar will give a page is a fraction of the size this one is.
-    private var centersPinnedMark: Bool {
-        #if os(tvOS)
-        false
-        #else
-        true
-        #endif
-    }
+    private var centersPinnedMark: Bool { true }
 
     /// The tier the pinned mark is drawn at, which is what makes its band's height knowable.
     private var pinnedMarkTier: ContentLogoTier {
