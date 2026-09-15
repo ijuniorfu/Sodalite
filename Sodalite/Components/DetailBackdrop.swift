@@ -310,6 +310,16 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .background(alignment: .top) { TuckGround(palette: artworkPalette) }
             }
         }
+        // What the scroll view holds on to when its content CHANGES SIZE, which is the moment the
+        // page was measured moving (Sodalite#146 round 2): the ramp starts when `below fold` goes
+        // from 0 to its real height, so it is the detail fetch landing, not a focus change. Two
+        // earlier readings of this said focus, and both were wrong: meeting the focus engine's
+        // parking distance in the layout fixed it and looked wrong, and moving focus onto Play
+        // without a focus MOVE (defaultFocus) changed nothing at all.
+        //
+        // Anchoring the top says the page keeps its beginning when its middle grows, which is what a
+        // page that opens at its own first viewport means by resting.
+        .defaultScrollAnchor(.top)
         .background(Color.black.opacity(scrollDim).ignoresSafeArea())
         .onScrollGeometryChange(for: Double.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top
