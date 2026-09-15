@@ -290,22 +290,31 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
 
                     // Trailing filler so a short content block doesn't end in a hard edge; sized
                     // past any 4K tvOS safe-area inset.
-                    Color.clear
-                        .frame(minHeight: hasBelowFoldContent ? trailingFiller : 0)
-                        .overlay(alignment: .bottom) {
-                            // Rubber-band overscroll pulls the content clear of the bottom edge and
-                            // would uncover the bare backdrop there. This band hangs below the
-                            // content end and scrolls with it, so it is off screen at rest and covers
-                            // exactly the gap the bounce opens. An overlay on purpose: it carries no
-                            // layout weight, so it adds no scroll travel of its own. Reading the
-                            // overscroll from scroll geometry and sizing a fixed band instead does
-                            // not work, the state update never reaches the overlay while the drag is
-                            // in flight (measured, height stayed 0).
-                            artworkPalette.far
-                                .frame(height: 600)
-                                .offset(y: 600)
-                                .allowsHitTesting(false)
-                        }
+                    //
+                    // Removed rather than sized to zero when there is nothing below the fold. A
+                    // `minHeight` caps nothing at the top end, and `Color` is infinitely flexible
+                    // with an IDEAL size of 10x10, so in the unbounded height of a scroll view the
+                    // zeroed filler still drew 10 pt. That is not a rounding error, it is scroll
+                    // travel, and the focus engine took all ten of it: measured at exactly offset 10
+                    // on a page that should not have been scrollable at all (Apple TV, 2026-09-15).
+                    if hasBelowFoldContent {
+                        Color.clear
+                            .frame(minHeight: trailingFiller)
+                            .overlay(alignment: .bottom) {
+                                // Rubber-band overscroll pulls the content clear of the bottom edge
+                                // and would uncover the bare backdrop there. This band hangs below
+                                // the content end and scrolls with it, so it is off screen at rest
+                                // and covers exactly the gap the bounce opens. An overlay on purpose:
+                                // it carries no layout weight, so it adds no scroll travel of its
+                                // own. Reading the overscroll from scroll geometry and sizing a fixed
+                                // band instead does not work, the state update never reaches the
+                                // overlay while the drag is in flight (measured, height stayed 0).
+                                artworkPalette.far
+                                    .frame(height: 600)
+                                    .offset(y: 600)
+                                    .allowsHitTesting(false)
+                            }
+                    }
                 }
                 .background(alignment: .top) { TuckGround(palette: artworkPalette) }
             }
