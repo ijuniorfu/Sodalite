@@ -254,7 +254,7 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                         .overlay(alignment: .bottom) {
                             if reservesScrollHint {
                                 ScrollHintChevron(isVisible: showsScrollHint)
-                                    .padding(.bottom, ScrollHintPolicy.hintBottomInset(reservesHint: true))
+                                    .padding(.bottom, 10)
                             }
                         }
                         .background(Color.Theme.scrim)
