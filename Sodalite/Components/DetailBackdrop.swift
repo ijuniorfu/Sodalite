@@ -134,6 +134,25 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         hSizeClass == .compact ? 60 : 120
     }
 
+    /// Whether there is anything below the fold yet, which is what decides whether the page offers
+    /// any scroll travel at all (Sodalite#146 round 2).
+    ///
+    /// The padding and the filler below are for a settled page, where they keep the last row off the
+    /// screen edge. Before the detail fetch lands there is no last row: the block measures zero, and
+    /// those two are the only thing making the page scrollable, 200 pt of travel with nothing in it.
+    /// Measured on a device: the page scrolled itself to 116 pt between 39 and 155 ms after opening,
+    /// and every sample of that ramp reports `below fold 0`. The focus engine had landed on Play, it
+    /// wanted the parking distance it always wants, and for once the page could give it: on a settled
+    /// page the same request is already satisfied.
+    ///
+    /// So the fix is not to fight the scroll but to stop offering the room. With both gone while the
+    /// block is empty the content is exactly one viewport, the page is not scrollable, and there is
+    /// nothing to be dragged into. They come back with the content, by which time focus has long
+    /// since settled and a focus change is what a scroll needs.
+    ///
+    /// No feedback loop: `belowFoldHeight` is measured on the block BEFORE either is applied.
+    private var hasBelowFoldContent: Bool { belowFoldHeight > 0 }
+
     /// The reserved band and the hint itself are tvOS only: a scrollable page is self-evident on a
     /// touch device (Sodalite#53).
     private var reservesScrollHint: Bool {
@@ -267,12 +286,12 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                     // column past the screen and shove the whole content block off-center (section
                     // titles were being clipped on the left). Matches the primary slot's constraint.
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 80)
+                    .padding(.bottom, hasBelowFoldContent ? 80 : 0)
 
                     // Trailing filler so a short content block doesn't end in a hard edge; sized
                     // past any 4K tvOS safe-area inset.
                     Color.clear
-                        .frame(minHeight: trailingFiller)
+                        .frame(minHeight: hasBelowFoldContent ? trailingFiller : 0)
                         .overlay(alignment: .bottom) {
                             // Rubber-band overscroll pulls the content clear of the bottom edge and
                             // would uncover the bare backdrop there. This band hangs below the
