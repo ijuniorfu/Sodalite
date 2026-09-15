@@ -40,7 +40,8 @@ struct ArtworkStripReading: Equatable {
 /// hard cut (Sodalite#95). The hue is always the artwork's own. The saturation is lifted to a floor,
 /// because the page has to stay dark enough for white body text and a dark colour needs a high HSB
 /// saturation before the eye reads it as a colour at all: at brightness 0.24 a saturation of 0.39
-/// spans 24 of 255 levels, which is a grey with a lean.
+/// spans 24 of 255 levels, which is a grey with a lean. That same arithmetic is why raising the
+/// saturation floor alone could not answer Sodalite#146 round 2, see `clamped`.
 ///
 /// Measured over 22 backdrops (2026-08-31, the corpus behind Sodalite#95's tint note): 19 of them
 /// have a chroma-weighted hue coherence of 0.55 or better, so the strip's hues do NOT cancel and the
@@ -68,10 +69,14 @@ enum ArtworkTint {
     /// artwork does not have.
     nonisolated private static let coherenceGate: CGFloat = 0.55
     /// Saturation the tint is lifted to when the gate opens, and the ceiling it is held under. The
-    /// ceiling is taste, not contrast: at brightness 0.24 white text stays above 10:1 at any
-    /// saturation, and saturating a colour at a fixed HSB brightness lowers its luminance, so a
-    /// stronger tint is the safer one for the overlay rather than the riskier one.
-    nonisolated private static let saturationFloor: CGFloat = 0.45
+    /// ceiling is taste, not contrast: saturating a colour at a fixed HSB brightness lowers its
+    /// luminance, so a stronger tint is the safer one for the overlay rather than the riskier one.
+    ///
+    /// The floor was 0.45 and is 0.62 (Sodalite#146 round 2, chosen at a render sheet). Raising it
+    /// alone would not have answered the report, and the sheet is what showed why: at the brightness
+    /// the page is held to, a saturation step spans so few levels that the whole column for a dark
+    /// backdrop did not move between 0.45 and 0.62. The lever was the brightness window below.
+    nonisolated private static let saturationFloor: CGFloat = 0.62
     nonisolated private static let saturationCeiling: CGFloat = 0.85
     /// Ceiling for a strip that does not pass the gate, unchanged from the first build.
     nonisolated private static let neutralSaturationCeiling: CGFloat = 0.55
@@ -179,13 +184,24 @@ enum ArtworkTint {
     }
 
     /// Lifted off pure black so a dark backdrop still produces a visible transition rather than a
-    /// black page, and held under 0.24 so a bright one cannot hand white text a near-white canvas.
+    /// black page, and held under a ceiling so a bright one cannot hand white text a near-white
+    /// canvas.
+    ///
+    /// The window was 0.09 to 0.24 and is 0.12 to 0.30 (Sodalite#146 round 2, "all of my fades seem
+    /// to be medium to dark, not vibrant", chosen at a render sheet). That report is about
+    /// brightness even though it sounds like colour, and the window is the only lever that reaches
+    /// every backdrop: a strip with little chroma has no saturation to lift at all, so the old
+    /// ceiling was what made those pages read as grey.
+    ///
+    /// The ceiling is still the contrast bound, it has simply been measured further out. Against
+    /// white body text the worst hue at 0.24 sits at 11.2:1 and at 0.30 at 8.8:1, where the
+    /// requirement is 4.5:1; `everyTintClearsTheContrastTheBodyTextNeeds` holds the corners.
     nonisolated static func clamped(
         hue: CGFloat,
         saturation: CGFloat,
         brightness: CGFloat
     ) -> ArtworkPalette {
-        let near = min(max(brightness, 0.09), 0.24)
+        let near = min(max(brightness, 0.12), 0.30)
         return ArtworkPalette(
             near: Color(uiColor: UIColor(hue: hue, saturation: saturation, brightness: near, alpha: 1)),
             far: Color(uiColor: UIColor(hue: hue, saturation: saturation, brightness: near * 0.4, alpha: 1))

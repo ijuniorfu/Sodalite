@@ -314,6 +314,21 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             try? await Task.sleep(for: .milliseconds(800))
             hintSettled = true
         }
+        // Where the page actually came to rest after opening (Sodalite#146 round 2). It is supposed
+        // to rest at zero: the first page is exactly one viewport tall, so the fold sits on the
+        // screen's bottom edge and nothing below it is in sight. On a test item carrying almost no
+        // metadata it did not, the file caption from under the fold was on the first screen, and on
+        // every other title it does. So the amount is a function of the page's own shape and this
+        // line is what names it instead of a guess: the offset with the two heights that could
+        // produce it, once, after the focus engine has had its say.
+        .task {
+            try? await Task.sleep(for: .milliseconds(1500))
+            guard scrollOffset > ScrollHintPolicy.hideThreshold else { return }
+            LogTap.shared.note(
+                "detail: page settled at offset \(Int(scrollOffset.rounded())) "
+                + "of viewport \(Int(containerHeight.rounded())), below fold \(Int(belowFoldHeight.rounded()))"
+            )
+        }
         // The colour arrives after the first paint (the artwork has to decode first), so it fades in
         // rather than switching.
         .animation(.easeInOut(duration: 0.4), value: artworkPalette)
