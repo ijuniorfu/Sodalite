@@ -111,11 +111,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var hintSettled = false
     /// Measured height of the pinned mark's bar, which is what its band is sized from.
     @State private var pinnedMarkHeight: CGFloat = 0
-    /// When this page appeared, and how many settle samples it has already logged (Sodalite#146
-    /// round 2). Both only serve the diagnostic below.
-    @State private var openedAt = Date()
-    @State private var settleSamples = 0
-    @State private var lastLoggedOffset: CGFloat = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.verticalSizeClass) private var vSizeClass
@@ -326,7 +321,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             // Linear ramp over the clear hero window, capped at 0.3.
             scrollDim = min(max(offset / heroWindow, 0), 1) * 0.3
             scrollOffset = offset
-            noteSettleStep(offset)
         }
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             geometry.containerSize.height
@@ -340,13 +334,14 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             try? await Task.sleep(for: .milliseconds(800))
             hintSettled = true
         }
-        // Where the page actually came to rest after opening (Sodalite#146 round 2). It is supposed
-        // to rest at zero: the first page is exactly one viewport tall, so the fold sits on the
-        // screen's bottom edge and nothing below it is in sight. On a test item carrying almost no
-        // metadata it did not, the file caption from under the fold was on the first screen, and on
-        // every other title it does. So the amount is a function of the page's own shape and this
-        // line is what names it instead of a guess: the offset with the two heights that could
-        // produce it, once, after the focus engine has had its say.
+        // Where the page came to rest after opening (Sodalite#146 round 2). It is supposed to rest
+        // at zero: the first page is exactly one viewport tall, so the fold sits on the screen's
+        // bottom edge and nothing below it is in sight.
+        //
+        // Silent when that holds, which is what makes it worth keeping. Three separate causes were
+        // found through this one line and every one of them was a page being offered scroll travel
+        // it had no content for, so the next one will be too, and it will say so with the number
+        // rather than with a report that it "sometimes looks wrong".
         .task {
             try? await Task.sleep(for: .milliseconds(1500))
             guard scrollOffset > ScrollHintPolicy.hideThreshold else { return }
@@ -454,31 +449,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             }
             .ignoresSafeArea(edges: .top)
             .allowsHitTesting(false)
-    }
-
-    /// Every move the page makes on its own in the first two seconds, with the time it made it
-    /// (Sodalite#146 round 2).
-    ///
-    /// The settle line below says WHERE a page came to rest and that was not enough: the offset it
-    /// reported, 116, matches the focus engine's parking distance less the band we reserve under the
-    /// action row exactly, and that explanation is dead anyway, because a page with content below the
-    /// fold rests at zero and logs nothing. So the question is no longer the amount but the MOMENT.
-    /// A move around 100 ms is the focus push onto Play; one around half a second is the detail fetch
-    /// landing and the content block changing size under a scroll view that then compensates.
-    ///
-    /// Bounded twice, because this runs on a hot path and on every detail page: two seconds, and
-    /// eight samples. A viewer who scrolls immediately writes a few lines and then stops, which is
-    /// cheap and honest, rather than a filter that would have to guess whose move it was.
-    private func noteSettleStep(_ offset: CGFloat) {
-        guard settleSamples < 8, abs(offset - lastLoggedOffset) > 1 else { return }
-        let elapsed = Date().timeIntervalSince(openedAt)
-        guard elapsed < 2 else { return }
-        settleSamples += 1
-        lastLoggedOffset = offset
-        LogTap.shared.note(
-            "detail: offset \(Int(offset.rounded())) at +\(Int(elapsed * 1000))ms, "
-            + "below fold \(Int(belowFoldHeight.rounded())), viewport \(Int(containerHeight.rounded()))"
-        )
     }
 
     /// How far down the mark's ink reaches, from the screen's top edge.
