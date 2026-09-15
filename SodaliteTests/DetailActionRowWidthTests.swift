@@ -83,10 +83,34 @@ struct DetailActionRowWidthTests {
 /// the control it is applied to. A row of siblings 16 pt apart can only afford so much of that, and
 /// Sodalite#139 put a pill in it whose width a server-written label decides (Sodalite#139: at the
 /// role's 1.08 a 723 pt version pill grew 29 pt per side and sat on both neighbours).
+///
+/// Sodalite#146 round 2 is what set the ceiling's actual value. A cap that merely fits inside the
+/// gap still lets every pill eat a different share of it, and that is what a reporter sees.
 @MainActor
 struct DetailActionRowFocusLiftTests {
 
     private var rowSpacing: CGFloat { DetailActionRow { EmptyView() }.spacing }
+
+    /// Per-side growth of a focused pill of this width, which is the number every case here is about.
+    private func lift(_ width: CGFloat) -> CGFloat {
+        let response = FocusResponse.pill.capped(toLift: GlassButtonStyle.liftCeiling, width: width)
+        return width * (response.scale - 1) / 2
+    }
+
+    /// The row's real pill widths: a bare icon pill measured against live font metrics, then the
+    /// labelled ones from the suite above.
+    private var rowPillWidths: [CGFloat] {
+        let host = UIHostingController(
+            rootView: DetailActionRow {
+                GlassActionButton(title: "detail.favorite", systemImage: "heart", action: {})
+            }
+        )
+        host.view.frame = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+        host.view.layoutIfNeeded()
+        let iconPill = host.sizeThatFits(in: CGSize(width: CGFloat.greatestFiniteMagnitude,
+                                                    height: CGFloat.greatestFiniteMagnitude)).width
+        return [iconPill, 495, 723, 1149]
+    }
 
     /// The two numbers that must not drift apart: a lift wider than the gap covers the neighbour.
     @Test func theCeilingFitsInsideTheRowsSpacing() {
@@ -103,10 +127,29 @@ struct DetailActionRowFocusLiftTests {
         }
     }
 
-    /// Everything the row had before the version button is narrow enough that the cap cannot reach
-    /// it: the gesture on an icon pill and on Play is the one it always was.
-    @Test func aNarrowPillKeepsTheRolesOwnScale() {
-        for width in [80.0, 230.0, 330.0] as [CGFloat] {
+    /// The point of the ceiling's value, and the defect it closes: whichever control in the row has
+    /// focus, the gap it leaves its neighbour is the same. At the old 14 the cap only bound on the
+    /// wide pills, so an icon pill left 13.4 pt of the 16 and Play left 2, an 11 pt spread across
+    /// one row (Sodalite#146 round 2, "the spacing ... should be consistent").
+    @Test func everyPillInTheRowLeavesTheSameGap() {
+        let gaps = rowPillWidths.map { rowSpacing - lift($0) }
+        let spread = (gaps.max() ?? 0) - (gaps.min() ?? 0)
+        #expect(spread <= 2, "gaps \(gaps) spread \(spread) pt")
+    }
+
+    /// The other half of the same report: the focused pill grows around its centre, so the FIRST one
+    /// hangs past the page's left margin, where the logo, the panel and every heading below line up.
+    /// Play is auto-focused, so that overhang is the page's resting state, not a transient.
+    @Test func theLeadingPillBarelyLeavesTheMargin() {
+        // Play with a resume stamp, the widest the primary action gets.
+        #expect(lift(495) <= 4.001, "leading pill hangs \(lift(495)) pt past the margin")
+    }
+
+    /// A pill narrow enough that the role's own percentage never reaches the ceiling keeps it. Below
+    /// that width a fixed distance would be a scale of its own, which is what this file argues
+    /// against in the other direction.
+    @Test func aPillTooNarrowForTheCeilingKeepsTheRolesOwnScale() {
+        for width in [40.0, 80.0] as [CGFloat] {
             #expect(FocusResponse.pill.capped(toLift: GlassButtonStyle.liftCeiling, width: width).scale
                     == FocusResponse.pill.scale, "at \(width) pt")
         }

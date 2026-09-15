@@ -38,6 +38,12 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let people: [PersonInfo]?
     let studios: [StudioInfo]?
     let collectionType: String?
+    /// Jellyfin `CanDelete`, the server's own answer for THIS item and THIS user. It folds in what
+    /// the user policy alone cannot see: `EnableContentDeletionFromFolders`, which is how an admin
+    /// says "the DVR library may be deleted from and the rest may not". Carried on /Items responses
+    /// without asking for a Field. `var` with no default so the hand-written inits below stay
+    /// untouched, and nil (an older server, a response that omitted it) falls back to the policy.
+    var canDelete: Bool?
     /// Jellyfin `LocationType`. Carried on every /Items response without asking for a Field, and
     /// "Virtual" is the only value that matters here (see `isVirtual`). `var` with a default so the
     /// hand-written inits below stay untouched.
@@ -161,6 +167,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case people = "People"
         case studios = "Studios"
         case collectionType = "CollectionType"
+        case canDelete = "CanDelete"
         case locationType = "LocationType"
         case mediaType = "MediaType"
         case childCount = "ChildCount"

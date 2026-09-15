@@ -27,6 +27,11 @@ struct MovieDetailView: View {
     /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
     /// away). See `DetailAction`.
     @FocusState private var focusedAction: DetailAction?
+    /// Which cast card holds focus, for the row's entry aim (Sodalite#146 round 2).
+    @FocusState private var focusedCastID: String?
+    /// One-shot, so only the row's FIRST entry is aimed; after that it remembers where the viewer
+    /// left it, the way every other row on tvOS does.
+    @State private var castEntryAimed = false
     /// Gates the isLoading crossfade so it stays inert during the cover's present transition. The viewModel is built lazily in onAppear, so isLoading flips several times (nil->false->true->false) WHILE the fullScreenCover is dissolving in; animating those flips interpolates the content's not-yet-laid-out frame (origin top-left) and reads as an ugly fly-in. Enabled ~0.35s after appear so the later, deliberate slow-server spinner->content fade still animates.
     @State private var didSettleIn = false
 
@@ -36,8 +41,14 @@ struct MovieDetailView: View {
     @State private var didAutoPlay = false
 
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
-    private var canDelete: Bool {
-        appState.activeUser?.canDeleteContent == true
+    /// Whether this page offers deletion at all. Two answers, and the server's own is the finer one
+    /// (Sodalite#146 round 2): the user policy says whether this account may ever delete, while
+    /// `CanDelete` on the item folds in `EnableContentDeletionFromFolders`, which is how a library
+    /// is marked deletable one at a time. A read-only library therefore stops showing a trash can
+    /// that could only ever fail, without a client setting standing in for a server decision.
+    private func canDelete(_ item: JellyfinItem) -> Bool {
+        guard appState.activeUser?.canDeleteContent == true else { return false }
+        return item.canDelete ?? true
     }
 
     /// Seerr service for the catalog similar row, nil while the Catalog tab is hidden: switching it off is a parental measure (Sodalite#62), so the catalog has to be gone here as well, exactly as in Search and on person pages.
@@ -182,14 +193,18 @@ struct MovieDetailView: View {
         .onChange(of: appState.requestPlayerDismissal) { _, _ in
             if showPlayer { showPlayer = false }
         }
-        // Play button is out of the tree at first paint; push focus once isLoading flips false. Tiny defer dodges the focus-commit race.
-        .onChange(of: viewModel?.isLoading) { _, loading in
-            if loading == false {
-                deferOnMain(by: 0.1) {
-                    playButtonFocused = true
-                }
-            }
-        }
+        // Play is where a detail page opens, and HOW it gets there is the whole question
+        // (Sodalite#146 round 2). It used to be a deferred `@FocusState` write once `isLoading`
+        // flipped, which is a focus MOVE, and a move is what makes tvOS scroll the newly focused
+        // control into its preferred place: about 180 pt above the bottom edge, against the 64 pt the
+        // page reserves, which is the 116 pt the page was found resting at. `defaultFocus` is the
+        // same destination without the move: it names where focus BELONGS when this subtree is first
+        // evaluated, so there is no arrival to scroll to.
+        //
+        // It also explains why the defect came and went. A push racing the first focus evaluation is
+        // either redundant or a move, depending on which lands first, and that is decided by how fast
+        // the detail fetch returns.
+        .defaultFocus($playButtonFocused, true)
         .navigationDestination(item: $navigateToSeerrRequest) { media in
             CatalogDetailView(media: media)
                 .detailCoverPush()
@@ -314,6 +329,18 @@ struct MovieDetailView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
+                // Sodalite#146 round 2. A page whose ONLY content below the fold is this one
+                // non-focusable line has no business having a fold at all, and the difference is not
+                // cosmetic. With the line down there the block measures ~30 pt, the trailing chrome
+                // adds 200, and tvOS scrolls the page 116 pt to park the focused Play button where
+                // it wants it. With the line up here the block measures zero, the chrome is
+                // suppressed with it, the content is exactly one viewport and the page cannot be
+                // scrolled at all. Measured: that is the last shape that still moved once the
+                // chrome stopped being offered to pages that have real rows.
+                    if !hasBelowFoldSections(vm: vm), let caption = techFacts(vm: vm).caption {
+                        DetailFileCaption(caption: caption)
+                            .padding(.horizontal, -metrics.rowInset)
+                    }
                 }
                 .padding(.horizontal, metrics.rowInset)
             }) {
@@ -330,15 +357,20 @@ struct MovieDetailView: View {
                 let hasCast = !(vm.item.people?.isEmpty ?? true)
 
                 if let people = vm.item.people, !people.isEmpty {
+                    let cast = jellyfinCastMembers(
+                        from: people,
+                        imageService: dependencies.jellyfinImageService,
+                        imageWidth: metrics.castImageWidth
+                    )
                     MediaCastRow(
-                        members: jellyfinCastMembers(
-                            from: people,
-                            imageService: dependencies.jellyfinImageService,
-                            imageWidth: metrics.castImageWidth
-                        ),
+                        members: cast,
+                        focusedID: $focusedCastID,
                         onSelect: { handlePersonTap($0) }
                     )
                     .onFocusMoveUp(active: true) { playButtonFocused = true }
+                    .onChange(of: focusedCastID) { _, newID in
+                        aimFirstCastEntry(at: newID, in: cast)
+                    }
                 }
 
                 if !vm.similarItems.isEmpty {
@@ -366,14 +398,10 @@ struct MovieDetailView: View {
                 // Sodalite#146, after Infuse: one non-focusable line closing the page with what the
                 // file actually is. The tech strip that used to carry these facts is gone; this is
                 // the part of it worth keeping in sight, and it costs a line instead of a third of
-                // a screen.
-                if let caption = techFacts(vm: vm).caption {
-                    Text(caption)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .padding(.horizontal, metrics.rowInset)
+                // a screen. On a page with no rows at all it moves into the first viewport instead,
+                // see `hasBelowFoldSections`.
+                if hasBelowFoldSections(vm: vm), let caption = techFacts(vm: vm).caption {
+                    DetailFileCaption(caption: caption)
                 }
             }
         }
@@ -390,12 +418,11 @@ struct MovieDetailView: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Metadata+tagline row one, genres+credits row two, baseline-aligned so columns sit level.
+            // Metadata line with the tagline set against it; genres and studios moved into More
+            // Details (Sodalite#146 round 2).
             DetailInfoRows(
                 item: vm.item,
-                hasFullDetail: vm.hasFullDetail,
-                hasLeftSecondary: !(vm.item.genres?.isEmpty ?? true),
-                leftSecondaryPending: !vm.hasFullDetail && vm.item.genres == nil
+                hasFullDetail: vm.hasFullDetail
             ) {
                 // Portrait puts the pills on a line of their own: the panel is one narrow column
                 // there, and four of them on the metadata line pushed it past the screen edge and
@@ -410,13 +437,6 @@ struct MovieDetailView: View {
                     }
                 } else {
                     ItemMetadataRow(item: vm.item, extras: formatBadges(vm: vm))
-                }
-            } leftSecondary: {
-                if let genres = vm.item.genres, !genres.isEmpty {
-                    Text(genres.joined(separator: " · "))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
                 }
             }
 
@@ -463,6 +483,12 @@ struct MovieDetailView: View {
 
     /// Everything the page can say about the copy it is describing. Read once per body pass and
     /// handed to both the reader and the caption line, so the two cannot describe different files.
+    /// Whether anything below the fold is a section rather than the closing caption line. It decides
+    /// where that line is drawn, and through it whether the page is scrollable at all.
+    private func hasBelowFoldSections(vm: DetailViewModel) -> Bool {
+        !(vm.item.people?.isEmpty ?? true) || !vm.similarItems.isEmpty || !vm.catalogSimilar.isEmpty
+    }
+
     private func techFacts(vm: DetailViewModel) -> TechFacts {
         TechFacts.resolve(item: vm.item, sourceID: versionSelection.preferredSourceID(for: vm.item))
     }
@@ -621,7 +647,7 @@ struct MovieDetailView: View {
             .focused($focusedAction, equals: .moreDetails)
 
             // Episodes only reach here via DetailRouterView's no-parent-series fallback; per-episode deletion isn't supported (delete lives on series detail, matching SeriesDetailView's !isShowingEpisode guard).
-            if canDelete && item.type != .episode {
+            if canDelete(vm.item) && vm.item.type != .episode {
                 GlassActionButton(
                     title: "detail.delete.button",
                     systemImage: "trash",
@@ -677,6 +703,24 @@ struct MovieDetailView: View {
 
     /// Open the person page. Jellyfin cast carries no TMDB id, so the page resolves one itself and
     /// gets this movie's id along for the same-name tie-break (Sodalite#143).
+    /// Where a move down into the cast row lands. tvOS resolves it geometrically from the centre of
+    /// whatever had focus, so an entry from a button halfway along the action row lands halfway along
+    /// the cast row, and the column then travels on into Related (Sodalite#146 round 2). Nothing in
+    /// the row has been visited at that point, so there is no remembered place to honour and the
+    /// arbitrary one is simply arbitrary.
+    ///
+    /// Only the first entry is corrected. Redirecting every entry would also undo the row's own
+    /// memory, so coming back up out of Related would lose the card the viewer was on, which is not
+    /// what anyone asked for and not what tvOS does anywhere else.
+    private func aimFirstCastEntry(at newID: String?, in cast: [CastMember]) {
+        guard let newID, !castEntryAimed else { return }
+        castEntryAimed = true
+        guard let first = cast.first?.id, newID != first else { return }
+        // A @FocusState write made synchronously inside its own onChange is dropped on tvOS; a hop
+        // through the main queue is honoured (the season bar carries the same note).
+        DispatchQueue.main.async { focusedCastID = first }
+    }
+
     private func handlePersonTap(_ member: CastMember) {
         navigateToPerson = PersonRoute(
             member: member,

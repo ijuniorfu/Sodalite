@@ -42,6 +42,19 @@ struct ContentLogoTitle<Fallback: View>: View {
     /// second download of the same mark, and a URL that moves after the image lands re-fires
     /// AsyncCachedImage's `task(id:)` and flashes.
     var shrink: CGFloat = 1
+    /// Centres the mark in the width it is given. iPhone portrait does this anyway, to match its
+    /// centred primary action; the pinned copy asks for it on iOS, where the top leading corner
+    /// belongs to the navigation bar's back button (Sodalite#146 round 2).
+    var centered: Bool = false
+    /// Whether the slot holds the tier's ceiling open whatever the mark turns out to be.
+    ///
+    /// True in the hero, and that is the whole point of it there: the mark and the text title share a
+    /// baseline, so a logo arriving late cannot move the block's top edge (Sodalite#15). The PINNED
+    /// copy sets it false, because it is an overlay and sizes nothing, and because reserving the
+    /// ceiling there had a visible cost: the mark is bottom-anchored in its slot, so a wide wordmark
+    /// sat 49 pt lower than it is tall and the band behind it had to be that much deeper, reaching
+    /// down into the episode row (Apple TV, 2026-09-15).
+    var reservesHeight: Bool = true
     @ViewBuilder let fallback: () -> Fallback
 
     @Environment(\.dependencies) private var dependencies
@@ -71,6 +84,8 @@ struct ContentLogoTitle<Fallback: View>: View {
 
     /// iPhone portrait centers the title to match the centered primary action button.
     private var isPhonePortrait: Bool { tier == .phonePortrait }
+
+    private var centersMark: Bool { centered || isPhonePortrait }
 
     /// tvOS draws its 1920x1080 point grid at 2x on the 4K box and reports no useful `displayScale`,
     /// so it asks for the same fixed 2x LayoutMetrics.castImageWidth assumes.
@@ -134,8 +149,8 @@ struct ContentLogoTitle<Fallback: View>: View {
                 Color.clear
             } else {
                 fallback()
-                    .multilineTextAlignment(isPhonePortrait ? .center : .leading)
-                    .frame(maxWidth: .infinity, alignment: isPhonePortrait ? .center : .leading)
+                    .multilineTextAlignment(centersMark ? .center : .leading)
+                    .frame(maxWidth: .infinity, alignment: centersMark ? .center : .leading)
             }
         }
         // Fixed-height slot, bottom-anchored: the mark and the text title share a baseline, so a
@@ -149,9 +164,9 @@ struct ContentLogoTitle<Fallback: View>: View {
         // floats, and the panel below it does not move (rendered at 1920x1080, Sodalite#97 round 2).
         .frame(
             maxWidth: .infinity,
-            minHeight: budget.maxHeight,
-            maxHeight: budget.maxHeight,
-            alignment: isPhonePortrait ? .bottom : .bottomLeading
+            minHeight: reservesHeight ? budget.maxHeight : nil,
+            maxHeight: reservesHeight ? budget.maxHeight : nil,
+            alignment: centersMark ? .bottom : .bottomLeading
         )
         .onGeometryChange(for: CGFloat.self) { proxy in
             proxy.size.width
@@ -187,3 +202,4 @@ struct DetailHeroLogo: View {
         }
     }
 }
+

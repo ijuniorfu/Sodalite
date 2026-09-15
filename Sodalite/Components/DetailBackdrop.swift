@@ -109,6 +109,8 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var containerHeight: CGFloat = 0
     @State private var belowFoldHeight: CGFloat = 0
     @State private var hintSettled = false
+    /// Measured height of the pinned mark's bar, which is what its band is sized from.
+    @State private var pinnedMarkHeight: CGFloat = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.verticalSizeClass) private var vSizeClass
@@ -126,6 +128,25 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     private var trailingFiller: CGFloat {
         hSizeClass == .compact ? 60 : 120
     }
+
+    /// Whether there is anything below the fold yet, which is what decides whether the page offers
+    /// any scroll travel at all (Sodalite#146 round 2).
+    ///
+    /// The padding and the filler below are for a settled page, where they keep the last row off the
+    /// screen edge. Before the detail fetch lands there is no last row: the block measures zero, and
+    /// those two are the only thing making the page scrollable, 200 pt of travel with nothing in it.
+    /// Measured on a device: the page scrolled itself to 116 pt between 39 and 155 ms after opening,
+    /// and every sample of that ramp reports `below fold 0`. The focus engine had landed on Play, it
+    /// wanted the parking distance it always wants, and for once the page could give it: on a settled
+    /// page the same request is already satisfied.
+    ///
+    /// So the fix is not to fight the scroll but to stop offering the room. With both gone while the
+    /// block is empty the content is exactly one viewport, the page is not scrollable, and there is
+    /// nothing to be dragged into. They come back with the content, by which time focus has long
+    /// since settled and a focus change is what a scroll needs.
+    ///
+    /// No feedback loop: `belowFoldHeight` is measured on the block BEFORE either is applied.
+    private var hasBelowFoldContent: Bool { belowFoldHeight > 0 }
 
     /// The reserved band and the hint itself are tvOS only: a scrollable page is self-evident on a
     /// touch device (Sodalite#53).
@@ -260,26 +281,35 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                     // column past the screen and shove the whole content block off-center (section
                     // titles were being clipped on the left). Matches the primary slot's constraint.
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 80)
+                    .padding(.bottom, hasBelowFoldContent ? 80 : 0)
 
                     // Trailing filler so a short content block doesn't end in a hard edge; sized
                     // past any 4K tvOS safe-area inset.
-                    Color.clear
-                        .frame(minHeight: trailingFiller)
-                        .overlay(alignment: .bottom) {
-                            // Rubber-band overscroll pulls the content clear of the bottom edge and
-                            // would uncover the bare backdrop there. This band hangs below the
-                            // content end and scrolls with it, so it is off screen at rest and covers
-                            // exactly the gap the bounce opens. An overlay on purpose: it carries no
-                            // layout weight, so it adds no scroll travel of its own. Reading the
-                            // overscroll from scroll geometry and sizing a fixed band instead does
-                            // not work, the state update never reaches the overlay while the drag is
-                            // in flight (measured, height stayed 0).
-                            artworkPalette.far
-                                .frame(height: 600)
-                                .offset(y: 600)
-                                .allowsHitTesting(false)
-                        }
+                    //
+                    // Removed rather than sized to zero when there is nothing below the fold. A
+                    // `minHeight` caps nothing at the top end, and `Color` is infinitely flexible
+                    // with an IDEAL size of 10x10, so in the unbounded height of a scroll view the
+                    // zeroed filler still drew 10 pt. That is not a rounding error, it is scroll
+                    // travel, and the focus engine took all ten of it: measured at exactly offset 10
+                    // on a page that should not have been scrollable at all (Apple TV, 2026-09-15).
+                    if hasBelowFoldContent {
+                        Color.clear
+                            .frame(minHeight: trailingFiller)
+                            .overlay(alignment: .bottom) {
+                                // Rubber-band overscroll pulls the content clear of the bottom edge
+                                // and would uncover the bare backdrop there. This band hangs below
+                                // the content end and scrolls with it, so it is off screen at rest
+                                // and covers exactly the gap the bounce opens. An overlay on purpose:
+                                // it carries no layout weight, so it adds no scroll travel of its
+                                // own. Reading the overscroll from scroll geometry and sizing a fixed
+                                // band instead does not work, the state update never reaches the
+                                // overlay while the drag is in flight (measured, height stayed 0).
+                                artworkPalette.far
+                                    .frame(height: 600)
+                                    .offset(y: 600)
+                                    .allowsHitTesting(false)
+                            }
+                    }
                 }
                 .background(alignment: .top) { TuckGround(palette: artworkPalette) }
             }
@@ -304,6 +334,22 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             try? await Task.sleep(for: .milliseconds(800))
             hintSettled = true
         }
+        // Where the page came to rest after opening (Sodalite#146 round 2). It is supposed to rest
+        // at zero: the first page is exactly one viewport tall, so the fold sits on the screen's
+        // bottom edge and nothing below it is in sight.
+        //
+        // Silent when that holds, which is what makes it worth keeping. Three separate causes were
+        // found through this one line and every one of them was a page being offered scroll travel
+        // it had no content for, so the next one will be too, and it will say so with the number
+        // rather than with a report that it "sometimes looks wrong".
+        .task {
+            try? await Task.sleep(for: .milliseconds(1500))
+            guard scrollOffset > ScrollHintPolicy.hideThreshold else { return }
+            LogTap.shared.note(
+                "detail: page settled at offset \(Int(scrollOffset.rounded())) "
+                + "of viewport \(Int(containerHeight.rounded())), below fold \(Int(belowFoldHeight.rounded()))"
+            )
+        }
         // The colour arrives after the first paint (the artwork has to decode first), so it fades in
         // rather than switching.
         .animation(.easeInOut(duration: 0.4), value: artworkPalette)
@@ -318,7 +364,13 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @ViewBuilder
     private var pinnedMarkBar: some View {
         if let pinnedMark, pinnedMarkOpacity > 0 {
-            ContentLogoTitle(itemID: pinnedMark.itemID, logo: pinnedMark.logo, shrink: 0.4) {
+            ContentLogoTitle(
+                itemID: pinnedMark.itemID,
+                logo: pinnedMark.logo,
+                shrink: PinnedMarkMetrics.shrink,
+                centered: centersPinnedMark,
+                reservesHeight: false
+            ) {
                 Text(pinnedMark.title)
                     .font(.headline)
                     .fontWeight(.semibold)
@@ -326,20 +378,96 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
             }
             .padding(.horizontal, metrics.rowInset)
             .padding(.top, pinnedMarkTopInset)
-            .padding(.bottom, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                LinearGradient(
-                    colors: [artworkPalette.near, artworkPalette.near.opacity(0)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea(edges: .top)
+            .frame(maxWidth: .infinity, alignment: centersPinnedMark ? .center : .leading)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.height
+            } action: { height in
+                pinnedMarkHeight = height
             }
+            .background(alignment: .top) { pinnedMarkBand }
             .opacity(pinnedMarkOpacity)
             .allowsHitTesting(false)
         }
     }
+
+    /// Centred, on both platforms, which is what Apple pins on either of them.
+    ///
+    /// It was leading on tvOS first, argued from the page below: every heading there starts at
+    /// `rowInset`, so a leading mark lines up with them. That turned out to be the argument against
+    /// it. Sharing the inset with the headings is exactly why "Besetzung" ran THROUGH the mark
+    /// instead of under it (Sodalite#146 round 2, photographed): the band covers that now, but
+    /// centring removes the case rather than covering it, and the reporter asked for centred in the
+    /// same breath.
+    ///
+    /// On iOS there is a second reason and it is not optional: the top leading corner belongs to the
+    /// navigation bar's back button, and a mark drawn behind it is what shipped.
+    ///
+    /// The route through the navigation bar itself was tried and abandoned. A toolbar item is
+    /// something the scroll view measures, so it can only appear on scroll by changing the bar's
+    /// metrics, and the scroll view answers that by shifting its content offset. It crept upward
+    /// over a few scrolls, and the mark a bar will give a page is a fraction of the size this one is.
+    private var centersPinnedMark: Bool { true }
+
+    /// The tier the pinned mark is drawn at, which is what makes its band's height knowable.
+    private var pinnedMarkTier: ContentLogoTier {
+        #if os(tvOS)
+        .tv
+        #else
+        ContentLogoTier.tier(isTV: false, compact: hSizeClass == .compact, portrait: vSizeClass != .compact)
+        #endif
+    }
+
+    /// The ground the mark stands on.
+    ///
+    /// It used to be a gradient from the page colour to nothing across the bar's own height, which
+    /// put the mark's own baseline at roughly 13% cover: the section headings below share the mark's
+    /// leading inset, so they ran THROUGH it rather than under it, and on a title with no logo that
+    /// was text over text (Sodalite#146 round 2, photographed on a device). Full cover has to reach
+    /// past the ink, and the dissolve belongs after it.
+    ///
+    /// A material rather than the page colour, because there is no one colour to use: while the mark
+    /// fades in, the first page is still holding the top of the screen with its own scrim, then comes
+    /// the artwork handover, and only after that the ground itself, which keeps deepening down the
+    /// page. A material is whatever it covers, so it is right at every one of those depths and stays
+    /// right as the page scrolls. If the frost reads wrong on the television it is one line back to a
+    /// colour.
+    private var pinnedMarkBand: some View {
+        let run = pinnedMarkInkDepth + PinnedMarkMetrics.fade
+        return Rectangle()
+            .fill(.ultraThinMaterial)
+            .frame(height: run)
+            .mask(alignment: .top) {
+                LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: pinnedMarkInkDepth / run),
+                        .init(color: .clear, location: 1)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .ignoresSafeArea(edges: .top)
+            .allowsHitTesting(false)
+    }
+
+    /// How far down the mark's ink reaches, from the screen's top edge.
+    ///
+    /// Measured, and it has to be. The arithmetic answer is the tier's CEILING, what a 1:1 mark would
+    /// draw, and most marks are wordmarks that draw around half of that: sizing the band off the
+    /// ceiling made it 89 pt deeper than the mark it covers, which is what pushed it down into the
+    /// episode row. The measurement is safe here in a way it is not in the hero, because the pinned
+    /// copy no longer reserves a slot and because it is an overlay that sizes nothing.
+    ///
+    /// The tier arithmetic stands in only for the first frame, before the measurement lands.
+    private var pinnedMarkInkDepth: CGFloat {
+        guard pinnedMarkHeight > 0 else {
+            return pinnedMarkTopInset
+                + ContentLogoSizing.ceiling(nominal: pinnedMarkTier.nominalHeight * PinnedMarkMetrics.shrink)
+        }
+        return pinnedMarkHeight
+    }
+
 
     /// Inside the tvOS title-safe band; the page itself is full-bleed, so the inset cannot come from
     /// the safe area here.
@@ -623,6 +751,18 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
                 .padding(.bottom, 8)
         }
     }
+}
+
+/// The pinned mark's two constants. Free-standing because `DetailContentOverlay` is generic over
+/// its three slots, and a generic type cannot hold a static stored property.
+enum PinnedMarkMetrics {
+    /// What the pinned copy of the mark asks of the tier's budget.
+    static let shrink: CGFloat = 0.4
+    /// How far past the ink the band takes to let go. Long enough that a row crossing it dissolves
+    /// rather than clipping off at a line, short enough that the band stops well above the first row
+    /// (Apple TV, 2026-09-15: at 120 under a ceiling-sized slot the frost reached into the episode
+    /// strip).
+    static let fade: CGFloat = 80
 }
 
 /// The ground under everything below the fold (Sodalite#146).

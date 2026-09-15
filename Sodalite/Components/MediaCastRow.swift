@@ -65,6 +65,10 @@ struct MediaCastRow: View {
     let members: [CastMember]
     /// Overrides the tier's row inset so the row can line up with a host screen that insets differently.
     var inset: CGFloat? = nil
+    /// tvOS: which card holds focus, so a host can aim the row's first entry at its first card
+    /// (Sodalite#146 round 2). Left nil the row behaves exactly as it did, which is what every
+    /// caller outside the detail pages wants.
+    var focusedID: FocusState<String?>.Binding? = nil
     var onSelect: ((CastMember) -> Void)? = nil
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
@@ -90,16 +94,31 @@ struct MediaCastRow: View {
                 // differ in height, and centering would push their portraits out of line.
                 LazyHStack(alignment: .top, spacing: metrics.itemSpacing) {
                     ForEach(members.mergingDuplicatePeople()) { member in
-                        MediaCastCard(
-                            member: member,
-                            portrait: metrics.castPortrait,
-                            labelWidth: metrics.castLabelWidth,
-                            onSelect: onSelect.map { cb in { cb(member) } }
+                        bindingFocus(
+                            MediaCastCard(
+                                member: member,
+                                portrait: metrics.castPortrait,
+                                labelWidth: metrics.castLabelWidth,
+                                onSelect: onSelect.map { cb in { cb(member) } }
+                            ),
+                            to: member.id
                         )
                     }
                 }
             }
             .focusSectionCompat()
+        }
+    }
+
+    /// The binding is optional, so the branch is on the ROW and identical for every card in it; a
+    /// ForEach whose rows take different branches hands the focus engine two view shapes in one
+    /// list, which is the trap `CollectionDetailView` already works around.
+    @ViewBuilder
+    private func bindingFocus(_ card: some View, to id: String) -> some View {
+        if let focusedID {
+            card.focused(focusedID, equals: id)
+        } else {
+            card
         }
     }
 }

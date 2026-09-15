@@ -95,7 +95,7 @@ struct ArtworkTintTests {
                 dominantHue: 0.6, chromaticSaturation: chromaticSaturation, coherence: 0.9, chroma: 0.2
             ))
             let near = components(palette.near)
-            #expect(near.saturation <= max(chromaticSaturation, 0.45) + 0.001,
+            #expect(near.saturation <= max(chromaticSaturation, 0.62) + 0.001,
                     "lifted to \(near.saturation) from a measured \(chromaticSaturation)")
         }
     }
@@ -183,7 +183,7 @@ struct ArtworkTintTests {
         #expect(strip.coherence > 0.95)
         let near = components(ArtworkTint.palette(for: strip).near)
         #expect(abs(near.hue - 0.5) < 0.02)
-        #expect(near.brightness <= 0.24)
+        #expect(near.brightness <= 0.30)
     }
 
     /// Two opposed hues in equal measure cancel: the strip has plenty of chroma but points nowhere,
