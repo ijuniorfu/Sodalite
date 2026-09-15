@@ -329,6 +329,18 @@ struct MovieDetailView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     glassPanel(vm: vm)
                     actionButtonRow(vm: vm)
+                // Sodalite#146 round 2. A page whose ONLY content below the fold is this one
+                // non-focusable line has no business having a fold at all, and the difference is not
+                // cosmetic. With the line down there the block measures ~30 pt, the trailing chrome
+                // adds 200, and tvOS scrolls the page 116 pt to park the focused Play button where
+                // it wants it. With the line up here the block measures zero, the chrome is
+                // suppressed with it, the content is exactly one viewport and the page cannot be
+                // scrolled at all. Measured: that is the last shape that still moved once the
+                // chrome stopped being offered to pages that have real rows.
+                    if !hasBelowFoldSections(vm: vm), let caption = techFacts(vm: vm).caption {
+                        DetailFileCaption(caption: caption)
+                            .padding(.horizontal, -metrics.rowInset)
+                    }
                 }
                 .padding(.horizontal, metrics.rowInset)
             }) {
@@ -386,14 +398,10 @@ struct MovieDetailView: View {
                 // Sodalite#146, after Infuse: one non-focusable line closing the page with what the
                 // file actually is. The tech strip that used to carry these facts is gone; this is
                 // the part of it worth keeping in sight, and it costs a line instead of a third of
-                // a screen.
-                if let caption = techFacts(vm: vm).caption {
-                    Text(caption)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .padding(.horizontal, metrics.rowInset)
+                // a screen. On a page with no rows at all it moves into the first viewport instead,
+                // see `hasBelowFoldSections`.
+                if hasBelowFoldSections(vm: vm), let caption = techFacts(vm: vm).caption {
+                    DetailFileCaption(caption: caption)
                 }
             }
         }
@@ -475,6 +483,12 @@ struct MovieDetailView: View {
 
     /// Everything the page can say about the copy it is describing. Read once per body pass and
     /// handed to both the reader and the caption line, so the two cannot describe different files.
+    /// Whether anything below the fold is a section rather than the closing caption line. It decides
+    /// where that line is drawn, and through it whether the page is scrollable at all.
+    private func hasBelowFoldSections(vm: DetailViewModel) -> Bool {
+        !(vm.item.people?.isEmpty ?? true) || !vm.similarItems.isEmpty || !vm.catalogSimilar.isEmpty
+    }
+
     private func techFacts(vm: DetailViewModel) -> TechFacts {
         TechFacts.resolve(item: vm.item, sourceID: versionSelection.preferredSourceID(for: vm.item))
     }

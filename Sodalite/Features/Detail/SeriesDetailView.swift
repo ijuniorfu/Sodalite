@@ -525,6 +525,14 @@ struct SeriesDetailView: View {
                 glassPanel(vm: vm)
                     .id(Self.pageTopAnchor)
                 actionButtonRow(vm: vm)
+                // See MovieDetailView: with this line below the fold the page measures ~30 pt of
+                // content down there, the trailing chrome adds 200, and tvOS scrolls 116 pt to park
+                // the focused Play button. Up here the block measures zero, the chrome goes with it,
+                // and the page is exactly one viewport and cannot be scrolled (Sodalite#146 round 2).
+                if !hasBelowFoldSections(vm: vm), let caption = techFacts().caption {
+                    DetailFileCaption(caption: caption)
+                        .padding(.horizontal, -metrics.rowInset)
+                }
             }
             .padding(.horizontal, metrics.rowInset)
             // Keyed on item + load state only, NOT genre count: on an instant-paint episode deep-link the series genres land post-paint, flipping the count rebuilt the panel and broke scroll-to-top back to Play. Genres fill in via in-place diff.
@@ -601,14 +609,10 @@ struct SeriesDetailView: View {
 
                     // Sodalite#146: one non-focusable line closing the page with what the
                     // file actually is, in place of the strip that cost a third of a screen
-                    // for the same facts. It follows the episode on screen.
-                    if let caption = techFacts().caption {
-                        Text(caption)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .padding(.horizontal, metrics.rowInset)
+                    // for the same facts. It follows the episode on screen. On a page with no
+                    // sections at all it moves into the first viewport, see `hasBelowFoldSections`.
+                    if hasBelowFoldSections(vm: vm), let caption = techFacts().caption {
+                        DetailFileCaption(caption: caption)
                             .animation(.easeInOut(duration: 0.3), value: selectedEpisode?.id)
                     }
                 }
@@ -737,6 +741,16 @@ struct SeriesDetailView: View {
     /// Everything the page can say about the copy it is describing, for the reader and the caption
     /// line alike, so the two cannot describe different files. displayItem, so both follow the
     /// episode on screen.
+    /// Whether anything below the fold is a section rather than the closing caption line. It decides
+    /// where that line is drawn, and through it whether the page is scrollable at all. The season
+    /// block counts while it is still loading: its skeleton holds the same room the real one will.
+    private func hasBelowFoldSections(vm: DetailViewModel) -> Bool {
+        !vm.seasons.isEmpty || vm.isLoadingSeasons
+            || !(vm.item.people?.isEmpty ?? true)
+            || !vm.similarItems.isEmpty
+            || !vm.catalogSimilar.isEmpty
+    }
+
     private func techFacts() -> TechFacts {
         TechFacts.resolve(item: displayItem, sourceID: versionSelection.preferredSourceID(for: displayItem))
     }

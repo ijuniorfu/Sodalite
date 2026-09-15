@@ -145,3 +145,25 @@ struct DetailInfoRows<LeftPrimary: View>: View {
             .frame(width: width, height: 14)
     }
 }
+
+/// The one-line close of a detail page, after Infuse: filename, size, video codec, audio codec and
+/// layout, bitrate (Sodalite#146). Not focusable, and never more than a line.
+///
+/// Where it is DRAWN depends on what else the page has. Normally it closes the content below the
+/// fold. On a page that has nothing else down there it moves up into the first viewport instead, and
+/// that is not cosmetic: see `DetailContentOverlay.hasBelowFoldContent`.
+struct DetailFileCaption: View {
+    let caption: String
+
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
+    var body: some View {
+        Text(caption)
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .padding(.horizontal, metrics.rowInset)
+    }
+}
