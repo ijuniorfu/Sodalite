@@ -93,7 +93,13 @@ struct MovieDetailView: View {
         // iPhone portrait respects the safe area so detail content is not clipped under the status
         // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         .ignoresSafeArea(when: !isPhonePortrait)
-        .pinnedPageTitle(viewModel?.item.name ?? item.name, isVisible: showsBarTitle)
+        .pinnedBarMark(
+            itemID: viewModel?.item.id ?? item.id,
+            logo: .from(imageTags: viewModel?.item.imageTags,
+                        hasFullDetail: viewModel?.hasFullDetail ?? false),
+            title: viewModel?.item.name ?? item.name,
+            isVisible: showsBarTitle
+        )
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
