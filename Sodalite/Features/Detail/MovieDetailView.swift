@@ -27,6 +27,9 @@ struct MovieDetailView: View {
     /// only land on Play (Sodalite#53, and #146 once the overview box that used to answer this went
     /// away). See `DetailAction`.
     @FocusState private var focusedAction: DetailAction?
+    /// iOS: whether the navigation bar carries the page's name yet. tvOS draws its own mark and
+    /// ignores this (Sodalite#146 round 2).
+    @State private var showsBarTitle = false
     /// Which cast card holds focus, for the row's entry aim (Sodalite#146 round 2).
     @FocusState private var focusedCastID: String?
     /// One-shot, so only the row's FIRST entry is aimed; after that it remembers where the viewer
@@ -90,7 +93,7 @@ struct MovieDetailView: View {
         // iPhone portrait respects the safe area so detail content is not clipped under the status
         // bar; the backdrop keeps its own .ignoresSafeArea() to stay full-bleed. tvOS/iPad full-bleed.
         .ignoresSafeArea(when: !isPhonePortrait)
-        .hidesToolbarBackground()
+        .pinnedPageTitle(viewModel?.item.name ?? item.name, isVisible: showsBarTitle)
         .overlay {
             if let userID = appState.activeUser?.id {
                 PlayerLauncher(
@@ -318,6 +321,7 @@ struct MovieDetailView: View {
                 heroImageURL: vm.backdropURL(for: vm.item),
                 heroPosterURL: vm.heroPosterURL(for: vm.item),
                 pinnedMark: pinnedMark(vm: vm),
+                onPinnedTitleVisible: { showsBarTitle = $0 },
                 hero: {
                 DetailHeroLogo(viewModel: vm)
             }, primary: {

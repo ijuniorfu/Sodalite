@@ -39,6 +39,27 @@ extension View {
         #endif
     }
 
+    /// The page's own name, once it has scrolled past its hero (Sodalite#146 round 2).
+    ///
+    /// tvOS draws a mark of its own at the top of the page, because it has no navigation bar. iOS
+    /// has one, in the same corner, and a second mark there sat behind the back button on every
+    /// detail page. So on iOS the name goes where the platform puts it, and the bar takes its
+    /// background at the same moment, which is also what gives the title something to stand on.
+    ///
+    /// Driven by the page's own scroll signal rather than by the bar's scroll-edge effect: the detail
+    /// pages are full bleed and ignore the safe area, so what the bar makes of their scroll view is
+    /// not something to bet the first viewport on.
+    @ViewBuilder
+    func pinnedPageTitle(_ title: String, isVisible: Bool) -> some View {
+        #if os(iOS)
+        navigationTitle(isVisible ? title : "")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbarBackgroundVisibility(isVisible ? .visible : .hidden, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+
     @ViewBuilder
     func themedNavigationDestination() -> some View {
         #if os(iOS)
