@@ -41,8 +41,14 @@ struct MovieDetailView: View {
     @State private var didAutoPlay = false
 
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
-    private var canDelete: Bool {
-        appState.activeUser?.canDeleteContent == true
+    /// Whether this page offers deletion at all. Two answers, and the server's own is the finer one
+    /// (Sodalite#146 round 2): the user policy says whether this account may ever delete, while
+    /// `CanDelete` on the item folds in `EnableContentDeletionFromFolders`, which is how a library
+    /// is marked deletable one at a time. A read-only library therefore stops showing a trash can
+    /// that could only ever fail, without a client setting standing in for a server decision.
+    private func canDelete(_ item: JellyfinItem) -> Bool {
+        guard appState.activeUser?.canDeleteContent == true else { return false }
+        return item.canDelete ?? true
     }
 
     /// Seerr service for the catalog similar row, nil while the Catalog tab is hidden: switching it off is a parental measure (Sodalite#62), so the catalog has to be gone here as well, exactly as in Search and on person pages.
@@ -631,7 +637,7 @@ struct MovieDetailView: View {
             .focused($focusedAction, equals: .moreDetails)
 
             // Episodes only reach here via DetailRouterView's no-parent-series fallback; per-episode deletion isn't supported (delete lives on series detail, matching SeriesDetailView's !isShowingEpisode guard).
-            if canDelete && item.type != .episode {
+            if canDelete(vm.item) && vm.item.type != .episode {
                 GlassActionButton(
                     title: "detail.delete.button",
                     systemImage: "trash",

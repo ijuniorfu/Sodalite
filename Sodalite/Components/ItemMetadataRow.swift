@@ -33,7 +33,9 @@ struct ItemMetadataRow: View {
             out.append(AnyView(Text(String(year))))
         }
 
-        if showRuntime, let runtime = item.runTimeTicks {
+        // `> 0` and not just non-nil: a file the server could not probe reports RunTimeTicks 0, and
+        // "0 Min." is a measurement nobody made (Sodalite#146 round 2, seen on a test file).
+        if showRuntime, let runtime = item.runTimeTicks, runtime > 0 {
             out.append(AnyView(Text(runtime.ticksToDisplay)))
         }
 

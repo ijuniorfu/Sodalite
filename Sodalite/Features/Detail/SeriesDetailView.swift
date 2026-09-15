@@ -51,8 +51,11 @@ struct SeriesDetailView: View {
     }
 
     /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
-    private var canDelete: Bool {
-        appState.activeUser?.canDeleteContent == true
+    /// See `MovieDetailView.canDelete(_:)`: the user policy gates the account, the item's own
+    /// `CanDelete` gates the library (Sodalite#146 round 2).
+    private func canDelete(_ item: JellyfinItem) -> Bool {
+        guard appState.activeUser?.canDeleteContent == true else { return false }
+        return item.canDelete ?? true
     }
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
@@ -1042,7 +1045,7 @@ struct SeriesDetailView: View {
             .focused($focusedAction, equals: .moreDetails)
 
             // Delete last, matching MovieDetailView, so the destructive action sits furthest from Play.
-            if canDelete && !isShowingEpisode {
+            if canDelete(displayItem) && !isShowingEpisode {
                 GlassActionButton(
                     title: "detail.delete.button",
                     systemImage: "trash",
