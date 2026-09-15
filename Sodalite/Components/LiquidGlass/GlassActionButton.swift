@@ -279,10 +279,20 @@ struct GlassButtonStyle: ButtonStyle {
     /// How far a pill may grow on one side when focus lifts it. `DetailActionRow` sets its buttons
     /// `spacing` apart, so a lift wider than that puts the focused control over its neighbour, and
     /// with a server-written label on one of them (Sodalite#139) no fixed scale can promise that.
-    /// Two points under the row's 16 leaves the gesture as large as the row allows, and visibly
-    /// unchanged on every pill the app had before: the widest of those measures ~350 pt, whose 8%
-    /// is 14 pt anyway. `DetailActionRowFocusLiftTests` holds the two numbers together.
-    static let liftCeiling: CGFloat = 14
+    ///
+    /// It used to be 14, two points under the row's 16, which is as much as the row can physically
+    /// afford. Physically affording it is not the same as looking right (Sodalite#146 round 2,
+    /// reported on a device): at 14 the focused Play button hangs 14 pt past the page's left margin,
+    /// where the logo, the panel and every heading below line up, and the gap to its neighbour drops
+    /// from 16 pt to 2. Worse, how much it drops depends on the pill: the cap only binds on the wide
+    /// ones, so an icon pill ate 3 pt of the gap and Play ate 14, which is the "spacing is not
+    /// consistent" in the report.
+    ///
+    /// At 4 the cap binds on every pill in the row that carries a label, so the lift is a DISTANCE
+    /// rather than a percentage and the gap it leaves is the same 12 pt whichever control has focus.
+    /// The gesture itself is carried by the ring and the fill either way; the scale is the smallest
+    /// of the three. `DetailActionRowFocusLiftTests` holds the numbers together.
+    static let liftCeiling: CGFloat = 4
 
     /// Progress used to be an accent capsule filling the tile from the leading edge, which forced
     /// the tile to drop its accent fill (accent on accent does not read) and put half the label on
