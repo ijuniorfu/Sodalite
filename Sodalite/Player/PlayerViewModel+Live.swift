@@ -740,12 +740,20 @@ extension PlayerViewModel {
         date.formatted(date: .omitted, time: .shortened)
     }
 
-    /// Snap back to the live edge (return-to-live chip).
+    /// Snap back to the live edge and play there (the return-to-live chip, and a scrub that reaches
+    /// the edge).
     ///
     /// Sodalite#104: the chip supersedes a scrub that has not committed. Without this the rail would
     /// keep drawing a `scrubProgress` the viewer has just overruled, and any pending commit would
     /// seek back out of live a fraction of a second after the return landed.
-    func returnToLiveEdge(thenPlay: Bool = false) {
+    ///
+    /// Round 3: arriving at live means watching it. A session left paused there is behind the edge a
+    /// second later, so the badge would give the edge up again and the chip would come back for the
+    /// press the viewer just made. The resume used to be a `thenPlay:` parameter that only the scrub
+    /// commit passed, so both buttons that ARE Return to Live left a paused session paused; there is
+    /// no parameter left to forget.
+    func returnToLiveEdge() {
+        let resume = !isPlaying
         skipCommitTask?.cancel()
         skipCommitTask = nil
         seekReadout = nil
@@ -755,7 +763,7 @@ extension PlayerViewModel {
         skipBackBurstOrigin = nil
         Task {
             await player.seekToLiveEdge()
-            if thenPlay { player.play() }
+            if resume { player.play() }
         }
     }
 
@@ -767,6 +775,7 @@ extension PlayerViewModel {
         guard isScrubbing,
               let range = liveSeekableRange,
               range.upperBound > range.lowerBound else {
+            if isScrubbing { noteScrubDiscarded("the live session has no seekable range to map it across") }
             isScrubbing = false
             pendingSkipBackOrigin = nil
             skipBackBurstOrigin = nil
@@ -781,7 +790,7 @@ extension PlayerViewModel {
         if Self.liveScrubReachedLiveEdge(scrubProgress: p, liveEdge: liveRail.liveEdge) {
             pendingSkipBackOrigin = nil
             skipBackBurstOrigin = nil
-            returnToLiveEdge(thenPlay: thenPlay)
+            returnToLiveEdge()
             scheduleControlsHide()
             return
         }

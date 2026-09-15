@@ -1144,6 +1144,7 @@ final class PlayerHostController: AVPlayerViewController {
             viewModel.trackDropdown = .none
             viewModel.scheduleControlsHide()
         } else if viewModel.isScrubbing {
+            viewModel.noteScrubDiscarded("Menu")
             viewModel.cancelScrub()
         } else if viewModel.showControls {
             if viewModel.controlsFocus != .progressBar {
@@ -1194,15 +1195,51 @@ final class PlayerHostController: AVPlayerViewController {
         handleHold(gesture, direction: 1)
     }
 
-    /// Hold Select on an external subtitle row to delete it (Feature #4); ignored for embedded tracks, Off/Search rows, other dropdowns.
+    /// Sodalite#104 round 3: what a Select press held past the hold threshold means.
+    ///
+    /// The hold exists to delete a highlighted external subtitle (Feature #4), and the short tap waits
+    /// for it to fail before it fires. So a click held a third of a second anywhere else used to do
+    /// nothing at all: over a pending scrub no seek, no pause and no log line, which a device capture
+    /// cannot tell from a press that never arrived. A hold with nothing to delete is a click.
+    enum SelectHold: Equatable {
+        case deleteSubtitle(streamIndex: Int)
+        case click
+    }
+
+    static func selectHold(dropdown: PlayerViewModel.TrackDropdown,
+                           rows: [SubtitleMenuRow],
+                           externalStreamIndices: Set<Int>) -> SelectHold {
+        guard case .subtitle(let idx) = dropdown, rows.indices.contains(idx),
+              case .track(let streamIndex) = rows[idx],
+              externalStreamIndices.contains(streamIndex) else { return .click }
+        return .deleteSubtitle(streamIndex: streamIndex)
+    }
+
+    /// Set when a hold began with nothing to delete, so its release is taken as the click it was.
+    private var selectHoldIsClick = false
+
     @objc private func selectHeld(_ gesture: UILongPressGestureRecognizer) {
-        guard gesture.state == .began else { return }
-        guard case .subtitle(let idx) = viewModel.trackDropdown else { return }
-        let rows = viewModel.subtitleMenuRows
-        guard idx >= 0, idx < rows.count, case .track(let streamIndex) = rows[idx],
-              viewModel.displaySubtitleStreams.first(where: { $0.index == streamIndex })?.isExternal == true
-        else { return }
-        viewModel.requestSubtitleDeletion(streamIndex: streamIndex)
+        switch gesture.state {
+        case .began:
+            let external = Set(viewModel.displaySubtitleStreams.filter { $0.isExternal == true }.map(\.index))
+            switch Self.selectHold(dropdown: viewModel.trackDropdown, rows: viewModel.subtitleMenuRows,
+                                   externalStreamIndices: external) {
+            case .deleteSubtitle(let streamIndex):
+                selectHoldIsClick = false
+                viewModel.requestSubtitleDeletion(streamIndex: streamIndex)
+            case .click:
+                selectHoldIsClick = true
+            }
+        case .ended:
+            guard selectHoldIsClick else { return }
+            selectHoldIsClick = false
+            LogTap.shared.note("[Remote] Select held past the hold threshold with nothing to delete: taken as a click")
+            selectPressed()
+        case .cancelled, .failed:
+            selectHoldIsClick = false
+        default:
+            break
+        }
     }
 
     /// Continuous hold-to-seek spool from a directional long press; gated like the tap-skip path so a hold while navigating buttons or with stats/dropdown up is ignored.

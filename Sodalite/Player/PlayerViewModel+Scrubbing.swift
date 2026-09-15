@@ -129,6 +129,7 @@ extension PlayerViewModel {
         controlsTimer = Task {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
+            noteScrubDiscarded("no confirming press within 5 s")
             isScrubbing = false
             scrubPreview.clear()
             hideControls()
@@ -149,6 +150,7 @@ extension PlayerViewModel {
         if isLiveSession { commitLiveScrub(thenPlay: thenPlay); return }
         let dur = effectiveDuration
         guard isScrubbing, dur > 0 else {
+            if isScrubbing { noteScrubDiscarded("the item has no duration to map it across") }
             isScrubbing = false
             pendingSkipBackOrigin = nil
             skipBackBurstOrigin = nil
@@ -167,6 +169,15 @@ extension PlayerViewModel {
             reportProgressIfNeeded()
             scheduleControlsHide()
         }
+    }
+
+    /// Sodalite#104 round 3: a pending scrub that ends without a seek says why.
+    ///
+    /// Each of these throws away a gesture the viewer made, and a silent one reads in a device capture
+    /// exactly like a confirming press that never arrived. With a line, a capture that shows neither a
+    /// seek nor a pause names what took the scrub instead of leaving it to be inferred.
+    func noteScrubDiscarded(_ reason: String) {
+        LogTap.shared.note("[Scrub] pending scrub discarded without a seek: \(reason)")
     }
 
     func cancelScrub() {
