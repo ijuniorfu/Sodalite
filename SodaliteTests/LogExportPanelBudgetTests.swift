@@ -26,9 +26,13 @@ struct LogExportPanelBudgetTests {
             .height
     }
 
-    /// A private range plus a port is the longest address this can produce, so it is the one to measure.
+    /// The longest address this can ever produce, so it is the only one worth measuring: the server
+    /// hands out IPv4 only (`AF_INET`), so the host is at most `255.255.255.255`, the kernel's ephemeral
+    /// range tops out at 65535, and the token is a fixed 16. 45 characters, and nothing can exceed it.
+    private static let longestAddress = "http://255.255.255.255:65535/2947dc41cd468014"
+
     private static let content = LogExportPanelContent(
-        url: URL(string: "http://192.168.178.123:49336/2947dc41cd468014")!,
+        url: URL(string: longestAddress)!,
         expiresAt: Date().addingTimeInterval(300)
     )
 
@@ -64,22 +68,22 @@ struct LogExportPanelBudgetTests {
     }
 
     /// The address is the fallback for a camera that will not focus on a television, so it has to stay
-    /// one line. `minimumScaleFactor` only shrinks a label as far as it must, so the question is whether
-    /// the floor is low enough for the longest address, not whether it is set at all.
-    @Test("the longest address still fits one line above the floor")
-    func addressFitsOnOneLine() {
-        let longest = "http://192.168.178.123:49336/2947dc41cd468014"
+    /// one line, and at ONE size: `minimumScaleFactor` shrinks a label by exactly the fraction that makes
+    /// it fit, so a panel sized to the floor rather than to the text would render 48 pt on a 10.x network
+    /// and 43.6 pt on a 192.168.x one. Which address the router handed out is not a thing the type size
+    /// may depend on. So the promise is scale 1, not "somewhere above the floor".
+    @Test("the longest address the server can produce needs no shrinking at all")
+    func longestAddressNeedsNoScaling() {
         let font = UIFont.monospacedSystemFont(
             ofSize: UIFont.preferredFont(forTextStyle: .title3).pointSize,
             weight: .regular
         )
-        let width = (longest as NSString).size(withAttributes: [.font: font]).width
+        let width = (Self.longestAddress as NSString).size(withAttributes: [.font: font]).width
         let available = LogExportPanelContent.width - 2 * LogExportPanelContent.padding
-        let neededScale = available / width
 
         #expect(
-            neededScale >= 0.5,
-            "the longest address needs a scale of \(neededScale) in \(available) pt, below the 0.5 floor"
+            width <= available,
+            "the longest address is \(width) pt in \(available) pt, so it would render smaller than a short one"
         )
     }
 }

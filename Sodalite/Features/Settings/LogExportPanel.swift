@@ -100,9 +100,15 @@ struct LogExportPanelContent: View {
     let expiresAt: Date
 
     /// Wide rather than tall. The screen is 16:9 and the constraint is height, so the panel spends the
-    /// axis it has: 1300 of the 1760 the cover leaves, which is also what lets the address stay on one
-    /// line at a size that reads from a sofa.
-    static let width: CGFloat = 1300
+    /// axis it has: 1500 of the 1760 the cover leaves.
+    ///
+    /// The width is set by the address, which is the widest thing here and must not shrink. The longest
+    /// one this can produce is 45 characters (`http://255.255.255.255:65535/` plus 16 hex), measured at
+    /// 1335.2 pt in title3 monospaced, so the 1412 pt inside the padding carries it at full size with
+    /// 77 pt to spare. At 1300 it did not: that left 1212, and even a short address on a 10.x network
+    /// came to 1216.5 and was already being scaled, which would have made the type size depend on which
+    /// address the router handed out. `LogExportPanelBudgetTests` pins the worst case at scale 1.
+    static let width: CGFloat = 1500
     static let padding: CGFloat = 44
     static let blockSpacing: CGFloat = 24
     static let rowSpacing: CGFloat = 16
@@ -120,8 +126,8 @@ struct LogExportPanelContent: View {
 
             // The address is spelled out under the code as well: a camera will not always focus on a
             // television, and the fallback has to be typeable rather than a second attempt at scanning.
-            // The floor is 0.5 and not 0.6 because a long private range plus a port is 45 characters,
-            // which needs 0.94, and a label only shrinks as far as it must.
+            // The panel is sized so this never actually scales; the floor is only there so an address
+            // nobody anticipated comes out small rather than cut in half.
             Text(url.absoluteString)
                 .font(.system(.title3, design: .monospaced))
                 .lineLimit(1)
