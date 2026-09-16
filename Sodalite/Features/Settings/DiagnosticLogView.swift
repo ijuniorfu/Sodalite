@@ -7,6 +7,14 @@ private struct LogLine: Identifiable {
     let text: String
 }
 
+/// The lines as they stood when Export was pressed. The `item:` presentation needs an identity and an
+/// array of strings has none; the snapshot also keeps the panel from reading a buffer that has moved on
+/// while the cover was going up.
+private struct LogSnapshot: Identifiable {
+    let id = UUID()
+    let lines: [String]
+}
+
 /// Settings > "Diagnostic Log": the lines `LogTap` collected this session.
 ///
 /// Deliberately not gated by `LogTap.isDiagnosticBuild`: it is read-only, and until it existed the
@@ -18,6 +26,11 @@ struct DiagnosticLogView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @ObservedObject private var tap = LogTap.shared
+
+    /// Non-nil while the export panel is up, and the snapshot it is serving. Carried in the binding
+    /// rather than read inside the panel so the page shows the lines that were on screen when the
+    /// button was pressed, not the ones that arrived while it was opening.
+    @State private var exportedLines: LogSnapshot?
 
     /// tvOS groups the lines into focusable blocks (see LogBlock). 12 keeps a block roughly one
     /// screenful, so one swipe of the remote is one page.
@@ -76,6 +89,14 @@ struct DiagnosticLogView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .hidesNavigationBarChrome()
         .onExitCommandCompat { dismiss() }
+        #if os(tvOS)
+        // Presented from here rather than from Settings: this view is already a cover, and the panel
+        // is a modal of ITS host, which is the one arrangement UIKit allows (see the log view's own
+        // presenter in DiagnosticLogLink).
+        .menuPresentation(item: $exportedLines) { snapshot in
+            LogExportPanel(lines: snapshot.lines) { exportedLines = nil }
+        }
+        #endif
     }
 
     @ViewBuilder
@@ -133,6 +154,18 @@ struct DiagnosticLogView: View {
             }
             #endif
 
+            #if os(tvOS)
+            // Sodalite#148. An Apple TV has no clipboard and no keyboard worth the name, so the way off
+            // it is a page a phone can open. iOS keeps Copy above and needs none of this.
+            LogActionButton(
+                titleKey: "settings.log.export",
+                systemImage: "qrcode",
+                isEnabled: !tap.lines.isEmpty
+            ) {
+                exportedLines = LogSnapshot(lines: tap.lines)
+            }
+            #endif
+
             LogActionButton(
                 titleKey: "settings.log.clear",
                 systemImage: "trash",
@@ -153,7 +186,10 @@ struct DiagnosticLogView: View {
 /// pill in the accent colour whether or not it holds focus, which reads as permanently focused and
 /// swallows its own label. Mirrors `SettingsTileButtonStyle`'s fills and tinted focus border
 /// instead, so it looks like the rest of Settings on both platforms.
-private struct LogActionButton: View {
+///
+/// Not private: the export panel (Sodalite#148) is a second face of this same screen and its buttons
+/// have to be the same ones.
+struct LogActionButton: View {
     let titleKey: LocalizedStringKey
     let systemImage: String
     let isEnabled: Bool
