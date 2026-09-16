@@ -515,9 +515,26 @@ struct StatsOverlayView: View {
     /// (DV/HDR10 source on an SDR panel, or Match Content off), render "Source → Target". The profile comes
     /// from the engine's dvcC read first; Jellyfin's copy is the fallback.
     private var videoRangeLabel: String {
-        let dvProfile = player.sourceDVProfile ?? videoStream?.dvProfile
-        let source = Self.formatLabel(player.sourceVideoFormat, dvProfile: dvProfile)
-        let effective = Self.formatLabel(player.videoFormat, dvProfile: dvProfile)
+        Self.videoRangeLabel(
+            source: player.sourceVideoFormat,
+            presented: player.videoFormat,
+            dvProfile: player.sourceDVProfile ?? videoStream?.dvProfile,
+            conversion: player.dolbyVisionConversion)
+    }
+
+    /// A Profile 7 presented as Dolby Vision is served as Profile 8.1, so the target names that profile
+    /// rather than repeating the source's (AE#459).
+    static func videoRangeLabel(
+        source sourceFormat: VideoFormat,
+        presented: VideoFormat,
+        dvProfile: Int?,
+        conversion: DolbyVisionConversion?
+    ) -> String {
+        let source = formatLabel(sourceFormat, dvProfile: dvProfile)
+        if presented == .dolbyVision, conversion == .profile7ToProfile81 {
+            return "\(source) → P8.1"
+        }
+        let effective = formatLabel(presented, dvProfile: dvProfile)
         if source == effective {
             return source
         }
