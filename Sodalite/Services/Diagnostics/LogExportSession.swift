@@ -91,8 +91,15 @@ nonisolated struct LogExportSession: Sendable {
         }
     }
 
-    /// 128 bits of it. The only thing between the log and everyone else on the network, and a port in
+    /// 64 bits of it. The only thing between the log and everyone else on the network, and a port in
     /// the ephemeral range is a short enough list to walk.
+    ///
+    /// 64 and not 128 because the address under the QR code is the documented fallback for a camera
+    /// that will not focus on a television, so it has to fit on one line at a size that reads from a
+    /// sofa: 16 hex characters instead of 32 take the whole URL from about 56 characters to 41. What
+    /// that costs is nothing anyone can spend. Guessing this needs 2^63 requests against a socket that
+    /// closes after five minutes, and the door it opens is a log that has already had its credentials
+    /// stripped.
     let token: String
     let environment: Environment
     let capturedAt: Date
@@ -119,7 +126,7 @@ nonisolated struct LogExportSession: Sendable {
     /// will not focus on a television, and mixed case is read wrong off a screen.
     private static func makeToken() -> String {
         var generator = SystemRandomNumberGenerator()
-        return (0 ..< 16)
+        return (0 ..< 8)
             .map { _ in String(format: "%02x", UInt8.random(in: .min ... .max, using: &generator)) }
             .joined()
     }

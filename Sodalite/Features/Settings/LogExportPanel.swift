@@ -8,9 +8,11 @@ import CoreImage.CIFilterBuiltins
 /// tvOS only. iOS has a Copy button and a keyboard behind it; an Apple TV has neither, and the reporter
 /// who asked for this was photographing the screen and running OCR over roughly 300 lines per report.
 ///
-/// The panel owns the server's lifetime: it starts on appear, stops on disappear, and the link dies with
+/// This half owns the server's lifetime: it starts on appear, stops on disappear, and the link dies with
 /// the deadline whether or not anyone is looking. A log is a live document about someone's server, so an
 /// export that outlives the screen it was started from would be a thing left switched on by accident.
+/// What the panel LOOKS like is `LogExportPanelContent`, which has no side effects and can therefore be
+/// hosted and measured (`LogExportPanelBudgetTests`).
 struct LogExportPanel: View {
     /// The lines the reporter was looking at when they pressed the button. Frozen here rather than read
     /// inside the server, so the page and the screen show the same session.
@@ -23,118 +25,51 @@ struct LogExportPanel: View {
     @State private var hasExpired = false
 
     var body: some View {
-        VStack(spacing: 28) {
-            Text("settings.log.export.title", bundle: .main)
-                .font(.title2)
-                .fontWeight(.semibold)
-
+        VStack(spacing: LogExportPanelContent.blockSpacing) {
             content
 
             LogActionButton(
-                titleKey: "common.done",
-                systemImage: "xmark",
+                titleKey: hasExpired ? "home.retry" : "common.done",
+                systemImage: hasExpired ? "arrow.clockwise" : "xmark",
                 isEnabled: true,
-                action: dismiss
+                action: hasExpired ? start : dismiss
             )
         }
-        .padding(56)
-        .frame(width: 900)
+        .padding(LogExportPanelContent.padding)
+        .frame(width: LogExportPanelContent.width)
         .task { start() }
         .onDisappear { server.stop() }
     }
 
     @ViewBuilder
     private var content: some View {
-        if let endpoint, !hasExpired {
-            liveExport(endpoint)
-        } else if hasExpired {
-            message("settings.log.export.expired.title", detail: "settings.log.export.expired.message", isError: false)
-            LogActionButton(
-                titleKey: "home.retry",
-                systemImage: "arrow.clockwise",
-                isEnabled: true,
-                action: start
+        if hasExpired {
+            LogExportPanelContent.message(
+                "settings.log.export.expired.title",
+                detail: "settings.log.export.expired.message",
+                isError: false
             )
         } else if failure != nil {
-            message("settings.log.export.failed.title", detail: "settings.log.export.failed.message", isError: true)
+            LogExportPanelContent.message(
+                "settings.log.export.failed.title",
+                detail: "settings.log.export.failed.message",
+                isError: true
+            )
+        } else if let endpoint {
+            LogExportPanelContent(url: endpoint.url, expiresAt: endpoint.expiresAt)
+                // Not a timer on the view: the deadline is one instant, and a task that sleeps to it
+                // costs nothing in between and cancels itself when the panel goes away.
+                .task(id: endpoint.expiresAt) {
+                    let remaining = endpoint.expiresAt.timeIntervalSinceNow
+                    guard remaining > 0 else { hasExpired = true; return }
+                    try? await Task.sleep(for: .seconds(remaining))
+                    guard !Task.isCancelled else { return }
+                    hasExpired = true
+                }
         } else {
             ProgressView()
-                .frame(height: 360)
+                .frame(height: LogExportPanelContent.codeSide)
         }
-    }
-
-    private func liveExport(_ endpoint: LogExportServer.Endpoint) -> some View {
-        VStack(spacing: 20) {
-            qrCode(for: endpoint.url)
-
-            // The address is spelled out under the code as well: a camera will not always focus on a
-            // television, and the fallback has to be typeable rather than a second attempt at scanning.
-            Text(endpoint.url.absoluteString)
-                .font(.system(.title3, design: .monospaced))
-                .textCase(.lowercase)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-
-            HStack(spacing: 8) {
-                Text("settings.log.export.expires", bundle: .main)
-                Text(timerInterval: Date() ... endpoint.expiresAt, countsDown: true)
-                    .monospacedDigit()
-            }
-            .font(.callout)
-            .foregroundStyle(.secondary)
-
-            Text("settings.log.export.hint", bundle: .main)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 640)
-        }
-        // Not a timer on the view: the deadline is one instant, and a task that sleeps to it costs
-        // nothing in between and cancels itself when the panel goes away.
-        .task(id: endpoint.expiresAt) {
-            let remaining = endpoint.expiresAt.timeIntervalSinceNow
-            guard remaining > 0 else { hasExpired = true; return }
-            try? await Task.sleep(for: .seconds(remaining))
-            guard !Task.isCancelled else { return }
-            hasExpired = true
-        }
-    }
-
-    /// Black on white with a quiet zone of its own, never on the panel material: the generator's
-    /// background is not guaranteed opaque, and dark modules on dark material scan as nothing.
-    @ViewBuilder
-    private func qrCode(for url: URL) -> some View {
-        if let image = Self.qrImage(for: url) {
-            Image(uiImage: image)
-                // Nearest neighbour: a QR module is a hard square, and smoothing its edges is what
-                // makes a code fail to scan from across a room.
-                .interpolation(.none)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 340, height: 340)
-                .padding(20)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
-        } else {
-            message("settings.log.export.failed.title", detail: "settings.log.export.failed.message", isError: true)
-        }
-    }
-
-    private func message(
-        _ titleKey: LocalizedStringKey,
-        detail: LocalizedStringKey,
-        isError: Bool
-    ) -> some View {
-        VStack(spacing: 12) {
-            Text(titleKey)
-                .font(.headline)
-                .foregroundStyle(isError ? Color.Theme.destructive : .primary)
-            Text(detail)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 640)
-        }
-        .frame(minHeight: 200)
     }
 
     private func start() {
@@ -150,6 +85,111 @@ struct LogExportPanel: View {
             endpoint = nil
             failure = .noNetwork
         }
+    }
+}
+
+/// The face of the export panel, with no server behind it.
+///
+/// Split out so its height can be measured rather than guessed. The first device round overran the
+/// title-safe band and SwiftUI paid for it the way it always does, with a text line: the hint came back
+/// as one truncated line and the address lost its tail, both of them at a distance from the cause. The
+/// sizes below are budgeted against 960 pt less the cover's own 120 pt of vertical padding, and
+/// `LogExportPanelBudgetTests` holds the total there.
+struct LogExportPanelContent: View {
+    let url: URL
+    let expiresAt: Date
+
+    /// Wide rather than tall. The screen is 16:9 and the constraint is height, so the panel spends the
+    /// axis it has: 1300 of the 1760 the cover leaves, which is also what lets the address stay on one
+    /// line at a size that reads from a sofa.
+    static let width: CGFloat = 1300
+    static let padding: CGFloat = 44
+    static let blockSpacing: CGFloat = 24
+    static let rowSpacing: CGFloat = 16
+    /// 280 on a 55 inch panel is about 16 cm of printed code, which a phone reads from across a room.
+    /// It was 340 in the first round, and the 60 pt are the cheapest ones in the column.
+    static let codeSide: CGFloat = 280
+
+    var body: some View {
+        VStack(spacing: Self.rowSpacing) {
+            Text("settings.log.export.title", bundle: .main)
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            qrCode
+
+            // The address is spelled out under the code as well: a camera will not always focus on a
+            // television, and the fallback has to be typeable rather than a second attempt at scanning.
+            // The floor is 0.5 and not 0.6 because a long private range plus a port is 45 characters,
+            // which needs 0.94, and a label only shrinks as far as it must.
+            Text(url.absoluteString)
+                .font(.system(.title3, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+
+            HStack(spacing: 8) {
+                Text("settings.log.export.expires", bundle: .main)
+                Text(timerInterval: Date() ... expiresAt, countsDown: true)
+                    .monospacedDigit()
+            }
+            .font(.callout)
+            .foregroundStyle(.secondary)
+
+            Text("settings.log.export.hint", bundle: .main)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 900)
+                // Makes the hint honest about its height. Without it a stack under a height offer
+                // squeezes its own text and reports back the offered height, which is exactly how this
+                // sentence came back as one line with an ellipsis instead of wrapping.
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Black on white with a quiet zone of its own, never on the panel material: the generator's
+    /// background is not guaranteed opaque, and dark modules on dark material scan as nothing.
+    @ViewBuilder
+    private var qrCode: some View {
+        if let image = Self.qrImage(for: url) {
+            Image(uiImage: image)
+                // Nearest neighbour: a QR module is a hard square, and smoothing its edges is what
+                // makes a code fail to scan from across a room.
+                .interpolation(.none)
+                .resizable()
+                .scaledToFit()
+                .frame(width: Self.codeSide, height: Self.codeSide)
+                .padding(20)
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
+        } else {
+            Self.message(
+                "settings.log.export.failed.title",
+                detail: "settings.log.export.failed.message",
+                isError: true
+            )
+        }
+    }
+
+    /// Shared by the expired and the failed state, which are the panel's two other faces.
+    @ViewBuilder
+    static func message(
+        _ titleKey: LocalizedStringKey,
+        detail: LocalizedStringKey,
+        isError: Bool
+    ) -> some View {
+        VStack(spacing: 12) {
+            Text(titleKey)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundStyle(isError ? Color.Theme.destructive : .primary)
+            Text(detail)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 900)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(minHeight: 160)
     }
 
     private static func qrImage(for url: URL) -> UIImage? {

@@ -53,7 +53,10 @@ struct LogExportSessionTests {
         let tokens = (0 ..< 32).map { _ in Self.session().token }
 
         for token in tokens {
-            #expect(token.count == 32, "a 128 bit token in hex is 32 characters, got \(token.count)")
+            // 16 and not 32: the address under the QR code is the fallback for a camera that will not
+            // focus on a television, so the URL has to fit one readable line. 64 bits against a socket
+            // that closes after five minutes is not the weak part of this.
+            #expect(token.count == 16, "a 64 bit token in hex is 16 characters, got \(token.count)")
             #expect(
                 token.allSatisfy { $0.isHexDigit && ($0.isNumber || $0.isLowercase) },
                 "the token goes in a URL that is read off a screen, so it stays lowercase hex: \(token)"
@@ -99,7 +102,7 @@ struct LogExportSessionTests {
         "/",
         "/favicon.ico",
         "/log.txt",
-        "/0123456789abcdef0123456789abcdef",
+        "/0123456789abcdef",
         "/../../etc/passwd",
     ])
     func unknownPathsAreNotFound(path: String) {
