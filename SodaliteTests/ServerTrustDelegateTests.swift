@@ -13,7 +13,7 @@ import Testing
 @Suite("Server trust decision")
 struct ServerTrustDelegateTests {
 
-    private final class FakePinStorage: TrustPinStorage, @unchecked Sendable {
+    private nonisolated final class FakePinStorage: TrustPinStorage, @unchecked Sendable {
         private let lock = NSLock()
         private var pins: [String: String]
         init(_ pins: [String: String] = [:]) { self.pins = pins }
