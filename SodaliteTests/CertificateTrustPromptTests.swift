@@ -12,7 +12,7 @@ import Testing
 @Suite("Certificate trust prompt")
 struct CertificateTrustPromptTests {
 
-    private final class FakePinStorage: TrustPinStorage, @unchecked Sendable {
+    private nonisolated final class FakePinStorage: TrustPinStorage, @unchecked Sendable {
         private let lock = NSLock()
         private var pins: [String: String]
         init(_ pins: [String: String] = [:]) { self.pins = pins }
@@ -20,7 +20,7 @@ struct CertificateTrustPromptTests {
         nonisolated func savePins(_ pins: [String: String]) { lock.lock(); self.pins = pins; lock.unlock() }
     }
 
-    private final class ScriptedDiscovery: ServerDiscoveryServiceProtocol, @unchecked Sendable {
+    private nonisolated final class ScriptedDiscovery: ServerDiscoveryServiceProtocol, @unchecked Sendable {
         private let lock = NSLock()
         private var outcomes: [ServerDiscoveryResult]
         private(set) var calls = 0

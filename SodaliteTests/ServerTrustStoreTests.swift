@@ -10,7 +10,7 @@ import Testing
 @Suite("Server certificate trust store")
 struct ServerTrustStoreTests {
 
-    private final class FakePinStorage: TrustPinStorage, @unchecked Sendable {
+    private nonisolated final class FakePinStorage: TrustPinStorage, @unchecked Sendable {
         private let lock = NSLock()
         private var pins: [String: String]
         private(set) var saveCount = 0
