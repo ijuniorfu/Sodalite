@@ -23,7 +23,7 @@ final class NetworkPathObserver {
         // NWPathMonitor.start() asserts in libnetwork, so latch.
         guard !isStarted else { return }
         isStarted = true
-        monitor.pathUpdateHandler = { path in
+        monitor.pathUpdateHandler = { [weak self] path in
             // Recorded off the monitor queue, before the MainActor hop: the route resolve reads
             // this synchronously and must not race a hop that has not landed yet.
             NetworkPathSnapshot.shared.record(NetworkPathSnapshot.Reading(path))

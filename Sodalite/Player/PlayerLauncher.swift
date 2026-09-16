@@ -56,7 +56,7 @@ struct PlayerLauncher: UIViewControllerRepresentable {
             // re-requests PlaybackInfo) -- the churn that crashed #31.
             host.isLaunching = true
             let isPresentedBinding = _isPresented
-            host.presentWhenContextIsFree {
+            host.presentWhenContextIsFree { [weak host] in
                 let vm = PlayerViewModel(
                     item: item,
                     startFromBeginning: startFromBeginning,

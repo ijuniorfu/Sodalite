@@ -519,7 +519,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private func observeAccountChanges() {
         let observer = NotificationCenter.default.addObserver(
             forName: .CKAccountChanged, object: nil, queue: .main
-        ) { _ in
+        ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.preferences.isEnabled else { return }
                 LogTap.shared.note("[CloudSync] iCloud account changed, restarting engine")
