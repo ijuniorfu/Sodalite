@@ -277,6 +277,7 @@
 		387878240BDDE410249A84A0 /* GuideGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E248152FCA9B2C490E641934 /* GuideGridViewController.swift */; };
 		38DC7D4163AD587CA8F36204 /* CachedDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A7D932F1A7D481F18B8B46 /* CachedDataView.swift */; };
 		39030A3285AEA29BF3D812CF /* SidebarProfileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB7991EF688676E7E9399CA /* SidebarProfileHeader.swift */; };
+		397B90C8513379B003D4EDC0 /* ProfileShellLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA7B92BAD2F5D2F412244E4 /* ProfileShellLayoutTests.swift */; };
 		3982B4B94872D1437AF93345 /* CheckmarkAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD5596E5ED089CD31B3ADB8 /* CheckmarkAnimation.swift */; };
 		3A1FBDE9DC53F59B43C6C3C5 /* JellyfinEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */; };
 		3A22902EF39153941F953804 /* LiveProgramsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADAD381D4AEFEF97223E0EA /* LiveProgramsViewModel.swift */; };
@@ -348,6 +349,7 @@
 		489CFDD0BC34132ED43BC78C /* SeerrSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46B1FA9CC0A907B9DA0E2A1 /* SeerrSearchService.swift */; };
 		48DFF7DDD0ED3316B3A206F1 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB11FC05D955CAA82390899 /* SearchView.swift */; };
 		490E78AFE6377A0F2828A7A9 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 58BD2D49CE8AB49360409981 /* OFL.txt */; };
+		493D35829F0FDD1EB88E0D86 /* ProfileShellLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF124E4A12D50287B1BDD93 /* ProfileShellLayout.swift */; };
 		49C558DE8D51AB38B6D12730 /* ProfilePickerOrderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81387341EF393A20422D1A /* ProfilePickerOrderingTests.swift */; };
 		49E5D69EAC701738353C51E9 /* PendingRequestsNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F107F8B6AF976EDFD99B7792 /* PendingRequestsNotifier.swift */; };
 		49E87C6DD53780FE23243F69 /* SessionRestorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368B32F98097EE977BFBB373 /* SessionRestorer.swift */; };
@@ -1007,6 +1009,7 @@
 		D75975BCCFE9B17857A3847C /* SpoilerVeil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E78738385037844F707C771 /* SpoilerVeil.swift */; };
 		D7887FCCEBCA1A51A8BB7290 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A4F6464C543DFF6027F96CB /* JSONValue.swift */; };
 		D7D1CB793DA1D3B733D664F1 /* SodaliteIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F52845EFD489AE02A52FF2 /* SodaliteIntents.swift */; };
+		D7F513FCEDC7055BFF9B13A1 /* ProfileShellLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF124E4A12D50287B1BDD93 /* ProfileShellLayout.swift */; };
 		D8980C2DA8F047F5D447E1A9 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEBCF0AA238DAB1924A48D3 /* AppRouter.swift */; };
 		D8B12B81603F12CAAC620B56 /* CloudSyncMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ADC46D81A9CF7F465A5A05 /* CloudSyncMerge.swift */; };
 		D8C6D6D1274B493C2CFDF33C /* ServerAddressEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C48991F0DF61EC9BFAC208 /* ServerAddressEntryView.swift */; };
@@ -1815,6 +1818,7 @@
 		CC10569861518012D10FCE03 /* SeerrRequestDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestDraft.swift; sourceTree = "<group>"; };
 		CC726417573B591C1BAEFC70 /* ArtworkTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkTile.swift; sourceTree = "<group>"; };
 		CC9E7E3CFDA7723780F5C45F /* FilteredGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilteredGridView.swift; sourceTree = "<group>"; };
+		CCA7B92BAD2F5D2F412244E4 /* ProfileShellLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileShellLayoutTests.swift; sourceTree = "<group>"; };
 		CCD5596E5ED089CD31B3ADB8 /* CheckmarkAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckmarkAnimation.swift; sourceTree = "<group>"; };
 		CD0A81C3E831093174A0085A /* AtkinsonHyperlegible-BoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "AtkinsonHyperlegible-BoldItalic.ttf"; sourceTree = "<group>"; };
 		CD8C86911CAC2C3C5F103774 /* JellyfinUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinUser.swift; sourceTree = "<group>"; };
@@ -1912,6 +1916,7 @@
 		EE38687F98CAEC29C9E7E0B6 /* ProfileHomeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHomeStore.swift; sourceTree = "<group>"; };
 		EE3D6C7CCA64C8BDECE6C729 /* CloudSyncPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPreferencesTests.swift; sourceTree = "<group>"; };
 		EE4C9FBD5F7D9120B46B71E0 /* ForegroundReloadGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundReloadGateTests.swift; sourceTree = "<group>"; };
+		EEF124E4A12D50287B1BDD93 /* ProfileShellLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileShellLayout.swift; sourceTree = "<group>"; };
 		EF911AAFCD4B1D1F6C7A903A /* KeychainKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainKeys.swift; sourceTree = "<group>"; };
 		F01696A03EAD1FC14EEA5F35 /* PosterBadgeOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PosterBadgeOverlay.swift; sourceTree = "<group>"; };
 		F02176F860C385FC701EC46A /* SeerrRequestUpdateBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestUpdateBody.swift; sourceTree = "<group>"; };
@@ -2027,6 +2032,7 @@
 				7D4C63357E76535E48A96CAC /* OptionalTabPolicy.swift */,
 				2866E3279048E699E940339D /* PlayerModalDismisser.swift */,
 				2DA791EEE0F14D8640AA8690 /* PlayerModalPresence.swift */,
+				EEF124E4A12D50287B1BDD93 /* ProfileShellLayout.swift */,
 				2BF7D71F055445E4E67D1245 /* ServerStatusBanner.swift */,
 				746976011350B5A9113537B7 /* ServerUnreachableView.swift */,
 				81E6D9A823ADF28BFA536A81 /* SplashView.swift */,
@@ -2370,6 +2376,7 @@
 				045D26559530D2BA2F3268FF /* ProfileRepromptPreferenceTests.swift */,
 				A6F4A4C45FFE43AA85F2A678 /* ProfileSettingsContainerTests.swift */,
 				96E9BCF980E52BB93981B79A /* ProfileSettingsRegistryTests.swift */,
+				CCA7B92BAD2F5D2F412244E4 /* ProfileShellLayoutTests.swift */,
 				74F1B7D9B75812409A1B1475 /* ProfileSyncPayloadsTests.swift */,
 				4267FC75ADC0DFBBDF75871B /* ProgramInfoPopoverTests.swift */,
 				47FE0F3277010B44C039F05B /* ProviderMatchMergingTests.swift */,
@@ -3645,6 +3652,7 @@
 				F379FB58FADBED778F1CF1E6 /* ProfileRepromptPolicy.swift in Sources */,
 				C3E7BD0C68341B883AF5F630 /* ProfileSettingsRegistry.swift in Sources */,
 				E3572B2008FC401C267BAED0 /* ProfileSettingsView.swift in Sources */,
+				493D35829F0FDD1EB88E0D86 /* ProfileShellLayout.swift in Sources */,
 				668DC99771523521236E5AE3 /* ProfileSyncPayloads.swift in Sources */,
 				44C08594C250EBFADF978AA5 /* ProgramInfoPopover.swift in Sources */,
 				80C71577F236846A71438050 /* ProviderMatchMerging.swift in Sources */,
@@ -4015,6 +4023,7 @@
 				35C72E5705E96CBF0E85B1CA /* ProfileRepromptPreferenceTests.swift in Sources */,
 				A62747AC314F1C6B4A295AEE /* ProfileSettingsContainerTests.swift in Sources */,
 				F7B2C2BC7695984D75748187 /* ProfileSettingsRegistryTests.swift in Sources */,
+				397B90C8513379B003D4EDC0 /* ProfileShellLayoutTests.swift in Sources */,
 				638D22C3CFF2CF08FF894707 /* ProfileSyncPayloadsTests.swift in Sources */,
 				69178F8ED3D909174C5B4360 /* ProgramInfoPopoverTests.swift in Sources */,
 				EE79F0AD54EE7774FC387AFC /* ProviderMatchMergingTests.swift in Sources */,
@@ -4378,6 +4387,7 @@
 				442D887582ABCE1C166F7745 /* ProfileRepromptPolicy.swift in Sources */,
 				433AF78B1BC6BA2FD4030D75 /* ProfileSettingsRegistry.swift in Sources */,
 				E7E7FF1D6EBE62F34BF66AF6 /* ProfileSettingsView.swift in Sources */,
+				D7F513FCEDC7055BFF9B13A1 /* ProfileShellLayout.swift in Sources */,
 				AFBECF40E5300CC526D6D0BB /* ProfileSyncPayloads.swift in Sources */,
 				2FCE52B6FC0E4B1BE0DFDA4C /* ProgramInfoPopover.swift in Sources */,
 				F05C42287A7C3CA6A4848696 /* ProviderMatchMerging.swift in Sources */,

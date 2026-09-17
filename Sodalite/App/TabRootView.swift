@@ -66,6 +66,10 @@ struct TabRootView: View {
         return tabs
     }
 
+    private var shellLayout: ProfileShellLayout {
+        ProfileShellLayout(profile: appState.profileKey, tabs: displayedTabs, style: appearance.navigationStyle)
+    }
+
     private var tabShell: some View {
         TabView(selection: $selectedTab) {
             ForEach(displayedTabs, id: \.self) { tab in
@@ -256,6 +260,14 @@ struct TabRootView: View {
             // Async Live TV / Music insertion rebuilds the UITabBar; re-apply the tint next tick once the new bar exists.
             DispatchQueue.main.async {
                 configureTabBarItemAppearance()
+            }
+        }
+        .onChange(of: shellLayout) { old, new in
+            guard old.profile != new.profile, let before = old.profile, let after = new.profile else { return }
+            let landsOnHome = ProfileShellLayout.switchLandsOnHome(from: old, to: new)
+            LogTap.shared.note("[ProfileSettings] switch \(before.fingerprint) -> \(after.fingerprint), shell changed: \(landsOnHome ? "yes" : "no")")
+            if landsOnHome {
+                selectedTab = .home
             }
         }
     }
