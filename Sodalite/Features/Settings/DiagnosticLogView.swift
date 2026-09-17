@@ -93,7 +93,7 @@ struct DiagnosticLogView: View {
         // Presented from here rather than from Settings: this view is already a cover, and the panel
         // is a modal of ITS host, which is the one arrangement UIKit allows (see the log view's own
         // presenter in DiagnosticLogLink).
-        .menuPresentation(item: $exportedLines) { snapshot in
+        .menuPresentation(item: $exportedLines, panel: .plain) { snapshot in
             LogExportPanel(lines: snapshot.lines) { exportedLines = nil }
         }
         #endif
