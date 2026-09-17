@@ -29,6 +29,13 @@ struct LiveForegroundReturnTests {
             backgroundSeconds: away, playheadAdvance: advance)
     }
 
+    /// Round 4: the retune took the VOD return's hold-paused rule, so a channel playing when the television
+    /// went off came back paused, and on the software path black. It keeps the transport the viewer left.
+    @Test func aRetuneKeepsTheTransportTheViewerLeft() {
+        #expect(PlayerHostController.liveRetuneHoldsPaused(wasPlaying: true) == false)
+        #expect(PlayerHostController.liveRetuneHoldsPaused(wasPlaying: false) == true)
+    }
+
     /// The case the report describes: away for half a minute, the picture exactly where it was.
     @Test func aSuspendedSessionTunesAgain() {
         #expect(decide(away: 30, advance: 0) == .retune)
