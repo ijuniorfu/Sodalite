@@ -1,3 +1,4 @@
+import AetherEngine
 import Foundation
 import Combine
 import StoreKit
@@ -25,6 +26,19 @@ final class LogTap: ObservableObject {
             transaction.environment == .sandbox,
             forKey: sandboxBuildCacheKey
         )
+    }
+
+    /// The build these lines came out of, as one line. The engine number is the one a reader cannot
+    /// reconstruct afterwards, because SwiftPM pins a revision rather than a tag, and a log analysed
+    /// without it gets the version supplied from an older thread (AetherPlayer#7). It is noted at
+    /// launch and prepended to every way the log leaves the device, because the buffer is 300 lines
+    /// and a long session rolls the noted copy off the top.
+    nonisolated static var environmentLine: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "Sodalite \(version) (\(build)) | AetherEngine \(AetherEngine.version)"
+            + " | \(ProcessInfo.processInfo.operatingSystemVersionString)"
     }
 
     @Published private(set) var lines: [String] = []

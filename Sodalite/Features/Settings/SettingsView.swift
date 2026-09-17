@@ -1,3 +1,4 @@
+import AetherEngine
 import SwiftUI
 
 struct SettingsView: View {
@@ -369,6 +370,12 @@ struct SettingsView: View {
                 .frame(width: 96, height: 96)
             Text("Sodalite \(version) (\(build))")
                 .font(.caption)
+                .foregroundStyle(.tertiary)
+                .monospacedDigit()
+            // The engine is a separate product with its own release line, and a playback report is
+            // read against its version rather than the app's (AetherPlayer#7).
+            Text("AetherEngine \(AetherEngine.version)")
+                .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .monospacedDigit()
             // TMDB attribution, required by their API terms wherever their data/imagery is displayed.

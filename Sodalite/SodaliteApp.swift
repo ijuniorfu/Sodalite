@@ -68,6 +68,7 @@ struct SodaliteApp: App {
         EngineLog.handler = { line in
             LogTap.shared.note(line)
         }
+        LogTap.shared.note(LogTap.environmentLine)
 
         // Same door for the Top Shelf code the app runs itself (the pre-render pass). What the extension
         // logged in its own process comes in from a file, on every activation, because the shelf runs
