@@ -15,7 +15,7 @@ struct PlaybackSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 header
-                SettingsScopeCaption(.profile)
+                SettingsScopeCaption()
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 24)
 
@@ -145,7 +145,7 @@ struct PlaybackSettingsView: View {
                         set: { prefs.touchpadScrubbing = $0 }
                     )
                 )
-                SettingsScopeCaption(.device)
+                .settingsValueScope(.device)
                 #endif
 
                 boolRow(
@@ -183,6 +183,7 @@ struct PlaybackSettingsView: View {
                     ),
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
+                .settingsValueScope(.device)
 
                 ValuePickerRow(
                     icon: "backward.circle",
@@ -195,7 +196,7 @@ struct PlaybackSettingsView: View {
                     ),
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
-                SettingsScopeCaption(.device)
+                .settingsValueScope(.device)
 
                 sectionHeader("settings.playback.section.languages")
 
@@ -308,7 +309,7 @@ struct PlaybackSettingsView: View {
                     ),
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
-                SettingsScopeCaption(.device)
+                .settingsValueScope(.device)
 
                 ValuePickerRow(
                     icon: "rectangle.fill",
@@ -401,9 +402,9 @@ struct PlaybackSettingsView: View {
                         set: { prefs.forceDolbyVisionOnNonDVDisplay = $0 }
                     )
                 )
+                .settingsValueScope(.device)
                 .disabled(displayHasDolbyVision)
                 .opacity(displayHasDolbyVision ? 0.4 : 1)
-                SettingsScopeCaption(.device)
 
                 sectionHeader("settings.playback.section.audio")
 
@@ -416,7 +417,7 @@ struct PlaybackSettingsView: View {
                         set: { prefs.preferLosslessAudioBridge = $0 }
                     )
                 )
-                SettingsScopeCaption(.device)
+                .settingsValueScope(.device)
 
                 sectionHeader("settings.playback.section.advanced")
 
@@ -429,6 +430,7 @@ struct PlaybackSettingsView: View {
                         set: { prefs.showStatsForNerds = $0 }
                     )
                 )
+                .settingsValueScope(.device)
 
                 if prefs.showStatsForNerds {
                     boolRow(
@@ -440,8 +442,8 @@ struct PlaybackSettingsView: View {
                             set: { prefs.showEngineDiagnostics = $0 }
                         )
                     )
+                    .settingsValueScope(.device)
                 }
-                SettingsScopeCaption(.device)
             }
             .screenContentInset()
             .task { displayHasDolbyVision = AetherEngine.displayCapabilities.supportsDolbyVision }

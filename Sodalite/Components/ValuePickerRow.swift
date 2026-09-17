@@ -36,6 +36,7 @@ struct ValuePickerRow<Value: Hashable>: View {
     let label: (Value) -> String
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.settingsValueScope) private var valueScope
     @FocusState private var focused: Bool
 
     /// iPhone compact stacks the picker control under the label (the one-line tvOS row overflows
@@ -111,6 +112,12 @@ struct ValuePickerRow<Value: Hashable>: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
+            // Inside the card, so it cannot read as belonging to the next row (measured both ways on
+            // 2026-09-17; a caption between two cards did).
+            if valueScope == .device {
+                DeviceScopeMark()
+                    .padding(.top, 4)
+            }
         }
     }
 

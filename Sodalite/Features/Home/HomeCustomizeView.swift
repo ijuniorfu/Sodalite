@@ -61,7 +61,7 @@ struct HomeCustomizeView: View {
                     .font(.title3)
                     .fontWeight(.semibold)
 
-                SettingsScopeCaption(.profile)
+                SettingsScopeCaption()
 
                 Text(movingID != nil ? "home.customize.moveTip" : "home.customize.description")
                     .font(.subheadline)

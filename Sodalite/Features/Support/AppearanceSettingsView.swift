@@ -21,7 +21,7 @@ struct AppearanceSettingsView: View {
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity)
 
-                SettingsScopeCaption(.profile)
+                SettingsScopeCaption()
                     .frame(maxWidth: .infinity)
 
                 header
@@ -137,6 +137,7 @@ struct AppearanceSettingsView: View {
                 value: Binding(get: { appearance.showTopShelfRow },
                                set: { appearance.showTopShelfRow = $0 })
             )
+            .settingsValueScope(.device)
 
             // Its own choice rather than a reader of the Continue Watching row above: a shelf cell
             // is around 800pt wide against a 360pt card, and an episode still is capped at the
@@ -150,8 +151,7 @@ struct AppearanceSettingsView: View {
                                    set: { appearance.topShelfImage = $0 }),
                 label: { $0.title }
             )
-            SettingsScopeCaption(.device)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            .settingsValueScope(.device)
             #endif
 
             boolRow(
