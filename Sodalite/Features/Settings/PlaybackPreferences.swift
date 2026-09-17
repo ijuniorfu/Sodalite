@@ -3,7 +3,7 @@ import CoreGraphics
 import Observation
 import AetherEngine
 
-/// Device-local (UserDefaults) playback tuning; read/write via `DependencyContainer.playbackPreferences`.
+/// Playback settings of one profile (or the legacy unprefixed space), plus pass-throughs to the shared DevicePreferences; read/write via `DependencyContainer.playbackPreferences`.
 @Observable
 @MainActor
 final class PlaybackPreferences {
@@ -40,19 +40,10 @@ final class PlaybackPreferences {
         static let subtitleFont = "playback.subtitleFont"
         static let subtitleWeight = "playback.subtitleWeight"
         static let pictureMode = "playback.pictureMode"
-        static let showStatsForNerds = "playback.showStatsForNerds"
-        static let showEngineDiagnostics = "playback.showEngineDiagnostics"
-        static let preferLosslessAudioBridge = "playback.preferLosslessAudioBridge"
         static let showScrubPreview = "playback.showScrubPreview"
         static let preferServerTrickplay = "playback.preferServerTrickplay"
-        static let playerRotationLocked = "playback.playerRotationLocked"
-        static let networkBufferDepth = "playback.networkBufferDepth"
-        static let liveBufferDepth = "playback.liveBufferDepth"
-        static let liveTeletextPage = "playback.liveTeletextPage"
         static let rememberTrackSelections = "playback.rememberTrackSelections"
-        static let touchpadScrubbing = "playback.touchpadScrubbing"
         static let subtitlesOnSkipBack = "playback.subtitlesOnSkipBack"
-        static let forceDolbyVisionOnNonDVDisplay = "playback.forceDolbyVisionOnNonDVDisplay"
     }
 
     // MARK: - Allowed Values
@@ -385,20 +376,6 @@ final class PlaybackPreferences {
         didSet { store.set(pictureMode.rawValue, forKey: Keys.pictureMode) }
     }
 
-    /// Stats panel "i" button. Read-only, so it is App Store safe and needs no diagnostic-build gate.
-    var showStatsForNerds: Bool {
-        didSet { store.set(showStatsForNerds, forKey: Keys.showStatsForNerds) }
-    }
-
-    var showEngineDiagnostics: Bool {
-        didSet { store.set(showEngineDiagnostics, forKey: Keys.showEngineDiagnostics) }
-    }
-
-    /// ON = lossless FLAC for non-stream-copyable (TrueHD/DTS/DTS-HD MA/MP3/Opus), but AVPlayer decodes to LPCM, downmixed to stereo on stereo-only HDMI sinks. OFF (default) = lossy EAC3 5.1 384 kbps, works on all soundbars but caps 7.1->5.1. Recommend ON only with multichannel-LPCM AVR.
-    var preferLosslessAudioBridge: Bool {
-        didSet { store.set(preferLosslessAudioBridge, forKey: Keys.preferLosslessAudioBridge) }
-    }
-
     var showScrubPreview: Bool {
         didSet { store.set(showScrubPreview, forKey: Keys.showScrubPreview) }
     }
@@ -409,38 +386,10 @@ final class PlaybackPreferences {
         didSet { store.set(preferServerTrickplay, forKey: Keys.preferServerTrickplay) }
     }
 
-    /// iPhone player orientation (the in-player lock icon's remembered state): true pins the session
-    /// (landscape at launch, current orientation when re-locked mid-play), false follows device rotation.
-    /// iPad ignores it (never locked).
-    var playerRotationLocked: Bool {
-        didSet { store.set(playerRotationLocked, forKey: Keys.playerRotationLocked) }
-    }
-
-    /// Default forward-buffer depth for new VOD sessions (Issue #33); read into LoadOptions at load.
-    var networkBufferDepth: NetworkBufferDepth {
-        didSet { store.set(networkBufferDepth.rawValue, forKey: Keys.networkBufferDepth) }
-    }
-
-    var liveBufferDepth: LiveBufferDepth {
-        didSet { store.set(liveBufferDepth.rawValue, forKey: Keys.liveBufferDepth) }
-    }
-
-    var liveTeletextPage: LiveTeletextPage {
-        didSet { store.set(liveTeletextPage.rawValue, forKey: Keys.liveTeletextPage) }
-    }
-
     /// Sodalite#46: remember the manual audio/subtitle pick per movie and per series.
     /// Off means the memory is neither read nor written; existing entries stay on disk.
     var rememberTrackSelections: Bool {
         didSet { store.set(rememberTrackSelections, forKey: Keys.rememberTrackSelections) }
-    }
-
-    /// Sodalite#114 (tvOS): OFF stops a horizontal swipe over the remote's touch surface from moving
-    /// the playhead, for people who drive the box by clicking the ring and keep brushing the pad.
-    /// Default ON. Vertical swipes and the list navigation inside menus are untouched, there the swipe
-    /// is the navigation.
-    var touchpadScrubbing: Bool {
-        didSet { store.set(touchpadScrubbing, forKey: Keys.touchpadScrubbing) }
     }
 
     /// Sodalite#63: after a backward jump, show subtitles until playback reaches the position the jump
@@ -450,12 +399,53 @@ final class PlaybackPreferences {
         didSet { store.set(subtitlesOnSkipBack, forKey: Keys.subtitlesOnSkipBack) }
     }
 
-    /// AetherEngine#455, experimental, default OFF. On a display that reports no Dolby Vision, serve a
-    /// Profile 8.1 source as a Profile 5 so AVPlayer composes the DV itself instead of the panel getting
-    /// the static HDR10 base layer. Inert on a display that does Dolby Vision, which is why the settings
-    /// row only appears on the displays it can act on.
+    // MARK: - Device values
+
+    // Pass-throughs to the one `DevicePreferences` every profile shares; see there.
+
+    var showStatsForNerds: Bool {
+        get { device.showStatsForNerds }
+        set { device.showStatsForNerds = newValue }
+    }
+
+    var showEngineDiagnostics: Bool {
+        get { device.showEngineDiagnostics }
+        set { device.showEngineDiagnostics = newValue }
+    }
+
+    var preferLosslessAudioBridge: Bool {
+        get { device.preferLosslessAudioBridge }
+        set { device.preferLosslessAudioBridge = newValue }
+    }
+
+    var playerRotationLocked: Bool {
+        get { device.playerRotationLocked }
+        set { device.playerRotationLocked = newValue }
+    }
+
+    var networkBufferDepth: NetworkBufferDepth {
+        get { device.networkBufferDepth }
+        set { device.networkBufferDepth = newValue }
+    }
+
+    var liveBufferDepth: LiveBufferDepth {
+        get { device.liveBufferDepth }
+        set { device.liveBufferDepth = newValue }
+    }
+
+    var liveTeletextPage: LiveTeletextPage {
+        get { device.liveTeletextPage }
+        set { device.liveTeletextPage = newValue }
+    }
+
+    var touchpadScrubbing: Bool {
+        get { device.touchpadScrubbing }
+        set { device.touchpadScrubbing = newValue }
+    }
+
     var forceDolbyVisionOnNonDVDisplay: Bool {
-        didSet { store.set(forceDolbyVisionOnNonDVDisplay, forKey: Keys.forceDolbyVisionOnNonDVDisplay) }
+        get { device.forceDolbyVisionOnNonDVDisplay }
+        set { device.forceDolbyVisionOnNonDVDisplay = newValue }
     }
 
     var audioBridgeMode: AudioBridgeMode {
@@ -464,10 +454,11 @@ final class PlaybackPreferences {
 
     // MARK: - Init
 
-    private let store: UserDefaults
+    private let store: PreferenceKeyspace
+    let device: DevicePreferences
 
     /// Prefer v2 versioned key, else migrate legacy: legacy "none" -> .shadow (it drew a drop shadow); fallback .box.
-    private static func loadSubtitleBackground(from store: UserDefaults) -> SubtitleBackground {
+    private static func loadSubtitleBackground(from store: PreferenceKeyspace) -> SubtitleBackground {
         if let v2 = store.string(forKey: Keys.subtitleBackgroundV2),
            let parsed = SubtitleBackground(rawValue: v2) {
             return parsed
@@ -483,8 +474,9 @@ final class PlaybackPreferences {
         }
     }
 
-    init(store: UserDefaults = .standard) {
+    init(keyspace store: PreferenceKeyspace, device: DevicePreferences) {
         self.store = store
+        self.device = device
         self.autoplayNextEpisode = store.object(forKey: Keys.autoplayNextEpisode) as? Bool ?? true
         self.autoplayCountdown = store.object(forKey: Keys.autoplayCountdown) as? Bool ?? true
         self.autoSkipIntro = store.object(forKey: Keys.autoSkipIntro) as? Bool ?? false
@@ -515,21 +507,18 @@ final class PlaybackPreferences {
             .flatMap(SubtitleWeight.init(rawValue:)) ?? .regular
         self.pictureMode = (store.string(forKey: Keys.pictureMode))
             .flatMap(PictureMode.init(rawValue:)) ?? .original
-        self.showStatsForNerds = store.object(forKey: Keys.showStatsForNerds) as? Bool ?? false
-        self.showEngineDiagnostics = store.object(forKey: Keys.showEngineDiagnostics) as? Bool ?? false
-        self.preferLosslessAudioBridge = store.object(forKey: Keys.preferLosslessAudioBridge) as? Bool ?? false
-        self.forceDolbyVisionOnNonDVDisplay = store.object(forKey: Keys.forceDolbyVisionOnNonDVDisplay) as? Bool ?? false
         self.showScrubPreview = store.object(forKey: Keys.showScrubPreview) as? Bool ?? true
         self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
-        self.playerRotationLocked = store.object(forKey: Keys.playerRotationLocked) as? Bool ?? true
-        self.networkBufferDepth = (store.string(forKey: Keys.networkBufferDepth))
-            .flatMap(NetworkBufferDepth.init(rawValue:)) ?? .system
-        self.liveBufferDepth = (store.string(forKey: Keys.liveBufferDepth))
-            .flatMap(LiveBufferDepth.init(rawValue:)) ?? .ninetyMinutes
-        self.liveTeletextPage = (store.string(forKey: Keys.liveTeletextPage))
-            .flatMap(LiveTeletextPage.init(rawValue:)) ?? .auto
         self.rememberTrackSelections = store.object(forKey: Keys.rememberTrackSelections) as? Bool ?? true
-        self.touchpadScrubbing = store.object(forKey: Keys.touchpadScrubbing) as? Bool ?? true
         self.subtitlesOnSkipBack = store.object(forKey: Keys.subtitlesOnSkipBack) as? Bool ?? true
+    }
+
+    /// `scope` nil is the unprefixed legacy space. Without a `device`, one is built over the same
+    /// defaults, which is what a test or the factory-defaults scratch set wants.
+    convenience init(store defaults: UserDefaults = .standard, scope: String? = nil, device: DevicePreferences? = nil) {
+        self.init(
+            keyspace: PreferenceKeyspace(defaults: defaults, scope: scope),
+            device: device ?? DevicePreferences(store: defaults)
+        )
     }
 }

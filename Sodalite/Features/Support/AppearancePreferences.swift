@@ -71,8 +71,6 @@ final class AppearancePreferences {
         static let navigationStyle = "appearance.navigationStyle"
         static let showPosterBadges = "appearance.showPosterBadges"
         static let showDetailBadges = "appearance.showDetailBadges"
-        static let showTopShelfRow = "appearance.showTopShelfRow"
-        static let topShelfImage = "appearance.topShelfImage"
         static let showLibraryNames = "appearance.showLibraryNames"
         static let showPosterProgress = "appearance.showPosterProgress"
         static let showCommunityRating = "appearance.showCommunityRating"
@@ -123,23 +121,20 @@ final class AppearancePreferences {
         didSet { store.set(spoilerHideMovies, forKey: Keys.spoilerHideMovies) }
     }
 
-    /// Sodalite#79. Off by default: the pills themselves are free, but filling them in costs a
-    /// MediaStreams round trip per row, so only a viewer who wants them pays for them.
-    /// tvOS Top Shelf row. On by default; see TopShelfEnabled for why it can be turned off at all.
+    /// Device value, see DevicePreferences.
     var showTopShelfRow: Bool {
-        didSet { store.set(showTopShelfRow, forKey: Keys.showTopShelfRow) }
+        get { device.showTopShelfRow }
+        set { device.showTopShelfRow = newValue }
     }
 
-    /// Picture on a Top Shelf cell. Its own setting rather than a reader of the row above, because
-    /// a shelf cell is around 800pt wide against a 360pt card: a still that holds up in Continue
-    /// Watching can be visibly soft up there, and a server's episode stills are capped at its
-    /// image-extraction width. Defaults to the show's Thumb, not to the episode image the shelf drew
-    /// before the setting existed: a server's Thumb is promo art and reliably large, while the
-    /// stills vary per show, and a resume bar drawn across a soft one makes the softness worse
-    /// rather than hiding it. Shows without a Thumb fall through to the backdrop, then the still.
+    /// Device value, see DevicePreferences.
     var topShelfImage: ContinueWatchingImage {
-        didSet { store.set(topShelfImage.rawValue, forKey: Keys.topShelfImage) }
+        get { device.topShelfImage }
+        set { device.topShelfImage = newValue }
     }
+
+    /// Sodalite#79. Off by default: the pills themselves are free, but filling them in costs a
+    /// MediaStreams round trip per row, so only a viewer who wants them pays for them.
     var showPosterBadges: Bool {
         didSet { store.set(showPosterBadges, forKey: Keys.showPosterBadges) }
     }
@@ -232,10 +227,12 @@ final class AppearancePreferences {
 
     // MARK: - Init
 
-    private let store: UserDefaults
+    private let store: PreferenceKeyspace
+    let device: DevicePreferences
 
-    init(store: UserDefaults = .standard) {
+    init(keyspace store: PreferenceKeyspace, device: DevicePreferences) {
         self.store = store
+        self.device = device
         let rawAccent = store.string(forKey: Keys.accentChoice) ?? AccentPreset.systemBlue.rawValue
         self.accentChoice = AccentPreset(rawValue: rawAccent) ?? .systemBlue
         let rawBackground = store.string(forKey: Keys.backgroundStyle)
@@ -251,9 +248,6 @@ final class AppearancePreferences {
         self.spoilerHideMovies = store.object(forKey: Keys.spoilerHideMovies) as? Bool ?? false
         self.showPosterBadges = store.object(forKey: Keys.showPosterBadges) as? Bool ?? false
         self.showDetailBadges = store.object(forKey: Keys.showDetailBadges) as? Bool ?? true
-        self.showTopShelfRow = store.object(forKey: Keys.showTopShelfRow) as? Bool ?? true
-        self.topShelfImage = store.string(forKey: Keys.topShelfImage)
-            .flatMap(ContinueWatchingImage.init(rawValue:)) ?? .thumb
         self.showLibraryNames = store.object(forKey: Keys.showLibraryNames) as? Bool ?? false
         self.showPosterProgress = store.object(forKey: Keys.showPosterProgress) as? Bool ?? false
         self.showCommunityRating = store.object(forKey: Keys.showCommunityRating) as? Bool ?? true
@@ -262,6 +256,15 @@ final class AppearancePreferences {
             .flatMap(NavigationStyle.init(rawValue:)) ?? .topBar
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
         self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+    }
+
+    /// `scope` nil is the unprefixed legacy space. Without a `device`, one is built over the same
+    /// defaults, which is what a test or the factory-defaults scratch set wants.
+    convenience init(store defaults: UserDefaults = .standard, scope: String? = nil, device: DevicePreferences? = nil) {
+        self.init(
+            keyspace: PreferenceKeyspace(defaults: defaults, scope: scope),
+            device: device ?? DevicePreferences(store: defaults)
+        )
     }
 
     func resolvedTheme(isSupporter: Bool) -> ResolvedAppearanceTheme {
