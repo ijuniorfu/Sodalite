@@ -21,9 +21,6 @@ struct TabRootView: View {
     @Environment(\.appearanceTheme) private var appearanceTheme
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var showSettings = false
-    /// Bumped by a profile switch that changes the shell, so the tab bar is built again with the new
-    /// profile's colour (see ProfileShellLayout).
-    @State private var shellGeneration = 0
 
     private var iconColor: Color {
         appearanceTheme.palette.navigation.color
@@ -70,12 +67,7 @@ struct TabRootView: View {
     }
 
     private var shellLayout: ProfileShellLayout {
-        ProfileShellLayout(
-            profile: appState.profileKey,
-            tabs: displayedTabs,
-            style: appearance.navigationStyle,
-            tint: appearanceTheme.palette.navigation.hex
-        )
+        ProfileShellLayout(profile: appState.profileKey, tabs: displayedTabs, style: appearance.navigationStyle)
     }
 
     private var tabShell: some View {
@@ -137,8 +129,8 @@ struct TabRootView: View {
 
     var body: some View {
         styledTabShell
-        // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. `shellGeneration` does the same for a profile switch that changes tabs, style or colour. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
-        .id("\(appState.activeServer?.id ?? "")#\(shellGeneration)")
+        // Fresh TabView (fresh UITabBar) when the active server changes while TabRootView stays mounted (deleting the active server auto-promotes a survivor; isAuthenticated never drops, so the view isn't recreated). A fresh bar reads the tinted appearance at creation. NOT bumped on detail return: detail immersion now alpha-hides the bar instead of removing it, so the bar is never re-templated gray and never needs a rebuild.
+        .id(appState.activeServer?.id)
         // Display-only active-profile badge; non-focusable, below the player cover, hidden unless the server has multiple profiles.
         .overlay(alignment: .topTrailing) {
             #if os(iOS)
@@ -276,12 +268,6 @@ struct TabRootView: View {
             LogTap.shared.note("[ProfileSettings] switch \(before.fingerprint) -> \(after.fingerprint), shell changed: \(landsOnHome ? "yes" : "no")")
             if landsOnHome {
                 selectedTab = .home
-                shellGeneration &+= 1
-                // The rebuilt bar exists only after this pass; re-tint it once it does, the same way
-                // a probed tab insertion is handled above.
-                DispatchQueue.main.async {
-                    configureTabBarItemAppearance()
-                }
             }
         }
     }
