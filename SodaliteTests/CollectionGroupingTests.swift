@@ -75,7 +75,7 @@ struct CollectionGroupingStorageTests {
     /// Fresh install follows the server, matching what jellyfin-web does for the same library.
     @Test func defaultsToSystem() {
         let serverID = "grouping-default-\(UUID().uuidString)"
-        #expect(HomeRowConfig.collectionGrouping(serverID: serverID) == .system)
+        #expect(HomeRowConfig.collectionGrouping(scope: serverID) == .system)
     }
 
     /// Per server, like the Jellyfin option it mirrors: one server grouping must not flip another.
@@ -87,11 +87,11 @@ struct CollectionGroupingStorageTests {
             UserDefaults.standard.removeObject(forKey: "libraryCollectionGrouping.\(serverB)")
         }
 
-        HomeRowConfig.setCollectionGrouping(.never, serverID: serverA)
-        HomeRowConfig.setCollectionGrouping(.always, serverID: serverB)
+        HomeRowConfig.setCollectionGrouping(.never, scope: serverA)
+        HomeRowConfig.setCollectionGrouping(.always, scope: serverB)
 
-        #expect(HomeRowConfig.collectionGrouping(serverID: serverA) == .never)
-        #expect(HomeRowConfig.collectionGrouping(serverID: serverB) == .always)
+        #expect(HomeRowConfig.collectionGrouping(scope: serverA) == .never)
+        #expect(HomeRowConfig.collectionGrouping(scope: serverB) == .always)
     }
 }
 

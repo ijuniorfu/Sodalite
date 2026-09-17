@@ -60,7 +60,7 @@ extension HomeViewModel {
 
             switch type {
             case .continueWatching:
-                if HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID) {
+                if HomeRowConfig.mergeContinueWatchingNextUp(scope: homeScope) {
                     // Combined row: resume items, then Next Up. The two fetches ride concurrently
                     // (Sodalite#117): every other row in the fan-out issues one call, so a serial
                     // pair made the row at the TOP of Home the last one to paint, for a full extra
@@ -68,7 +68,7 @@ extension HomeViewModel {
                     // (EnableResumable=false); the id dedupe is belt-and-suspenders. Next Up
                     // failing must not take resume items down (try?), and resume failing takes the
                     // row down as before, cancelling the Next Up call on the way out.
-                    let rewatching = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
+                    let rewatching = HomeRowConfig.enableRewatchingNextUp(scope: homeScope)
                     async let resumeResponse = libraryService.getResumeItems(userID: userID, mediaType: "Video", limit: 16)
                     async let nextUpResponse = libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16, rewatching: rewatching)
                     let response = try await resumeResponse
@@ -80,7 +80,7 @@ extension HomeViewModel {
                 }
 
             case .nextUp:
-                let rewatching = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
+                let rewatching = HomeRowConfig.enableRewatchingNextUp(scope: homeScope)
                 let response = try await libraryService.getNextUp(userID: userID, seriesID: nil, limit: 16, rewatching: rewatching)
                 items = response.items
 

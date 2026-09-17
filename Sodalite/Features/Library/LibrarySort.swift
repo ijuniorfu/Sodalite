@@ -127,32 +127,32 @@ struct LibrarySort: Equatable, Sendable {
     }
 }
 
-/// Identifies which grid a stored sort belongs to: the server it lives on plus a key that is stable
-/// across settings the tile's `cacheKey` folds in (the collection-grouping mode changes that one).
+/// Identifies which grid a stored sort belongs to: the profile scope it lives in plus a key that is
+/// stable across settings the tile's `cacheKey` folds in (the collection-grouping mode changes that one).
 struct LibrarySortScope: Hashable, Sendable {
-    let serverID: String
+    let scope: String
     let key: String
 
-    static func library(id: String, serverID: String) -> LibrarySortScope {
-        LibrarySortScope(serverID: serverID, key: "library-\(id)")
+    static func library(id: String, scope: String) -> LibrarySortScope {
+        LibrarySortScope(scope: scope, key: "library-\(id)")
     }
 
-    static func genre(name: String, serverID: String) -> LibrarySortScope {
-        LibrarySortScope(serverID: serverID, key: "genre-\(name)")
+    static func genre(name: String, scope: String) -> LibrarySortScope {
+        LibrarySortScope(scope: scope, key: "genre-\(name)")
     }
 }
 
-/// Per-server, per-tile sort choice. Plain `UserDefaults` like `HomeRowConfig`'s other per-server
+/// Per-profile, per-tile sort choice. Plain `UserDefaults` like `HomeRowConfig`'s other per-server
 /// settings; the iCloud mirror rides along in `HomeRowsSyncState` (Sodalite#78).
 ///
 /// The default is written out rather than removed. Collect publishes the whole map and apply is
 /// last-writer-wins, so a removed key would read as "this scope was never touched" and let a stale
 /// remote entry win a device's deliberate reset back to Title A-Z.
 enum LibrarySortStore {
-    private static func prefix(serverID: String) -> String { "librarySort.\(serverID)." }
+    private static func prefix(scope: String) -> String { "librarySort.\(scope)." }
 
     static func storageKey(_ scope: LibrarySortScope) -> String {
-        prefix(serverID: scope.serverID) + scope.key
+        prefix(scope: scope.scope) + scope.key
     }
 
     static func sort(_ scope: LibrarySortScope) -> LibrarySort {
@@ -163,9 +163,9 @@ enum LibrarySortStore {
         UserDefaults.standard.set(sort.storageValue, forKey: storageKey(scope))
     }
 
-    /// Every scope this server has a choice for, keyed by scope key. Feeds `collectServerPayload`.
-    static func allSorts(serverID: String) -> [String: String] {
-        let prefix = prefix(serverID: serverID)
+    /// Every tile this profile scope has a choice for, keyed by scope key. Feeds `collectServerPayload`.
+    static func allSorts(scope: String) -> [String: String] {
+        let prefix = prefix(scope: scope)
         var result: [String: String] = [:]
         for (key, value) in UserDefaults.standard.dictionaryRepresentation() where key.hasPrefix(prefix) {
             guard let stored = value as? String else { continue }
@@ -176,10 +176,10 @@ enum LibrarySortStore {
 
     /// Writes a cloud payload's map back. Scopes the payload does not mention keep their local value:
     /// the sending device may simply never have opened that tile.
-    static func applySorts(_ sorts: [String: String], serverID: String) {
+    static func applySorts(_ sorts: [String: String], scope: String) {
         for (scopeKey, stored) in sorts {
             UserDefaults.standard.set(
-                stored, forKey: storageKey(LibrarySortScope(serverID: serverID, key: scopeKey))
+                stored, forKey: storageKey(LibrarySortScope(scope: scope, key: scopeKey))
             )
         }
     }

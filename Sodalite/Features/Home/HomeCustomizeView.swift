@@ -10,8 +10,8 @@ struct HomeCustomizeView: View {
     @State private var rewatchNextUp = false
     @State private var collectionGrouping: CollectionGrouping = .system
 
-    private var serverID: String {
-        appState.activeServer?.id ?? appState.activeUser?.id ?? ""
+    private var scope: String {
+        appState.profileKey?.storageScope ?? ""
     }
 
     /// tvOS 10-foot row inset; iPhone compact needs phone scale or the row content overflows.
@@ -31,10 +31,10 @@ struct HomeCustomizeView: View {
         .hidesNavigationBarChrome()
         .hidesShellTabBar()
         .onAppear {
-            configs = HomeRowConfig.loadFromStorage(serverID: serverID)
-            mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID)
-            rewatchNextUp = HomeRowConfig.enableRewatchingNextUp(serverID: serverID)
-            collectionGrouping = HomeRowConfig.collectionGrouping(serverID: serverID)
+            configs = HomeRowConfig.loadFromStorage(scope: scope)
+            mergeCWNextUp = HomeRowConfig.mergeContinueWatchingNextUp(scope: scope)
+            rewatchNextUp = HomeRowConfig.enableRewatchingNextUp(scope: scope)
+            collectionGrouping = HomeRowConfig.collectionGrouping(scope: scope)
             // Per-library rows are otherwise discovered only on Home load, so Customize showed a stale list right after a server add/switch. Reconcile here too.
             Task { await reconcileLibraries() }
         }
@@ -48,7 +48,7 @@ struct HomeCustomizeView: View {
         let reconciled = HomeRowConfig.reconciled(stored: configs, libraries: libraries)
         if reconciled != configs {
             configs = reconciled
-            HomeRowConfig.saveToStorage(reconciled, serverID: serverID)
+            HomeRowConfig.saveToStorage(reconciled, scope: scope)
         }
     }
 
@@ -104,7 +104,7 @@ struct HomeCustomizeView: View {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         mergeCWNextUp = newValue
                     }
-                    HomeRowConfig.setMergeContinueWatchingNextUp(newValue, serverID: serverID)
+                    HomeRowConfig.setMergeContinueWatchingNextUp(newValue, scope: scope)
                     NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
                 }
             ),
@@ -131,7 +131,7 @@ struct HomeCustomizeView: View {
                 set: { newValue in
                     movingID = nil
                     rewatchNextUp = newValue
-                    HomeRowConfig.setEnableRewatchingNextUp(newValue, serverID: serverID)
+                    HomeRowConfig.setEnableRewatchingNextUp(newValue, scope: scope)
                     NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
                 }
             ),
@@ -158,7 +158,7 @@ struct HomeCustomizeView: View {
                 set: { newValue in
                     movingID = nil
                     collectionGrouping = newValue
-                    HomeRowConfig.setCollectionGrouping(newValue, serverID: serverID)
+                    HomeRowConfig.setCollectionGrouping(newValue, scope: scope)
                     // The grids cache per mode, so no stale shape survives; Home still reloads for the My Media tiles.
                     NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
                 }
@@ -350,7 +350,7 @@ struct HomeCustomizeView: View {
     }
 
     private func save() {
-        HomeRowConfig.saveToStorage(configs, serverID: serverID)
+        HomeRowConfig.saveToStorage(configs, scope: scope)
         NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
     }
 }
@@ -426,12 +426,12 @@ struct RowToggleButton: View {
 
 extension HomeRowConfig {
     private static let legacyKey = "homeRowConfigs"
-    private static func storageKey(serverID: String) -> String {
-        "homeRowConfigs.\(serverID)"
+    private static func storageKey(scope: String) -> String {
+        "homeRowConfigs.\(scope)"
     }
 
-    static func loadFromStorage(serverID: String) -> [HomeRowConfig] {
-        let key = storageKey(serverID: serverID)
+    static func loadFromStorage(scope: String) -> [HomeRowConfig] {
+        let key = storageKey(scope: scope)
         // Migrate a pre-multi-server install: adopt the legacy global config if this server has no scoped one yet.
         let data = UserDefaults.standard.data(forKey: key)
             ?? UserDefaults.standard.data(forKey: legacyKey)
@@ -471,65 +471,65 @@ extension HomeRowConfig {
         return result
     }
 
-    static func saveToStorage(_ configs: [HomeRowConfig], serverID: String) {
+    static func saveToStorage(_ configs: [HomeRowConfig], scope: String) {
         guard let data = try? JSONEncoder().encode(configs) else { return }
-        UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
+        UserDefaults.standard.set(data, forKey: storageKey(scope: scope))
     }
 
     /// Raw stored JSON for cloud sync; kept opaque so the lossy-decode
     /// forward compatibility in loadFromStorage is preserved end to end.
-    static func rawConfigData(serverID: String) -> Data? {
-        UserDefaults.standard.data(forKey: storageKey(serverID: serverID))
+    static func rawConfigData(scope: String) -> Data? {
+        UserDefaults.standard.data(forKey: storageKey(scope: scope))
     }
 
-    static func setRawConfigData(_ data: Data, serverID: String) {
-        UserDefaults.standard.set(data, forKey: storageKey(serverID: serverID))
+    static func setRawConfigData(_ data: Data, scope: String) {
+        UserDefaults.standard.set(data, forKey: storageKey(scope: scope))
     }
 
     // MARK: Merge Continue Watching + Up Next
 
-    private static func mergeKey(serverID: String) -> String {
-        "homeMergeCWNextUp.\(serverID)"
+    private static func mergeKey(scope: String) -> String {
+        "homeMergeCWNextUp.\(scope)"
     }
 
-    /// Combined row (Sodalite#15): when on, Continue Watching carries Next Up (resume first) and the separate Up Next row drops. Per server, default off.
-    static func mergeContinueWatchingNextUp(serverID: String) -> Bool {
-        UserDefaults.standard.bool(forKey: mergeKey(serverID: serverID))
+    /// Combined row (Sodalite#15): when on, Continue Watching carries Next Up (resume first) and the separate Up Next row drops. Per profile scope (serverID:userID; a bare serverID addresses the rows from before per-profile settings), default off.
+    static func mergeContinueWatchingNextUp(scope: String) -> Bool {
+        UserDefaults.standard.bool(forKey: mergeKey(scope: scope))
     }
 
-    static func setMergeContinueWatchingNextUp(_ value: Bool, serverID: String) {
-        UserDefaults.standard.set(value, forKey: mergeKey(serverID: serverID))
+    static func setMergeContinueWatchingNextUp(_ value: Bool, scope: String) {
+        UserDefaults.standard.set(value, forKey: mergeKey(scope: scope))
     }
 
     // MARK: Enable Rewatching in Next Up
 
-    private static func rewatchingKey(serverID: String) -> String {
-        "homeRewatchNextUp.\(serverID)"
+    private static func rewatchingKey(scope: String) -> String {
+        "homeRewatchNextUp.\(scope)"
     }
 
-    /// EnableRewatching for /Shows/NextUp (Sodalite#19): keeps surfacing the next episode after a series is fully watched. Home Next Up row (standalone + merged path). Per server, default off.
-    static func enableRewatchingNextUp(serverID: String) -> Bool {
-        UserDefaults.standard.bool(forKey: rewatchingKey(serverID: serverID))
+    /// EnableRewatching for /Shows/NextUp (Sodalite#19): keeps surfacing the next episode after a series is fully watched. Home Next Up row (standalone + merged path). Per profile scope (serverID:userID; a bare serverID addresses the rows from before per-profile settings), default off.
+    static func enableRewatchingNextUp(scope: String) -> Bool {
+        UserDefaults.standard.bool(forKey: rewatchingKey(scope: scope))
     }
 
-    static func setEnableRewatchingNextUp(_ value: Bool, serverID: String) {
-        UserDefaults.standard.set(value, forKey: rewatchingKey(serverID: serverID))
+    static func setEnableRewatchingNextUp(_ value: Bool, scope: String) {
+        UserDefaults.standard.set(value, forKey: rewatchingKey(scope: scope))
     }
 
     // MARK: Collection grouping in the library grids
 
-    private static func collectionGroupingKey(serverID: String) -> String {
-        "libraryCollectionGrouping.\(serverID)"
+    private static func collectionGroupingKey(scope: String) -> String {
+        "libraryCollectionGrouping.\(scope)"
     }
 
-    /// Whether the My Media grids fold a BoxSet's movies into one collection tile (Sodalite#44). Per server, mirroring the server-wide Jellyfin option it defers to; default `.system` (follow the server).
-    static func collectionGrouping(serverID: String) -> CollectionGrouping {
+    /// Whether the My Media grids fold a BoxSet's movies into one collection tile (Sodalite#44). Per profile scope, mirroring the server-wide Jellyfin option it defers to; default `.system` (follow the server).
+    static func collectionGrouping(scope: String) -> CollectionGrouping {
         CollectionGrouping(
-            storedValue: UserDefaults.standard.string(forKey: collectionGroupingKey(serverID: serverID))
+            storedValue: UserDefaults.standard.string(forKey: collectionGroupingKey(scope: scope))
         )
     }
 
-    static func setCollectionGrouping(_ value: CollectionGrouping, serverID: String) {
-        UserDefaults.standard.set(value.rawValue, forKey: collectionGroupingKey(serverID: serverID))
+    static func setCollectionGrouping(_ value: CollectionGrouping, scope: String) {
+        UserDefaults.standard.set(value.rawValue, forKey: collectionGroupingKey(scope: scope))
     }
 }

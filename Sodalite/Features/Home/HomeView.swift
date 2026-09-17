@@ -424,7 +424,7 @@ struct HomeView: View {
             ),
             // Without a cache scope FilteredGridView.init falls to the empty-state branch with isLoading=true on every visit (the brief flash on opening a genre tile). Tag name is a stable enough key, once the session is in the scope: "Action" is the same name on every server.
             cacheScope: cacheScope(FilterCacheKey.Home.genre(name: tag.name)),
-            sortScope: sortServerID.map { LibrarySortScope.genre(name: tag.name, serverID: $0) }
+            sortScope: sortScopeID.map { LibrarySortScope.genre(name: tag.name, scope: $0) }
         )
     }
 
@@ -434,7 +434,7 @@ struct HomeView: View {
         // Collapsing box sets inside the box-set view is meaningless, and a virtual view takes no parentID.
         let isVirtualView = MyMediaLibraries.isVirtualView(library.libraryType)
         // The only grids that defer to the server's "Group movies into collections" (Sodalite#44). Note the server itself skips collapsing once the grid's watch-status filter adds IsPlayed, so Watched/Unwatched stay flat.
-        let grouping = HomeRowConfig.collectionGrouping(serverID: appState.activeServer?.id ?? appState.activeUser?.id ?? "")
+        let grouping = HomeRowConfig.collectionGrouping(scope: appState.profileKey?.storageScope ?? "")
         var query = ItemQuery(
             parentID: isVirtualView ? nil : library.id,
             includeItemTypes: types,
@@ -453,15 +453,15 @@ struct HomeView: View {
             title: library.name,
             query: query,
             cacheScope: cacheScope(FilterCacheKey.Home.library(id: library.id, grouping: grouping)),
-            sortScope: sortServerID.map { LibrarySortScope.library(id: library.id, serverID: $0) },
+            sortScope: sortScopeID.map { LibrarySortScope.library(id: library.id, scope: $0) },
             hidesAudioPlaylists: MyMediaLibraries.hidesAudioPlaylists(library.libraryType)
         )
     }
 
-    /// Server the sort choice is filed under; nil only before a session exists, which is also when no
-    /// tile can be tapped.
-    private var sortServerID: String? {
-        appState.activeServer?.id ?? appState.activeUser?.id
+    /// Profile scope the sort choice is filed under; nil only before a session exists, which is also
+    /// when no tile can be tapped.
+    private var sortScopeID: String? {
+        appState.profileKey?.storageScope
     }
 }
 

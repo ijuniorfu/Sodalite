@@ -93,7 +93,7 @@ struct LibrarySortTests {
 struct LibrarySortStoreTests {
 
     private func scope(_ key: String, serverID: String) -> LibrarySortScope {
-        LibrarySortScope(serverID: serverID, key: key)
+        LibrarySortScope(scope: serverID, key: key)
     }
 
     private func cleanUp(serverID: String) {
@@ -114,8 +114,8 @@ struct LibrarySortStoreTests {
     func scopesAreIndependent() {
         let serverID = "test-\(UUID().uuidString)"
         defer { cleanUp(serverID: serverID) }
-        let movies = LibrarySortScope.library(id: "movies", serverID: serverID)
-        let shows = LibrarySortScope.library(id: "shows", serverID: serverID)
+        let movies = LibrarySortScope.library(id: "movies", scope: serverID)
+        let shows = LibrarySortScope.library(id: "shows", scope: serverID)
 
         LibrarySortStore.setSort(LibrarySort(key: .dateAdded, descending: true), scope: movies)
 
@@ -131,11 +131,11 @@ struct LibrarySortStoreTests {
 
         LibrarySortStore.setSort(
             LibrarySort(key: .runtime, descending: false),
-            scope: .library(id: "movies", serverID: serverA)
+            scope: .library(id: "movies", scope: serverA)
         )
 
-        #expect(LibrarySortStore.sort(.library(id: "movies", serverID: serverB)) == .default)
-        #expect(LibrarySortStore.allSorts(serverID: serverB).isEmpty)
+        #expect(LibrarySortStore.sort(.library(id: "movies", scope: serverB)) == .default)
+        #expect(LibrarySortStore.allSorts(scope: serverB).isEmpty)
     }
 
     /// The default is written out rather than removed: collect publishes the whole map, so a removed
@@ -144,25 +144,25 @@ struct LibrarySortStoreTests {
     func resetIsPublished() {
         let serverID = "test-\(UUID().uuidString)"
         defer { cleanUp(serverID: serverID) }
-        let movies = LibrarySortScope.library(id: "movies", serverID: serverID)
+        let movies = LibrarySortScope.library(id: "movies", scope: serverID)
 
         LibrarySortStore.setSort(LibrarySort(key: .rating, descending: true), scope: movies)
         LibrarySortStore.setSort(.default, scope: movies)
 
-        #expect(LibrarySortStore.allSorts(serverID: serverID)["library-movies"] == LibrarySort.default.storageValue)
+        #expect(LibrarySortStore.allSorts(scope: serverID)["library-movies"] == LibrarySort.default.storageValue)
     }
 
     @Test("a payload's map applies per scope and leaves unmentioned tiles alone")
     func applyMergesPerScope() {
         let serverID = "test-\(UUID().uuidString)"
         defer { cleanUp(serverID: serverID) }
-        let movies = LibrarySortScope.library(id: "movies", serverID: serverID)
-        let shows = LibrarySortScope.library(id: "shows", serverID: serverID)
+        let movies = LibrarySortScope.library(id: "movies", scope: serverID)
+        let shows = LibrarySortScope.library(id: "shows", scope: serverID)
         LibrarySortStore.setSort(LibrarySort(key: .runtime, descending: true), scope: shows)
 
         LibrarySortStore.applySorts(
             ["library-movies": LibrarySort(key: .releaseDate, descending: true).storageValue],
-            serverID: serverID
+            scope: serverID
         )
 
         #expect(LibrarySortStore.sort(movies) == LibrarySort(key: .releaseDate, descending: true))
@@ -176,17 +176,17 @@ struct LibrarySortStoreTests {
         defer { cleanUp(serverID: source); cleanUp(serverID: target) }
 
         LibrarySortStore.setSort(
-            LibrarySort(key: .dateAdded, descending: true), scope: .library(id: "movies", serverID: source)
+            LibrarySort(key: .dateAdded, descending: true), scope: .library(id: "movies", scope: source)
         )
         LibrarySortStore.setSort(
-            LibrarySort(key: .title, descending: true), scope: .genre(name: "Sci-Fi", serverID: source)
+            LibrarySort(key: .title, descending: true), scope: .genre(name: "Sci-Fi", scope: source)
         )
 
-        LibrarySortStore.applySorts(LibrarySortStore.allSorts(serverID: source), serverID: target)
+        LibrarySortStore.applySorts(LibrarySortStore.allSorts(scope: source), scope: target)
 
-        #expect(LibrarySortStore.sort(.library(id: "movies", serverID: target))
+        #expect(LibrarySortStore.sort(.library(id: "movies", scope: target))
                 == LibrarySort(key: .dateAdded, descending: true))
-        #expect(LibrarySortStore.sort(.genre(name: "Sci-Fi", serverID: target))
+        #expect(LibrarySortStore.sort(.genre(name: "Sci-Fi", scope: target))
                 == LibrarySort(key: .title, descending: true))
     }
 }

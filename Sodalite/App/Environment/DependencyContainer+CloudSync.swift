@@ -18,12 +18,12 @@ extension DependencyContainer {
             return try? JSONDecoder().decode(RememberedSeerrSession.self, from: data)
         }
         let homeRows = HomeRowsSyncState(
-            configsJSON: HomeRowConfig.rawConfigData(serverID: serverID),
-            mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID),
-            rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(serverID: serverID),
-            collectionGrouping: HomeRowConfig.collectionGrouping(serverID: serverID).rawValue,
+            configsJSON: HomeRowConfig.rawConfigData(scope: serverID),
+            mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(scope: serverID),
+            rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(scope: serverID),
+            collectionGrouping: HomeRowConfig.collectionGrouping(scope: serverID).rawValue,
             librarySorts: {
-                let sorts = LibrarySortStore.allSorts(serverID: serverID)
+                let sorts = LibrarySortStore.allSorts(scope: serverID)
                 return sorts.isEmpty ? nil : sorts
             }()
         )
@@ -191,18 +191,18 @@ extension DependencyContainer {
 
         if let homeRows = payload.homeRows {
             if let configs = homeRows.configsJSON {
-                HomeRowConfig.setRawConfigData(configs, serverID: serverID)
+                HomeRowConfig.setRawConfigData(configs, scope: serverID)
             }
-            HomeRowConfig.setMergeContinueWatchingNextUp(homeRows.mergeCWNextUp, serverID: serverID)
-            HomeRowConfig.setEnableRewatchingNextUp(homeRows.rewatchNextUp, serverID: serverID)
+            HomeRowConfig.setMergeContinueWatchingNextUp(homeRows.mergeCWNextUp, scope: serverID)
+            HomeRowConfig.setEnableRewatchingNextUp(homeRows.rewatchNextUp, scope: serverID)
             // Absent on payloads from builds before Sodalite#44; leave the local mode alone rather than resetting it to the server default.
             if let grouping = homeRows.collectionGrouping {
-                HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: grouping), serverID: serverID)
+                HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: grouping), scope: serverID)
             }
             // Absent on payloads from builds before Sodalite#78, and per scope: a tile this payload
             // says nothing about keeps whatever this device chose for it.
             if let sorts = homeRows.librarySorts {
-                LibrarySortStore.applySorts(sorts, serverID: serverID)
+                LibrarySortStore.applySorts(sorts, scope: serverID)
             }
             NotificationCenter.default.post(name: .homeConfigDidChange, object: nil)
         }

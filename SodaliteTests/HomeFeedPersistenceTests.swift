@@ -76,6 +76,9 @@ struct HomeFeedPersistenceTests {
     private func forget(_ identity: CacheIdentity) {
         FilterCache.shared.evict(identity: identity)
         UserDefaults.standard.removeObject(forKey: "homeRowConfigs.\(identity.serverID)")
+        UserDefaults.standard.removeObject(
+            forKey: "homeRowConfigs.\(ProfileKey(serverID: identity.serverID, userID: identity.userID).storageScope)"
+        )
     }
 
     @Test("a loaded feed is persisted and paints the next view model before any request")
@@ -162,11 +165,11 @@ struct HomeFeedPersistenceTests {
         await first.loadContent()
         #expect(first.rows.contains { $0.type == .continueWatching })
 
-        var configs = HomeRowConfig.loadFromStorage(serverID: identity.serverID)
+        var configs = HomeRowConfig.loadFromStorage(scope: ProfileKey(serverID: identity.serverID, userID: identity.userID).storageScope)
         for index in configs.indices where configs[index].type == .continueWatching {
             configs[index].isEnabled = false
         }
-        HomeRowConfig.saveToStorage(configs, serverID: identity.serverID)
+        HomeRowConfig.saveToStorage(configs, scope: ProfileKey(serverID: identity.serverID, userID: identity.userID).storageScope)
 
         let second = makeViewModel(service: FeedService(resumeItems: []), identity: identity)
         #expect(!second.rows.contains { $0.type == .continueWatching })

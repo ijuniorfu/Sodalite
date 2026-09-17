@@ -142,4 +142,11 @@ extension AppState {
         guard let userID = activeUser?.id else { return nil }
         return CacheIdentity(serverID: activeServer?.id ?? userID, userID: userID)
     }
+
+    /// The profile whose settings are live. Same serverID fallback as `cacheIdentity`, so Home, its
+    /// grids and the settings registry all land on one scope.
+    var profileKey: ProfileKey? {
+        guard let userID = activeUser?.id else { return nil }
+        return ProfileKey(serverID: activeServer?.id ?? userID, userID: userID)
+    }
 }

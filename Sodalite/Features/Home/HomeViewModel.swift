@@ -121,6 +121,8 @@ final class HomeViewModel {
     let serverID: String
     /// Scope for every FilterCache entry this view model pre-warms; the grids a tile opens read the same one.
     var cacheIdentity: CacheIdentity { CacheIdentity(serverID: serverID, userID: userID) }
+    /// Where this profile's home rows, Next Up switches and grouping are stored.
+    var homeScope: String { ProfileKey(serverID: serverID, userID: userID).storageScope }
     /// Libraries the My Media row offers: the video ones plus Collections and Playlists, which
     /// Jellyfin serves as views of their own. Populated by loadContent().
     var myMediaLibraries: [JellyfinLibrary] = []
@@ -137,7 +139,7 @@ final class HomeViewModel {
         self.discoverService = discoverService
         self.userID = userID
         self.serverID = serverID
-        self.rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
+        self.rowConfigs = HomeRowConfig.loadFromStorage(scope: ProfileKey(serverID: serverID, userID: userID).storageScope)
         hydrateFeedFromCache()
     }
 
@@ -250,7 +252,7 @@ final class HomeViewModel {
                 if config.type.isDiscoverProviderRow { return nil }
                 if config.type == .myMedia { return nil }
                 if config.type == .nextUp,
-                   HomeRowConfig.mergeContinueWatchingNextUp(serverID: serverID) {
+                   HomeRowConfig.mergeContinueWatchingNextUp(scope: homeScope) {
                     return nil
                 }
                 return RowFetch(
@@ -379,7 +381,7 @@ final class HomeViewModel {
                     let reconciled = HomeRowConfig.reconciled(stored: rowConfigs, libraries: libraries)
                     guard reconciled != rowConfigs else { break }
                     rowConfigs = reconciled
-                    HomeRowConfig.saveToStorage(reconciled, serverID: serverID)
+                    HomeRowConfig.saveToStorage(reconciled, scope: homeScope)
 
                     // Reconciliation can change the enabled set: a per-library row retired for
                     // redundancy hands its state to the aggregated row, and a row type new in this
@@ -527,7 +529,7 @@ final class HomeViewModel {
     }
 
     func reloadConfig() {
-        rowConfigs = HomeRowConfig.loadFromStorage(serverID: serverID)
+        rowConfigs = HomeRowConfig.loadFromStorage(scope: homeScope)
     }
 
     /// On active-server change: clear in-memory carousels (so the old server's posters don't linger) and reset the throttle guards so precompute reruns for the new library, then reload.

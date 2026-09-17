@@ -88,7 +88,9 @@ struct HomeContinueWatchingConcurrencyTests {
     /// per server, and these must not inherit or leave behind one another's.
     private func makeViewModel(service: PairedService, merged: Bool) -> (HomeViewModel, String) {
         let serverID = "cw-\(UUID().uuidString)"
-        HomeRowConfig.setMergeContinueWatchingNextUp(merged, serverID: serverID)
+        HomeRowConfig.setMergeContinueWatchingNextUp(
+            merged, scope: ProfileKey(serverID: serverID, userID: "u1").storageScope
+        )
         let vm = HomeViewModel(
             libraryService: service,
             imageService: JellyfinImageService(baseURLProvider: { nil }),
