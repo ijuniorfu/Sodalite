@@ -446,6 +446,9 @@ final class DependencyContainer {
     /// Refreshes the cached server version (captured once at discovery, else stale in Settings until logout/login) via the unauthenticated discovery probe; updates knownServers in place. Returns the refreshed server only if the version changed; nil otherwise. id guard rejects a different server answering at the URL.
     func refreshActiveServerVersion() async -> JellyfinServer? {
         guard let server = activeServer else { return nil }
+        // Opening Settings is what runs this probe, so without a cause its [discovery] lines read like
+        // a resume or a reconnect in a log exported from the same screen (Sodalite#117).
+        LogTap.shared.note("[discovery] server version check, Settings opened")
         guard case .success(_, let info) = await serverDiscoveryService.discoverServer(
             input: server.url.absoluteString
         ) else { return nil }
