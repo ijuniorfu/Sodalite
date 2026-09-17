@@ -40,9 +40,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     let collectionType: String?
     /// Jellyfin `CanDelete`, the server's own answer for THIS item and THIS user. It folds in what
     /// the user policy alone cannot see: `EnableContentDeletionFromFolders`, which is how an admin
-    /// says "the DVR library may be deleted from and the rest may not". Carried on /Items responses
-    /// without asking for a Field. `var` with no default so the hand-written inits below stay
-    /// untouched, and nil (an older server, a response that omitted it) falls back to the policy.
+    /// says "the DVR library may be deleted from and the rest may not". The single-item endpoint
+    /// builds its DtoOptions with every field, so detail responses carry it unasked; a list response
+    /// carries it only when `Fields` names it, which no query here does. `var` with no default so
+    /// the hand-written inits below stay untouched, and nil falls back to the user policy.
     var canDelete: Bool?
     /// Jellyfin `LocationType`. Carried on every /Items response without asking for a Field, and
     /// "Virtual" is the only value that matters here (see `isVirtual`). `var` with a default so the

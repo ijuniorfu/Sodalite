@@ -50,12 +50,11 @@ struct SeriesDetailView: View {
         dependencies.appearancePreferences.isTabHidden(.catalog) ? nil : dependencies.seerrMediaService
     }
 
-    /// EnableContentDeletion (or admin) on the active user; read reactively from AppState.activeUser so a profile switch updates visibility without a manual refresh.
-    /// See `MovieDetailView.canDelete(_:)`: the user policy gates the account, the item's own
-    /// `CanDelete` gates the library (Sodalite#146 round 2).
+    /// See `MovieDetailView.canDelete(_:)`: the item's own `CanDelete` decides wherever the server
+    /// sent it, the user policy is the fallback for a response without it (Sodalite#146).
     private func canDelete(_ item: JellyfinItem) -> Bool {
-        guard appState.activeUser?.canDeleteContent == true else { return false }
-        return item.canDelete ?? true
+        if let serverAnswer = item.canDelete { return serverAnswer }
+        return appState.activeUser?.canDeleteContent == true
     }
 
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
