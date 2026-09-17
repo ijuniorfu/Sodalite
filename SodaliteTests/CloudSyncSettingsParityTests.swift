@@ -35,18 +35,37 @@ struct CloudSyncSettingsParityTests {
         return defaults
     }
 
+    /// The legacy playback record still carries every value it carried before per-profile settings:
+    /// the profile values of the store plus the device values passed through it. Nothing may sit in
+    /// both, and every device value has to land in exactly one of the two legacy records.
+    ///
     /// One named exemption: `skipIntervalSeconds` is the pre-split single interval (Sodalite#144),
     /// still written so a build without the two direction fields keeps syncing its jumps, and no
     /// longer a setting this build stores.
     @Test func everyPlaybackSettingIsInThePayload() {
-        let store = PlaybackPreferences(store: scratchDefaults("playback"))
-        #expect(storedSettingNames(of: store)
-                == payloadFieldNames(.playback).subtracting(["skipIntervalSeconds"]))
+        let defaults = scratchDefaults("playback")
+        let device = storedSettingNames(of: DevicePreferences(store: defaults))
+        let profile = storedSettingNames(of: PlaybackPreferences(store: defaults))
+        let payload = payloadFieldNames(.playback).subtracting(["skipIntervalSeconds"])
+        #expect(profile.isDisjoint(with: device))
+        #expect(profile.union(device.intersection(payload)) == payload)
     }
 
     @Test func everyAppearanceSettingIsInThePayload() {
-        let store = AppearancePreferences(store: scratchDefaults("appearance"))
-        #expect(storedSettingNames(of: store) == payloadFieldNames(.appearance))
+        let defaults = scratchDefaults("appearance")
+        let device = storedSettingNames(of: DevicePreferences(store: defaults))
+        let profile = storedSettingNames(of: AppearancePreferences(store: defaults))
+        let payload = payloadFieldNames(.appearance)
+        #expect(profile.isDisjoint(with: device))
+        #expect(profile.union(device.intersection(payload)) == payload)
+    }
+
+    @Test func everyDeviceValueTravelsInOneLegacyRecord() {
+        let device = storedSettingNames(of: DevicePreferences(store: scratchDefaults("device")))
+        let playback = device.intersection(payloadFieldNames(.playback))
+        let appearance = device.intersection(payloadFieldNames(.appearance))
+        #expect(playback.isDisjoint(with: appearance))
+        #expect(playback.union(appearance) == device)
     }
 
     /// Two named exemptions: `defaultUserIDRevision` is an observation counter rather than a
