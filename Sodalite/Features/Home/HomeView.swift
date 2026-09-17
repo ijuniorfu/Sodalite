@@ -90,7 +90,7 @@ struct HomeView: View {
                 // Pick up new server-side content on the way back to the tab; the view model owns
                 // the age that is worth a refetch, because the foreground observer below asks it
                 // the same question.
-                Task { await viewModel?.refreshIfStale() }
+                Task { await viewModel?.refreshIfStale(trigger: .tab) }
             }
         }
         // The app coming back to the foreground, which is the return `onAppear` does not cover: a
@@ -103,15 +103,15 @@ struct HomeView: View {
         // rebuilding its pipeline is the class of burst that starves a stream (Sodalite#12). The
         // observer below picks it up when the cover goes.
         .onChange(of: scenePhase) { _, phase in
-            guard phase == .active, !isCovered else { return }
-            Task { await viewModel?.refreshIfStale() }
+            guard phase == .active else { return }
+            Task { await viewModel?.refreshIfStale(trigger: .foreground, covered: isCovered) }
         }
         // Home becoming the screen again. A cover dismiss fires no `onAppear` either (measured,
         // iOS 26.5), so this is the other half of the same gate: what the user changed behind the
         // cover already arrives by notification, what passed in the meantime does not.
         .onChange(of: isCovered) { _, covered in
             guard !covered else { return }
-            Task { await viewModel?.refreshIfStale() }
+            Task { await viewModel?.refreshIfStale(trigger: .coverDismissed) }
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeConfigDidChange)) { _ in
             viewModel?.reloadConfig()

@@ -74,7 +74,7 @@ struct HomeForegroundRefreshTests {
         viewModel.lastLoadedAt = Date(
             timeIntervalSinceNow: -(HomeViewModel.refreshStaleSeconds + 1)
         )
-        await viewModel.refreshIfStale()
+        await viewModel.refreshIfStale(trigger: .foreground)
 
         #expect(service.resumeCalls == 2, "a shelf older than the window was left stale")
     }
@@ -91,7 +91,7 @@ struct HomeForegroundRefreshTests {
         let viewModel = makeViewModel(service: service, identity: identity)
         await viewModel.loadContent()
 
-        await viewModel.refreshIfStale()
+        await viewModel.refreshIfStale(trigger: .foreground)
 
         #expect(service.resumeCalls == 1, "a shelf loaded a moment ago was refetched")
     }
@@ -108,8 +108,48 @@ struct HomeForegroundRefreshTests {
         let viewModel = makeViewModel(service: service, identity: identity)
         #expect(viewModel.lastLoadedAt == nil, "precondition: nothing has loaded yet")
 
-        await viewModel.refreshIfStale()
+        await viewModel.refreshIfStale(trigger: .foreground)
 
         #expect(service.resumeCalls == 0, "the launch transition fanned out on top of the first load")
+    }
+
+    /// Sodalite#117, classicjazz: a refresh and a skipped refresh used to leave identical logs, so
+    /// a retest could only be judged by watching the screen. Each reason the gate can give is its
+    /// own case, and covered outranks age because the observer must not fan out behind a cover.
+    @Test("the gate names why it refetched or declined")
+    func decisionReasons() {
+        let now = Date()
+        let stale = now.addingTimeInterval(-(HomeViewModel.refreshStaleSeconds + 30))
+        let fresh = now.addingTimeInterval(-5)
+
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: stale, covered: false, now: now)
+            == .refetch(ageSeconds: Int(HomeViewModel.refreshStaleSeconds) + 30))
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: fresh, covered: false, now: now)
+            == .fresh(ageSeconds: 5))
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: stale, covered: true, now: now)
+            == .covered(ageSeconds: Int(HomeViewModel.refreshStaleSeconds) + 30))
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: nil, covered: true, now: now)
+            == .covered(ageSeconds: nil))
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: nil, covered: false, now: now)
+            == .neverLoaded)
+    }
+
+    /// The foreground observer used to return before asking the gate while covered, which is the
+    /// one decline that would then never reach the log. It asks now, and the gate declines.
+    @Test("a stale shelf behind a cover is not refetched")
+    func coveredStaleShelfIsNotRefetched() async {
+        let identity = makeIdentity()
+        defer { forget(identity) }
+
+        let service = CountingService(resumeItems: [JellyfinItem(seriesStub: "m1", name: "m1")])
+        let viewModel = makeViewModel(service: service, identity: identity)
+        await viewModel.loadContent()
+        viewModel.lastLoadedAt = Date(
+            timeIntervalSinceNow: -(HomeViewModel.refreshStaleSeconds + 1)
+        )
+
+        await viewModel.refreshIfStale(trigger: .foreground, covered: true)
+
+        #expect(service.resumeCalls == 1, "a covered Home fanned out behind the cover")
     }
 }

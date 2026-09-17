@@ -67,10 +67,47 @@ final class HomeViewModel {
     /// same transition into `.active` as a return does, and it delivers it while the first load is
     /// still in flight, so treating nil as stale would fan out twice on every launch. A load that
     /// failed leaves the previous timestamp standing, which is what lets the next return retry it.
-    func refreshIfStale() async {
-        guard let lastLoadedAt,
-              Date().timeIntervalSince(lastLoadedAt) > Self.refreshStaleSeconds else { return }
+    ///
+    /// Every call writes one line to the diagnostic log, taken or declined, with the reason. A
+    /// refresh and a skipped one used to leave identical logs, so "did Home refresh?" could only be
+    /// answered by watching the screen (Sodalite#117, classicjazz, four captures in one round).
+    func refreshIfStale(trigger: RefreshTrigger, covered: Bool = false) async {
+        let decision = Self.refreshDecision(lastLoadedAt: lastLoadedAt, covered: covered, now: Date())
+        LogTap.shared.note("[HomeRefresh] \(trigger.rawValue): \(decision.logText)")
+        guard case .refetch = decision else { return }
         await loadContent()
+    }
+
+    /// What asked the gate. Only the log reads it; the decision does not depend on it.
+    enum RefreshTrigger: String {
+        case tab = "back to the tab"
+        case foreground = "app in the foreground"
+        case coverDismissed = "cover dismissed"
+    }
+
+    enum RefreshDecision: Equatable {
+        case refetch(ageSeconds: Int)
+        case fresh(ageSeconds: Int)
+        case covered(ageSeconds: Int?)
+        case neverLoaded
+
+        var logText: String {
+            switch self {
+            case .refetch(let age): "refetching, shelf is \(age)s old"
+            case .fresh(let age): "declined, shelf is \(age)s old (window \(Int(HomeViewModel.refreshStaleSeconds))s)"
+            case .covered(let age): "declined, something is presented over Home" + (age.map { " (shelf is \($0)s old)" } ?? "")
+            case .neverLoaded: "declined, no load has completed yet"
+            }
+        }
+    }
+
+    /// Covered wins over age, so the one refresh the cover's dismissal is there to deliver is not
+    /// spent next to a player that is still rebuilding its pipeline (Sodalite#12).
+    static func refreshDecision(lastLoadedAt: Date?, covered: Bool, now: Date) -> RefreshDecision {
+        let age = lastLoadedAt.map { now.timeIntervalSince($0) }
+        if covered { return .covered(ageSeconds: age.map { Int($0) }) }
+        guard let age else { return .neverLoaded }
+        return age > refreshStaleSeconds ? .refetch(ageSeconds: Int(age)) : .fresh(ageSeconds: Int(age))
     }
 
     /// Bumped on every loadContent entry; the for-await loop checks it before publishing so a re-entrant run (profile switch, refresh-while-loading) supersedes the older one instead of both writing rows/tagRows.
