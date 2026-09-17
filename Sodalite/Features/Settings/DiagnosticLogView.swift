@@ -83,7 +83,12 @@ struct DiagnosticLogView: View {
             }
             // A log is read from its end. Landing at the top would mean scrolling past a full
             // session to reach the line that prompted the visit.
-            .onAppear { scrollToEnd(proxy) }
+            .onAppear {
+                // The app can be in front while tvOS reloads the shelf, so activation alone can miss
+                // what the extension just wrote.
+                tap.importShelfLines()
+                scrollToEnd(proxy)
+            }
             .onChange(of: tap.lines.count) { _, _ in scrollToEnd(proxy) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
