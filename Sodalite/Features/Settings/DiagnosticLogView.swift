@@ -140,6 +140,15 @@ struct DiagnosticLogView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
 
+            // Not localised on purpose: two product names and three numbers, and it is quoted back
+            // verbatim in an issue. It leads the copied and exported text for the same reason.
+            Text(LogTap.environmentLine)
+                .font(.caption2)
+                .monospaced()
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+
             actions
                 .frame(maxWidth: .infinity)
         }
@@ -155,7 +164,7 @@ struct DiagnosticLogView: View {
                 systemImage: "doc.on.doc",
                 isEnabled: !tap.lines.isEmpty
             ) {
-                UIPasteboard.general.string = tap.lines.joined(separator: "\n")
+                UIPasteboard.general.string = ([LogTap.environmentLine] + tap.lines).joined(separator: "\n")
             }
             #endif
 
@@ -167,7 +176,7 @@ struct DiagnosticLogView: View {
                 systemImage: "qrcode",
                 isEnabled: !tap.lines.isEmpty
             ) {
-                exportedLines = LogSnapshot(lines: tap.lines)
+                exportedLines = LogSnapshot(lines: [LogTap.environmentLine] + tap.lines)
             }
             #endif
 
