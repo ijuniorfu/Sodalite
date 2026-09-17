@@ -14,11 +14,9 @@ import UIKit
 @MainActor
 struct LogExportPanelBudgetTests {
 
-    /// 1080 pt less the 60 pt title-safe inset at the top and the bottom.
-    private static let titleSafeBand: CGFloat = 960
-    /// `MenuPanelCover`'s `.card` style pads 60 pt above and below whatever it presents.
-    private static let coverPadding: CGFloat = 120
-    private static var available: CGFloat { titleSafeBand - coverPadding }
+    /// 1080 pt less the 60 pt title-safe inset at the top and the bottom. The panel is a page of its own
+    /// (`.plain`), so no card padding comes off it.
+    private static let available: CGFloat = 960
 
     private static func hostedHeight(_ view: some View, width: CGFloat) -> CGFloat {
         UIHostingController(rootView: view)
@@ -60,7 +58,7 @@ struct LogExportPanelBudgetTests {
         #expect(
             total + spare <= Self.available,
             """
-            The export panel needs \(total) pt plus \(spare) pt of translation headroom, and the cover \
+            The export panel needs \(total) pt plus \(spare) pt of translation headroom, and the page \
             leaves \(Self.available). Content \(contentHeight), button \(buttonHeight). Over the band \
             the hint silently becomes one truncated line.
             """

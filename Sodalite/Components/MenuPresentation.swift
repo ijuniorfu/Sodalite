@@ -6,7 +6,7 @@ enum MenuPanelStyle {
     /// for the inset and the rounded corner (the sort and version pickers, the trust prompt).
     case card
     /// Scrim only. For content that already carries its own panel or fills the screen itself (the
-    /// deletion and request-edit sheets, the server switcher, the diagnostic log).
+    /// deletion and request-edit sheets, the server switcher, the diagnostic log and its export).
     case plain
 }
 

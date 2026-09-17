@@ -37,6 +37,10 @@ struct LogExportPanel: View {
         }
         .padding(LogExportPanelContent.padding)
         .frame(width: LogExportPanelContent.width)
+        // A page of its own rather than a card over the log. The card let the log show through at the
+        // edges, and the reporter read that as clutter around the one thing on screen that matters.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .themedPresentationBackground()
         .task { start() }
         .onDisappear { server.stop() }
     }
@@ -93,14 +97,14 @@ struct LogExportPanel: View {
 /// Split out so its height can be measured rather than guessed. The first device round overran the
 /// title-safe band and SwiftUI paid for it the way it always does, with a text line: the hint came back
 /// as one truncated line and the address lost its tail, both of them at a distance from the cause. The
-/// sizes below are budgeted against 960 pt less the cover's own 120 pt of vertical padding, and
-/// `LogExportPanelBudgetTests` holds the total there.
+/// sizes below are budgeted against the 960 pt title-safe band, and `LogExportPanelBudgetTests` holds the
+/// total there.
 struct LogExportPanelContent: View {
     let url: URL
     let expiresAt: Date
 
     /// Wide rather than tall. The screen is 16:9 and the constraint is height, so the panel spends the
-    /// axis it has: 1500 of the 1760 the cover leaves.
+    /// axis it has: 1500 of the 1760 inside the overscan inset.
     ///
     /// The width is set by the address, which is the widest thing here and must not shrink. The longest
     /// one this can produce is 45 characters (`http://255.255.255.255:65535/` plus 16 hex), measured at
