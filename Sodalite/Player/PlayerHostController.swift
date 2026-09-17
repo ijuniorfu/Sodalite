@@ -173,9 +173,8 @@ final class PlayerHostController: AVPlayerViewController {
                     // iOS wired HDMI (Sodalite#34): while a mirrored external screen is active AVPlayer stays in the
                     // small mirror window unless this is set, so the video renders in "Mirror Mode" instead of filling
                     // the TV. Setting it makes AVPlayer switch to external playback (full-screen out) on connect. This
-                    // also flips isExternalPlaybackActive, so the engine's #86 handler reloads onto the LAN IP + MEDIA
-                    // playlist exactly like wireless AirPlay: harmless here (127.0.0.1 fallback if no WiFi) but it drops
-                    // the DV/HDR master signaling, so DV over a wired adapter comes out through the MEDIA playlist.
+                    // also flips isExternalPlaybackActive, but the engine tells a wired HDMI route from AirPlay and
+                    // skips the #86 reload for it, so loopback and the DV/HDR master playlist stay in place.
                     #if os(iOS)
                     // Sodalite#98: not while the app itself owns the external screen, or the reload
                     // behind a next-episode/audio switch would take the display back mid-session.
