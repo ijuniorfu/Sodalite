@@ -396,6 +396,14 @@ struct TabRootView: View {
             // The appearance proxy only governs items at CREATION; recolor the live instance directly so an accent change repaints the on-screen bar.
             tabBar.tintColor = tint
             tabBar.unselectedItemTintColor = tint
+            // A live bar keeps drawing the previous colour until its next layout pass, which a tab
+            // change triggers and a new appearance does not: a profile switch to another accent left
+            // the old one on screen. Measured in a bare TabView on the tvOS 26 simulator, 2026-09-17:
+            // without this the bar stayed blue after a switch to pink, with it the bar is pink at once;
+            // per-item appearance stayed blue, and re-setting items or the selection crashes a bar a
+            // tab bar controller owns.
+            tabBar.setNeedsLayout()
+            tabBar.layoutIfNeeded()
         }
         for subview in view.subviews {
             applyTabBarAppearance(appearance, tint: tint, in: subview)
