@@ -36,6 +36,32 @@ enum CloudSyncRecordName {
         guard name.hasPrefix("settings-") else { return nil }
         return CloudSyncStoreKey(rawValue: String(name.dropFirst("settings-".count)))
     }
+
+    /// A profile's own records (per-profile settings). Same record type and field as the settings
+    /// stores, so they need no Production schema deploy, and a prefix none of a pre-change build's
+    /// dispatch branches match, so older builds skip them.
+    static func profile(_ kind: ProfileRecordKind, _ key: ProfileKey) -> String {
+        "profile-\(kind.rawValue)-\(key.storageScope)"
+    }
+
+    static func profileRecord(fromRecordName name: String) -> (kind: ProfileRecordKind, key: ProfileKey)? {
+        guard name.hasPrefix("profile-") else { return nil }
+        let rest = name.dropFirst("profile-".count)
+        guard let dash = rest.firstIndex(of: "-"),
+              let kind = ProfileRecordKind(rawValue: String(rest[..<dash])),
+              let key = ProfileKey(storageScope: String(rest[rest.index(after: dash)...]))
+        else { return nil }
+        return (kind, key)
+    }
+
+    /// Moved here from CloudSyncService so it can be pinned. Anything unrecognised used to fall
+    /// through to the security type, which is exactly where a profile record must not land.
+    static func recordType(forRecordName name: String) -> String {
+        if serverID(fromRecordName: name) != nil { return CloudSyncRecordType.server }
+        if storeKey(fromRecordName: name) != nil { return CloudSyncRecordType.settings }
+        if profileRecord(fromRecordName: name) != nil { return CloudSyncRecordType.settings }
+        return CloudSyncRecordType.security
+    }
 }
 
 /// Per-server home row customization. configsJSON stays opaque raw JSON of

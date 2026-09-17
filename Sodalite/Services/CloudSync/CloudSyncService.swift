@@ -596,9 +596,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func recordType(forRecordName name: String) -> CKRecord.RecordType {
-        if CloudSyncRecordName.serverID(fromRecordName: name) != nil { return CloudSyncRecordType.server }
-        if CloudSyncRecordName.storeKey(fromRecordName: name) != nil { return CloudSyncRecordType.settings }
-        return CloudSyncRecordType.security
+        CloudSyncRecordName.recordType(forRecordName: name)
     }
 
     private func addPendingSave(recordName: String) {
