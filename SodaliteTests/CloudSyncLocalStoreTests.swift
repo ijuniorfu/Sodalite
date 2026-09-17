@@ -37,8 +37,11 @@ struct CloudSyncLocalStoreTests {
     private static let accentChoiceKey = "appearance.accentChoice"
     private static let backgroundStyleKey = "appearance.backgroundStyle"
 
-    private func makeContainer() -> DependencyContainer {
-        DependencyContainer(keychainService: InMemoryKeychain())
+    /// A fresh suite per container: no active and no last active profile, so the container's stores
+    /// are the legacy ones every expectation in this file is about.
+    private func makeContainer(defaults: UserDefaults? = nil) -> DependencyContainer {
+        let suite = "CloudSyncLocalStoreTests.container.\(UUID().uuidString)"
+        return DependencyContainer(keychainService: InMemoryKeychain(), defaults: defaults ?? UserDefaults(suiteName: suite)!)
     }
 
     private func withStoredAppearanceIDs(
@@ -46,25 +49,10 @@ struct CloudSyncLocalStoreTests {
         background: String,
         perform: (DependencyContainer, UserDefaults) -> Void
     ) {
-        let defaults = UserDefaults.standard
-        let previousAccent = defaults.object(forKey: Self.accentChoiceKey)
-        let previousBackground = defaults.object(forKey: Self.backgroundStyleKey)
-        defer {
-            if let previousAccent {
-                defaults.set(previousAccent, forKey: Self.accentChoiceKey)
-            } else {
-                defaults.removeObject(forKey: Self.accentChoiceKey)
-            }
-            if let previousBackground {
-                defaults.set(previousBackground, forKey: Self.backgroundStyleKey)
-            } else {
-                defaults.removeObject(forKey: Self.backgroundStyleKey)
-            }
-        }
-
-        defaults.set(accent, forKey: Self.accentChoiceKey)
-        defaults.set(background, forKey: Self.backgroundStyleKey)
-        perform(makeContainer(), defaults)
+        let suite = UserDefaults(suiteName: "CloudSyncLocalStoreTests.appearance.\(UUID().uuidString)")!
+        suite.set(accent, forKey: Self.accentChoiceKey)
+        suite.set(background, forKey: Self.backgroundStyleKey)
+        perform(makeContainer(defaults: suite), suite)
     }
 
     private var sampleServer: JellyfinServer {

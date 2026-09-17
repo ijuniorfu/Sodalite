@@ -35,14 +35,18 @@ final class DependencyContainer {
     let jellyfinItemService: JellyfinItemServiceProtocol
     let jellyfinImageService: JellyfinImageService
     let jellyfinPlaybackService: JellyfinPlaybackServiceProtocol
-    let playbackPreferences: PlaybackPreferences
+    /// Per-profile playback and appearance settings plus the shared device values. The two
+    /// properties below resolve to the active profile, so a view that reads them follows a switch.
+    let profileSettings: ProfileSettingsRegistry
+    var playbackPreferences: PlaybackPreferences { profileSettings.current.playback }
+    var appearancePreferences: AppearancePreferences { profileSettings.current.appearance }
+    var devicePreferences: DevicePreferences { profileSettings.device }
     let trackSelectionMemory: TrackSelectionMemory
     /// Remembered provider URLs for direct-played live channels, so a zap skips Jellyfin's tuner open.
     let liveDirectStreamMemory: LiveDirectStreamMemory
     let spoilerRevealMemory: SpoilerRevealMemory
     let spoilerSeriesRules: SpoilerSeriesRules
     let storeKitService: StoreKitServiceProtocol
-    let appearancePreferences: AppearancePreferences
     /// Sodalite#79. One store for the whole app so a title enriched in a Home row is already known
     /// when the same title shows up in a grid.
     let posterBadgeStore: PosterBadgeStore
@@ -155,17 +159,16 @@ final class DependencyContainer {
             }
         )
         self.jellyfinPlaybackService = JellyfinPlaybackService(client: jellyfinClient)
-        self.playbackPreferences = PlaybackPreferences(store: defaults)
+        let profileSettings = ProfileSettingsRegistry(defaults: defaults)
+        self.profileSettings = profileSettings
         self.trackSelectionMemory = TrackSelectionMemory(store: defaults)
         self.liveDirectStreamMemory = LiveDirectStreamMemory(keychain: keychainService)
         self.spoilerRevealMemory = SpoilerRevealMemory(store: defaults)
         self.spoilerSeriesRules = SpoilerSeriesRules(store: defaults)
         self.storeKitService = StoreKitService()
-        self.appearancePreferences = AppearancePreferences(store: defaults)
-        let appearance = self.appearancePreferences
         self.posterBadgeStore = PosterBadgeStore(
             library: self.jellyfinLibraryService,
-            isEnabled: { appearance.showPosterBadges }
+            isEnabled: { profileSettings.current.appearance.showPosterBadges }
         )
         self.authPreferences = AuthPreferences(store: defaults)
         // The pre-1.0 default-profile pin had no server scope; attribute it to the pinned default server, else the one that was active when it was written.
@@ -230,6 +233,11 @@ final class DependencyContainer {
         (httpClient as? HTTPClient)?.onServerDidNotServe = { [weak self] in
             Task { @MainActor in self?.noteServerDidNotServe() }
         }
+
+        // Last, because the closures capture self and the migration reads the keychain through it.
+        profileSettings.activeKey = { [weak self] in self?.appState?.profileKey }
+        profileSettings.isApplyingCloudChanges = { [weak self] in self?.isApplyingCloudChanges ?? false }
+        profileSettings.migrateIfNeeded(profiles: profileKeysOnThisDevice())
     }
 
     /// Trims the filter cache to its identity limit off the main actor (synchronous directory IO),

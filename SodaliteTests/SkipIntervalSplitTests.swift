@@ -120,7 +120,7 @@ struct SkipIntervalSplitTests {
     @Test("a payload from a build with one interval sets both directions to it")
     func anOlderPayloadSpeaksForBothDirections() throws {
         let container = DependencyContainer(keychainService: InMemoryKeychain())
-        let store = container.playbackPreferences
+        let store = container.profileSettings.legacy.playback
         let original = (store.skipForwardSeconds, store.skipBackwardSeconds)
         defer { (store.skipForwardSeconds, store.skipBackwardSeconds) = original }
         store.skipForwardSeconds = 15
@@ -139,7 +139,7 @@ struct SkipIntervalSplitTests {
     @Test("a payload that names both directions wins over the pre-split field")
     func anewerPayloadKeepsTheDirectionsApart() throws {
         let container = DependencyContainer(keychainService: InMemoryKeychain())
-        let store = container.playbackPreferences
+        let store = container.profileSettings.legacy.playback
         let original = (store.skipForwardSeconds, store.skipBackwardSeconds)
         defer { (store.skipForwardSeconds, store.skipBackwardSeconds) = original }
 

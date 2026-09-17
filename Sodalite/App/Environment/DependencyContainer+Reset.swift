@@ -33,6 +33,9 @@ extension DependencyContainer {
         // The app group is its own domain: the TopShelf extension reads the accent out of it.
         UserDefaults(suiteName: Self.appGroupSuiteName)?
             .removePersistentDomain(forName: Self.appGroupSuiteName)
+        // Per-profile stores are cached in memory like every other store here; without this the next
+        // edit in a cached profile writes its pre-reset values back into the wiped domain.
+        profileSettings.resetAll()
 
         // And the objects already in memory are what this session reads. They parsed their values at
         // launch and persist on write, so a wiped domain alone would leave the app wearing the old

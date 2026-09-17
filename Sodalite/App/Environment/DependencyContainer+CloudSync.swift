@@ -17,13 +17,14 @@ extension DependencyContainer {
             ) else { return nil }
             return try? JSONDecoder().decode(RememberedSeerrSession.self, from: data)
         }
+        let homeScope = legacyHomeScope(serverID: serverID)
         let homeRows = HomeRowsSyncState(
-            configsJSON: HomeRowConfig.rawConfigData(scope: serverID),
-            mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(scope: serverID),
-            rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(scope: serverID),
-            collectionGrouping: HomeRowConfig.collectionGrouping(scope: serverID).rawValue,
+            configsJSON: HomeRowConfig.rawConfigData(scope: homeScope),
+            mergeCWNextUp: HomeRowConfig.mergeContinueWatchingNextUp(scope: homeScope),
+            rewatchNextUp: HomeRowConfig.enableRewatchingNextUp(scope: homeScope),
+            collectionGrouping: HomeRowConfig.collectionGrouping(scope: homeScope).rawValue,
             librarySorts: {
-                let sorts = LibrarySortStore.allSorts(scope: serverID)
+                let sorts = LibrarySortStore.allSorts(scope: homeScope)
                 return sorts.isEmpty ? nil : sorts
             }()
         )
@@ -273,6 +274,13 @@ extension DependencyContainer {
         collectSettingsPayload(key, stamp: stamp, from: SettingsStores(container: self))
     }
 
+    /// For the two profile-backed legacy records: the personal half from `profile` (nil means the
+    /// active one), the device half from DevicePreferences. A debounced upload passes the profile the
+    /// edit was made in, so a switch inside the debounce window cannot publish another profile.
+    func collectSettingsPayload(_ key: CloudSyncStoreKey, stamp: Date, profile: ProfileKey?) -> SettingsSyncPayload {
+        collectSettingsPayload(key, stamp: stamp, from: SettingsStores(container: self, profile: profile))
+    }
+
     /// Same mapping, read out of a given set of stores. A reset passes stores built against an empty
     /// suite, so "what a first launch holds" comes from the one mapping the parity test already pins
     /// every setting to, instead of a second list that would drift from it (Sodalite#76).
@@ -393,7 +401,10 @@ extension DependencyContainer {
         defer { isApplyingCloudChanges = false }
         switch payload {
         case .playback(let p):
-            let store = playbackPreferences
+            // Legacy records only feed the legacy keys (the migration and seed source) and, through the
+            // pass-throughs, the device values. Never a profile: two devices on different profiles
+            // would overwrite each other through this record.
+            let store = profileSettings.legacy.playback
             store.autoplayNextEpisode = p.autoplayNextEpisode
             store.autoSkipIntro = p.autoSkipIntro
             store.autoSkipOutro = p.autoSkipOutro
@@ -441,7 +452,7 @@ extension DependencyContainer {
                     NextEpisodePolicy.CountdownAnchor(rawValue: anchor) ?? store.nextEpisodeCountdownAnchor
             }
         case .appearance(let a):
-            let store = appearancePreferences
+            let store = profileSettings.legacy.appearance
             if let accentChoice = AppearancePreferences.AccentChoice(rawValue: a.accentChoice) {
                 store.accentChoice = accentChoice
             }
@@ -569,9 +580,10 @@ struct SettingsStores {
     let spoilerReveals: SpoilerRevealMemory
     let spoilerSeriesRules: SpoilerSeriesRules
 
-    init(container: DependencyContainer) {
-        playback = container.playbackPreferences
-        appearance = container.appearancePreferences
+    init(container: DependencyContainer, profile: ProfileKey? = nil) {
+        let settings = profile.map { container.profileSettings.settings(for: $0) } ?? container.profileSettings.current
+        playback = settings.playback
+        appearance = settings.appearance
         auth = container.authPreferences
         seerrNotifications = container.seerrNotificationPreferences
         parentalControls = container.parentalControlsPreferences
