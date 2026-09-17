@@ -1,7 +1,6 @@
-import os.log
 @preconcurrency import TVServices
 
-private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", category: "ContentProvider")
+private let log = ShelfLog(category: "ContentProvider")
 
 /// Top Shelf provider; tvOS calls loadTopShelfContent on icon focus + background refresh. No session or a transient API error both return nil (shelf falls back to the static brand asset).
 ///
@@ -112,7 +111,7 @@ final class ContentProvider: TVTopShelfContentProvider {
             // 2x is the only scale Apple TV renders; setting both 1x and 2x doubles the daemon's fetch work and trips memory pressure surfacing as "-17102 decompressing image" when cells race to decode.
             cell.setImageURL(url, for: .screenScale2x)
         } else {
-            log.notice("cell \(item.id, privacy: .public) has no image URL")
+            log.notice("cell \(item.id) has no image URL")
         }
         return cell
     }
@@ -142,7 +141,7 @@ final class ContentProvider: TVTopShelfContentProvider {
         do {
             return try await work()
         } catch {
-            log.error("\(label, privacy: .public) fetch failed: \(error.localizedDescription, privacy: .public)")
+            log.error("\(label) fetch failed: \(error.localizedDescription)")
             return nil
         }
     }

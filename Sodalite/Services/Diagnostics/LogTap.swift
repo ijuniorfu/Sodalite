@@ -116,6 +116,48 @@ final class LogTap: ObservableObject {
     }
 #endif
 
+    /// Moves what the Top Shelf extension logged in its own process into the buffer (see `ShelfLog`).
+    ///
+    /// Those lines are already stamped and redacted, so they skip `note(_:)`: re-stamping would date
+    /// them to the moment the app woke up rather than the moment the shelf ran. They are merged in by
+    /// stamp, because they are usually older than what the app has logged since launch.
+    nonisolated func importShelfLines() {
+        #if os(tvOS)
+        guard let file = ShelfLogFile.shared else { return }
+        DispatchQueue.global(qos: .utility).async {
+            let imported = file.drain()
+            guard !imported.isEmpty else { return }
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    let tap = LogTap.shared
+                    tap.lines = LogTap.merged(tap.lines, imported, limit: tap.maxLines)
+                }
+            }
+        }
+        #endif
+    }
+
+    /// Both inputs in stamp order, output in stamp order and at most `limit` long, the oldest dropped.
+    /// A tie keeps the buffer's own line first.
+    nonisolated static func merged(_ existing: [String], _ imported: [String], limit: Int) -> [String] {
+        var result: [String] = []
+        result.reserveCapacity(existing.count + imported.count)
+        var i = 0
+        var j = 0
+        while i < existing.count || j < imported.count {
+            if j == imported.count
+                || (i < existing.count
+                    && existing[i].prefix(LogTimestamp.width) <= imported[j].prefix(LogTimestamp.width)) {
+                result.append(existing[i])
+                i += 1
+            } else {
+                result.append(imported[j])
+                j += 1
+            }
+        }
+        return Array(result.suffix(limit))
+    }
+
     /// Wipe the buffer (e.g. between playback sessions so the next
     /// test starts with a clean slate).
     nonisolated func clear() {

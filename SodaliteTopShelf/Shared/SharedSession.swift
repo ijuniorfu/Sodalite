@@ -1,8 +1,7 @@
 import Foundation
-import os.log
 import Security
 
-nonisolated private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", category: "SharedSession")
+nonisolated private let log = ShelfLog(category: "SharedSession")
 
 /// Reads the active Jellyfin session from the shared keychain access group the main app mirrors into via SharedSessionMirror. Read-only; missing/undecodable slot is treated as no session (shelf renders empty).
 nonisolated struct SharedSession: Sendable {
@@ -22,16 +21,16 @@ nonisolated struct SharedSession: Sendable {
     static func read() -> SharedSession? {
         let slot = sharedSessionSlot
         guard let data = readSharedKeychainData(account: slot) else {
-            log.info("SharedSession.read slot=\(slot, privacy: .public) data=nil group=\(resolvedAccessGroup, privacy: .public)")
+            log.info("SharedSession.read slot=\(slot) data=nil group=\(resolvedAccessGroup)")
             return nil
         }
         guard let payload = try? JSONDecoder().decode(Payload.self, from: data),
               let url = URL(string: payload.serverURL)
         else {
-            log.error("SharedSession.read decode failed slot=\(slot, privacy: .public)")
+            log.error("SharedSession.read decode failed slot=\(slot)")
             return nil
         }
-        log.info("SharedSession.read slot=\(slot, privacy: .public) ok=true group=\(resolvedAccessGroup, privacy: .public)")
+        log.info("SharedSession.read slot=\(slot) ok=true group=\(resolvedAccessGroup)")
         return SharedSession(baseURL: url, userID: payload.userID, accessToken: payload.accessToken)
     }
 }

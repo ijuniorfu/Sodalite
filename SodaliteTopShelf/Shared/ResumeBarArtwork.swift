@@ -1,8 +1,7 @@
 import Foundation
 import os
-import os.log
 
-nonisolated private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", category: "ResumeBar")
+nonisolated private let log = ShelfLog(category: "ResumeBar")
 
 /// Renders the shelf's cell artwork into the shared container: cropped to the cell's 16:9, decoded
 /// at the width the cell draws, and with the resume bar burned in where there is one.
@@ -177,7 +176,7 @@ enum ResumeBarArtwork {
                                                       accent: accent,
                                                       maxPixelSize: maxPixelSize)
         else {
-            log.error("render failed for \(candidate.destination.lastPathComponent, privacy: .public)")
+            log.error("render failed for \(candidate.destination.lastPathComponent)")
             return false
         }
         do {
@@ -189,7 +188,7 @@ enum ResumeBarArtwork {
                                                    ofItemAtPath: candidate.destination.path)
             return true
         } catch {
-            log.error("write failed: \(error.localizedDescription, privacy: .public)")
+            log.error("write failed: \(error.localizedDescription)")
             return false
         }
     }
@@ -204,7 +203,7 @@ enum ResumeBarArtwork {
             }
             return data
         } catch {
-            log.notice("artwork download failed: \(error.localizedDescription, privacy: .public)")
+            log.notice("artwork download failed: \(error.localizedDescription)")
             return nil
         }
     }

@@ -69,6 +69,17 @@ struct SodaliteApp: App {
             LogTap.shared.note(line)
         }
 
+        // Same door for the Top Shelf code the app runs itself (the pre-render pass). What the extension
+        // logged in its own process comes in from a file, on every activation, because the shelf runs
+        // while the app is in the background.
+        ShelfLog.sink = { line in
+            LogTap.shared.note(line)
+        }
+        NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
+                                               object: nil, queue: nil) { _ in
+            LogTap.shared.importShelfLines()
+        }
+
 #if DEBUG
         // A measurement that outlives the app: the in-memory buffer is 300 lines and is wiped on
         // every launch, so a test that ends with the app being force-quit or terminated in the

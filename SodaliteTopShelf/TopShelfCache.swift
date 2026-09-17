@@ -1,7 +1,6 @@
 import Foundation
-import os.log
 
-private let log = Logger(subsystem: "de.superuser404.Sodalite.TopShelf", category: "Cache")
+private let log = ShelfLog(category: "Cache")
 
 /// Last good shelf content, so a server that is briefly unreachable does not blank the shelf.
 /// Items are cached, never URLs: `topShelfImageURL` embeds the access token, so a cached URL
@@ -30,7 +29,7 @@ struct TopShelfCache: Codable, Sendable {
         do {
             try data.write(to: url, options: .atomic)
         } catch {
-            log.notice("cache write failed: \(error.localizedDescription, privacy: .public)")
+            log.notice("cache write failed: \(error.localizedDescription)")
         }
     }
 }
