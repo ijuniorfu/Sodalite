@@ -191,6 +191,16 @@ extension DependencyContainer {
         }
 
         if let homeRows = payload.homeRows {
+            // Written to the SERVER scope although `collect` reads `legacyHomeScope`, which resolves
+            // to a profile once one has values. The asymmetry is deliberate, so do not "fix" it: a
+            // server record carries no profile identity, and applying it to the profile this device
+            // last signed in with would let another device's profile overwrite this one's rows, with
+            // the profile records as a second writer to the same scope. The server scope is still
+            // read, as the seed for a profile that is new on this device (`legacySource`).
+            //
+            // The cost is one direction during a rollout: home rows reordered on a build that
+            // predates per-profile settings do not reach an updated one until that device updates.
+            // The other direction works, because `collect` sends the active profile's rows.
             if let configs = homeRows.configsJSON {
                 HomeRowConfig.setRawConfigData(configs, scope: serverID)
             }

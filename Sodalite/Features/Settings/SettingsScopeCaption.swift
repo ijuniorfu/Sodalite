@@ -31,16 +31,21 @@ struct SettingsScopeCaption: View {
     @Environment(\.appState) private var appState
 
     var body: some View {
-        Label {
-            Text(String(
-                format: String(localized: "settings.scope.profile", defaultValue: "Applies to the profile %@"),
-                appState.activeUser?.name ?? ""
-            ))
-        } icon: {
-            Image(systemName: "person.crop.circle")
+        // No name, no sentence: "Applies to the profile " with nothing after it is worse than
+        // silence, and it would read that way in all 26 locales. The screens carrying this today are
+        // behind a session, but the view is free standing and the next one to adopt it may not be.
+        if let name = appState.activeUser?.name, !name.isEmpty {
+            Label {
+                Text(String(
+                    format: String(localized: "settings.scope.profile", defaultValue: "Applies to the profile %@"),
+                    name
+                ))
+            } icon: {
+                Image(systemName: "person.crop.circle")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
-        .font(.caption)
-        .foregroundStyle(.secondary)
     }
 }
 

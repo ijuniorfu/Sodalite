@@ -51,7 +51,6 @@ final class ProfileSettingsRegistry {
     private var cache: [ProfileKey: Settings] = [:]
     private var seeding = false
     private var lastActiveMemo: ProfileKey??
-    private var observers: [NSObjectProtocol] = []
 
     init(defaults: UserDefaults) {
         self.defaults = defaults
@@ -226,9 +225,13 @@ final class ProfileSettingsRegistry {
 
     /// Synchronous on purpose, like CloudSync's own observer of the same notifications: the cloud
     /// apply path posts them while `isApplyingCloudChanges` is still set.
+    ///
+    /// The tokens are deliberately not kept. One registry lives as long as the app, and the block
+    /// holds `self` weakly, so a registry that is released (every test container) leaves an observer
+    /// that finds no `self` and returns. Storing them bought a list nothing read.
     private func observeHomeEdits() {
         for name in [Notification.Name.homeConfigDidChange, .librarySortDidChange] {
-            let observer = NotificationCenter.default.addObserver(
+            NotificationCenter.default.addObserver(
                 forName: name, object: nil, queue: .main
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
@@ -236,7 +239,6 @@ final class ProfileSettingsRegistry {
                     self.noteWrite(key, .home)
                 }
             }
-            observers.append(observer)
         }
     }
 }

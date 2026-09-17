@@ -16,6 +16,10 @@ struct TabRootView: View {
     /// profile on THIS server" (nothing stale, leave the bar alone) from "another server" (the
     /// visible Live TV tab points at a backend that is gone). Sodalite#141.
     @State private var tabsProbedForServerID: String?
+    /// The shell as it stood before a profile switch that has not changed it yet, kept so a tab set
+    /// arriving from the login probe one or more updates later is still judged against it. Dropped
+    /// once the viewer navigates: after that a tab appearing is their own doing.
+    @State private var switchOrigin: ProfileShellLayout?
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
     @Environment(\.appearanceTheme) private var appearanceTheme
@@ -263,12 +267,24 @@ struct TabRootView: View {
             }
         }
         .onChange(of: shellLayout) { old, new in
-            guard old.profile != new.profile, let before = old.profile, let after = new.profile else { return }
-            let landsOnHome = ProfileShellLayout.switchLandsOnHome(from: old, to: new)
-            LogTap.shared.note("[ProfileSettings] switch \(before.fingerprint) -> \(after.fingerprint), shell changed: \(landsOnHome ? "yes" : "no")")
-            if landsOnHome {
+            let armed = switchOrigin
+            let result = ProfileShellLayout.resolveSwitch(previous: old, current: new, armedOrigin: armed)
+            switchOrigin = result.origin
+            if let before = old.profile, let after = new.profile, old.profile != new.profile {
+                LogTap.shared.note(
+                    "[ProfileSettings] switch \(before.fingerprint) -> \(after.fingerprint), "
+                    + "shell changed: \(result.landsOnHome ? "yes" : "not yet, waiting for the tab probe")")
+            } else if result.landsOnHome, let origin = armed?.profile {
+                LogTap.shared.note(
+                    "[ProfileSettings] the shell changed after the switch from \(origin.fingerprint), landing on Home")
+            }
+            if result.landsOnHome {
                 selectedTab = .home
             }
+        }
+        .onChange(of: selectedTab) { _, _ in
+            // The viewer moved, so the switch is over: a later tab change is theirs, not its.
+            switchOrigin = nil
         }
     }
 
