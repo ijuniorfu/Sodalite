@@ -73,8 +73,13 @@ final class ProfileSettingsRegistry {
     /// Writes `lastActiveKey` as a side effect, which touches UserDefaults only and nothing observable.
     var current: Settings {
         if let key = activeKey() {
+            // Resolved BEFORE `lastActiveKey` moves. Seeding a profile that has no values of its own
+            // reads that field to find the profile to copy from, so writing it first would make the
+            // rule read "copy from myself", which never matches and silently hands every new profile
+            // the legacy values instead of the settings this box was last used with.
+            let settings = settings(for: key)
             if lastActiveKey != key { lastActiveKey = key }
-            return settings(for: key)
+            return settings
         }
         if let last = lastActiveKey, hasValues(last) {
             return settings(for: last)

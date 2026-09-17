@@ -52,6 +52,23 @@ struct ProfileSettingsRegistryTests {
         #expect(relaunch.settings(for: alice).playback.subtitleColor == .yellow)
     }
 
+    /// The copy has to survive the path the app actually takes. Every screen reads `current`, which
+    /// writes `lastActiveKey` on its way to resolving, and the seeding rule reads that same value to
+    /// find the profile to copy from. Asking through `settings(for:)` never exercises that order.
+    @Test func aNewProfileReachedThroughCurrentCopiesTheLastActiveOne() {
+        let defaults = scratch("currentSeeds")
+        let (alice, bob, _) = profiles()
+        PlaybackPreferences(store: defaults).subtitleColor = .gray
+        let registry = ProfileSettingsRegistry(defaults: defaults)
+        registry.migrateIfNeeded(profiles: [alice])
+        registry.activeKey = { alice }
+        registry.current.playback.subtitleColor = .yellow
+
+        registry.activeKey = { bob }
+        #expect(registry.current.playback.subtitleColor == .yellow)
+        #expect(registry.lastActiveKey == bob)
+    }
+
     @Test func withoutALastActiveProfileANewOneCopiesTheDeviceValues() {
         let defaults = scratch("noLastActive")
         let (alice, _, _) = profiles()
