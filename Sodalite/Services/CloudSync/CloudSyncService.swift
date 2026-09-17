@@ -73,6 +73,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private var debounceTasks: [CloudSyncStoreKey: Task<Void, Never>] = [:]
     /// Last snapshot uploaded or applied per store, to skip observation echoes.
     private var lastSettingsSnapshot: [CloudSyncStoreKey: SettingsSyncPayload] = [:]
+    /// Debounced profile uploads, keyed by record name so an edit in one profile cannot cancel
+    /// another profile's pending upload.
+    private var profileDebounceTasks: [String: Task<Void, Never>] = [:]
+    /// Last profile payload uploaded or applied per record name, to skip unchanged re-uploads.
+    private var lastProfileSnapshot: [String: ProfileSyncPayload] = [:]
     private var observers: [NSObjectProtocol] = []
     /// Bumped on every teardown/start so stale withObservationTracking re-arm loops die.
     private var observationGeneration = 0
@@ -93,6 +98,19 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
         self.preferences = preferences
+        // Write hooks, not observation: a profile switch writes nothing, so it cannot upload
+        // anything, and cloud applies and seeding are suppressed inside the registry.
+        dependencies.profileSettings.onLocalEdit = { [weak self] key, kind in
+            guard let self else { return }
+            self.scheduleProfileUpload(kind, key)
+            if let legacy = kind.legacyStoreKey {
+                self.scheduleSettingsUpload(legacy, profile: key)
+            }
+        }
+        dependencies.profileSettings.onDeviceEdit = { [weak self] legacy in
+            guard let self else { return }
+            self.scheduleSettingsUpload(legacy, profile: self.dependencies.activeProfileKey)
+        }
     }
 
     // MARK: Lifecycle
@@ -169,6 +187,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         startInFlight = false
         for task in debounceTasks.values { task.cancel() }
         debounceTasks = [:]
+        for task in profileDebounceTasks.values { task.cancel() }
+        profileDebounceTasks = [:]
         // A delete queued under one account must not block adoption of the same
         // record name under the next account.
         recentLocalDeletes = []
@@ -253,8 +273,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     /// Uploads everything local that adoption's fetch did not already reconcile,
-    /// then latches the adoption flag.
-    private func completeAdoption() {
+    /// then latches the adoption flag. Internal for tests.
+    func completeAdoption() {
         for server in dependencies.listKnownServers() {
             markServerDirty(serverID: server.id)
         }
@@ -267,6 +287,16 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         if preferences.localStamp(for: CloudSyncRecordName.securitySingleton) == nil,
            dependencies.isGuardianPINSet() {
             markSecurityDirty()
+        }
+        // Profile records: every kind that is a real edit or came from the cloud, and that the
+        // adoption fetch did not already settle. Provisional copies stay local.
+        let registry = dependencies.profileSettings
+        for key in registry.knownProfiles {
+            for kind in ProfileRecordKind.allCases
+            where !registry.isProvisional(key, kind)
+                && preferences.localStamp(for: CloudSyncRecordName.profile(kind, key)) == nil {
+                markProfileDirty(kind, key)
+            }
         }
         preferences.adoptionCompleted = true
         LogTap.shared.note("[CloudSync] adoption complete")
@@ -425,6 +455,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         addPendingSave(recordName: name)
     }
 
+    /// Internal for tests.
+    func markProfileDirty(_ kind: ProfileRecordKind, _ key: ProfileKey) {
+        guard preferences.isEnabled else { return }
+        let name = CloudSyncRecordName.profile(kind, key)
+        preferences.setLocalStamp(preferences.nextStamp(), for: name)
+        addPendingSave(recordName: name)
+    }
+
     func markSecurityDirty() {
         guard preferences.isEnabled else { return }
         preferences.setLocalStamp(preferences.nextStamp(), for: CloudSyncRecordName.securitySingleton)
@@ -450,6 +488,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         for key in CloudSyncStoreKey.allCases {
             lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
             markSettingsDirty(key)
+        }
+        let registry = dependencies.profileSettings
+        for key in registry.knownProfiles {
+            for kind in ProfileRecordKind.allCases where !registry.isProvisional(key, kind) {
+                lastProfileSnapshot[CloudSyncRecordName.profile(kind, key)] =
+                    dependencies.collectProfilePayload(kind, key: key, stamp: .distantPast)
+                markProfileDirty(kind, key)
+            }
         }
         LogTap.shared.note("[CloudSync] manual settings push queued")
         guard let engine else { return }
@@ -555,7 +601,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     private func observeSettingsStores() {
-        for key in CloudSyncStoreKey.allCases { armObservation(for: key) }
+        // The two profile-backed records are uploaded from the registry's write hooks (see init).
+        for key in CloudSyncStoreKey.allCases where !key.isProfileBacked { armObservation(for: key) }
     }
 
     private func armObservation(for key: CloudSyncStoreKey) {
@@ -572,21 +619,45 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
     }
 
-    private func scheduleSettingsUpload(_ key: CloudSyncStoreKey) {
+    private func scheduleSettingsUpload(_ key: CloudSyncStoreKey, profile: ProfileKey? = nil) {
         debounceTasks[key]?.cancel()
         debounceTasks[key] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled else { return }
-            self?.uploadSettingsIfChanged(key)
+            self?.uploadSettingsIfChanged(key, profile: profile)
         }
     }
 
-    private func uploadSettingsIfChanged(_ key: CloudSyncStoreKey) {
+    private func uploadSettingsIfChanged(_ key: CloudSyncStoreKey, profile: ProfileKey? = nil) {
         guard preferences.isEnabled, !dependencies.isApplyingCloudChanges else { return }
-        let snapshot = dependencies.collectSettingsPayload(key, stamp: .distantPast)
+        let snapshot = key.isProfileBacked
+            ? dependencies.collectSettingsPayload(key, stamp: .distantPast, profile: profile)
+            : dependencies.collectSettingsPayload(key, stamp: .distantPast)
         if lastSettingsSnapshot[key] == snapshot { return }
         lastSettingsSnapshot[key] = snapshot
         markSettingsDirty(key)
+    }
+
+    private func scheduleProfileUpload(_ kind: ProfileRecordKind, _ key: ProfileKey) {
+        let name = CloudSyncRecordName.profile(kind, key)
+        profileDebounceTasks[name]?.cancel()
+        profileDebounceTasks[name] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            self?.uploadProfileIfChanged(kind, key)
+        }
+    }
+
+    /// Internal for tests. Takes the profile it was scheduled for, never the active one.
+    func uploadProfileIfChanged(_ kind: ProfileRecordKind, _ key: ProfileKey) {
+        guard preferences.isEnabled, !dependencies.isApplyingCloudChanges,
+              !dependencies.profileSettings.isProvisional(key, kind),
+              let snapshot = dependencies.collectProfilePayload(kind, key: key, stamp: .distantPast)
+        else { return }
+        let name = CloudSyncRecordName.profile(kind, key)
+        if lastProfileSnapshot[name] == snapshot { return }
+        lastProfileSnapshot[name] = snapshot
+        markProfileDirty(kind, key)
     }
 
     // MARK: Record building / applying
@@ -624,6 +695,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         if let key = CloudSyncRecordName.storeKey(fromRecordName: recordName) {
             return try? dependencies.collectSettingsPayload(key, stamp: stamp).encoded()
         }
+        if case let (kind, key)? = CloudSyncRecordName.profileRecord(fromRecordName: recordName) {
+            return try? dependencies.collectProfilePayload(kind, key: key, stamp: stamp)?.encoded()
+        }
         guard let payload = dependencies.collectSecurityPayload(stamp: stamp) else { return nil }
         return try? JSONEncoder().encode(payload)
     }
@@ -645,6 +719,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
         if let key = CloudSyncRecordName.storeKey(fromRecordName: recordName) {
             return dependencies.collectSettingsPayload(key, stamp: .distantPast).knownFields
+        }
+        if case let (kind, key)? = CloudSyncRecordName.profileRecord(fromRecordName: recordName) {
+            return dependencies.collectProfilePayload(kind, key: key, stamp: .distantPast)?.knownFields
         }
         return dependencies.collectSecurityPayload(stamp: .distantPast)
             .map(CloudSyncForwardCompat.storedPropertyNames(of:))
@@ -706,6 +783,19 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 } else {
                     addPendingSave(recordName: name)
                 }
+            }
+        } else if case let (kind, profile)? = CloudSyncRecordName.profileRecord(fromRecordName: name) {
+            guard let cloud = try? ProfileSyncPayload.decode(data, kind: kind) else { return }
+            preferences.noteRemoteStamp(cloud.updatedAt)
+            let localStamp = preferences.localStamp(for: name) ?? .distantPast
+            // An unstamped local profile is a provisional copy or was never uploaded, and loses to
+            // any record, which is exactly the rule a seeded copy needs.
+            if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
+                dependencies.applyProfilePayload(cloud, key: profile)
+                lastProfileSnapshot[name] = dependencies.collectProfilePayload(kind, key: profile, stamp: .distantPast)
+                preferences.setLocalStamp(cloud.updatedAt, for: name)
+            } else {
+                addPendingSave(recordName: name)
             }
         } else if let key = CloudSyncRecordName.storeKey(fromRecordName: name) {
             guard let cloud = try? SettingsSyncPayload.decode(data, key: key) else { return }
@@ -787,7 +877,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         } else if recordName == CloudSyncRecordName.securitySingleton {
             dependencies.applyRemoteSecurityDeletion()
         }
-        // Settings records are never deleted remotely; ignore anything else.
+        // Settings and profile records are never deleted remotely; ignore anything else.
     }
 
     // MARK: System field + engine state codecs
