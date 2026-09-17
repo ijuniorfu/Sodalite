@@ -6,8 +6,13 @@ struct ProfileShellLayoutTests {
     private let alice = ProfileKey(serverID: "s", userID: "alice")
     private let bob = ProfileKey(serverID: "s", userID: "bob")
 
-    private func layout(_ profile: ProfileKey?, _ tabs: [AppTab], _ style: AppearancePreferences.NavigationStyle = .topBar) -> ProfileShellLayout {
-        ProfileShellLayout(profile: profile, tabs: tabs, style: style)
+    private func layout(
+        _ profile: ProfileKey?,
+        _ tabs: [AppTab],
+        _ style: AppearancePreferences.NavigationStyle = .topBar,
+        tint: UInt32 = 0x0A84FF
+    ) -> ProfileShellLayout {
+        ProfileShellLayout(profile: profile, tabs: tabs, style: style, tint: tint)
     }
 
     @Test func aSwitchToTheSameLayoutStaysPut() {
@@ -20,6 +25,13 @@ struct ProfileShellLayoutTests {
 
     @Test func aSwitchToAnotherStyleLandsOnHome() {
         #expect(ProfileShellLayout.switchLandsOnHome(from: layout(alice, [.home], .topBar), to: layout(bob, [.home], .sidebar)))
+    }
+
+    /// Device-verified on Schlafzimmer, 2026-09-17: the bar on screen kept the previous profile's
+    /// colour until a tab change, because a live bar does not repaint when its appearance changes.
+    /// A different tint therefore needs the same fresh shell a different layout gets.
+    @Test func aSwitchToAnotherTintLandsOnHome() {
+        #expect(ProfileShellLayout.switchLandsOnHome(from: layout(alice, [.home], tint: 0x0A84FF), to: layout(bob, [.home], tint: 0xFF2D95)))
     }
 
     /// Hiding a tab inside one profile is the existing onChange's job, and signing in or out is not a switch.
