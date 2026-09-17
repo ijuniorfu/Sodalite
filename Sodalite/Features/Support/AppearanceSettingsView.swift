@@ -21,6 +21,9 @@ struct AppearanceSettingsView: View {
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity)
 
+                SettingsScopeCaption(.profile)
+                    .frame(maxWidth: .infinity)
+
                 header
                 togglesSection
                 personalizationSection
@@ -147,6 +150,8 @@ struct AppearanceSettingsView: View {
                                    set: { appearance.topShelfImage = $0 }),
                 label: { $0.title }
             )
+            SettingsScopeCaption(.device)
+                .frame(maxWidth: .infinity, alignment: .leading)
             #endif
 
             boolRow(

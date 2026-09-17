@@ -15,6 +15,8 @@ struct PlaybackSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 header
+                SettingsScopeCaption(.profile)
+                    .frame(maxWidth: .infinity)
                     .padding(.bottom, 24)
 
                 sectionHeader("settings.playback.section.episodes")
@@ -143,6 +145,7 @@ struct PlaybackSettingsView: View {
                         set: { prefs.touchpadScrubbing = $0 }
                     )
                 )
+                SettingsScopeCaption(.device)
                 #endif
 
                 boolRow(
@@ -192,6 +195,7 @@ struct PlaybackSettingsView: View {
                     ),
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
+                SettingsScopeCaption(.device)
 
                 sectionHeader("settings.playback.section.languages")
 
@@ -304,6 +308,7 @@ struct PlaybackSettingsView: View {
                     ),
                     label: { String(localized: String.LocalizationValue($0.titleKey)) }
                 )
+                SettingsScopeCaption(.device)
 
                 ValuePickerRow(
                     icon: "rectangle.fill",
@@ -398,6 +403,7 @@ struct PlaybackSettingsView: View {
                 )
                 .disabled(displayHasDolbyVision)
                 .opacity(displayHasDolbyVision ? 0.4 : 1)
+                SettingsScopeCaption(.device)
 
                 sectionHeader("settings.playback.section.audio")
 
@@ -410,6 +416,7 @@ struct PlaybackSettingsView: View {
                         set: { prefs.preferLosslessAudioBridge = $0 }
                     )
                 )
+                SettingsScopeCaption(.device)
 
                 sectionHeader("settings.playback.section.advanced")
 
@@ -434,6 +441,7 @@ struct PlaybackSettingsView: View {
                         )
                     )
                 }
+                SettingsScopeCaption(.device)
             }
             .screenContentInset()
             .task { displayHasDolbyVision = AetherEngine.displayCapabilities.supportsDolbyVision }

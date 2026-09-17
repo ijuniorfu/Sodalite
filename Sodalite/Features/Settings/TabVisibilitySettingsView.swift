@@ -23,6 +23,8 @@ struct TabVisibilitySettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 header
+                SettingsScopeCaption(.profile)
+                    .frame(maxWidth: .infinity)
                     .padding(.bottom, 8)
 
                 #if os(tvOS)
