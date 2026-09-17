@@ -44,6 +44,7 @@ final class PlaybackPreferences {
         static let preferServerTrickplay = "playback.preferServerTrickplay"
         static let rememberTrackSelections = "playback.rememberTrackSelections"
         static let subtitlesOnSkipBack = "playback.subtitlesOnSkipBack"
+        static let touchpadScrubbing = "playback.touchpadScrubbing"
     }
 
     // MARK: - Allowed Values
@@ -392,6 +393,14 @@ final class PlaybackPreferences {
         didSet { store.set(rememberTrackSelections, forKey: Keys.rememberTrackSelections) }
     }
 
+    /// Sodalite#114 (tvOS): OFF stops a horizontal swipe over the remote's touch surface from moving
+    /// the playhead, for people who drive the box by clicking the ring and keep brushing the pad.
+    /// Default ON. Vertical swipes and the list navigation inside menus are untouched, there the swipe
+    /// is the navigation.
+    var touchpadScrubbing: Bool {
+        didSet { store.set(touchpadScrubbing, forKey: Keys.touchpadScrubbing) }
+    }
+
     /// Sodalite#63: after a backward jump, show subtitles until playback reaches the position the jump
     /// started from, like the tvOS system setting. Default ON, which is what the request asked for; a
     /// user who deliberately watches without subtitles turns it off here.
@@ -436,11 +445,6 @@ final class PlaybackPreferences {
     var liveTeletextPage: LiveTeletextPage {
         get { device.liveTeletextPage }
         set { device.liveTeletextPage = newValue }
-    }
-
-    var touchpadScrubbing: Bool {
-        get { device.touchpadScrubbing }
-        set { device.touchpadScrubbing = newValue }
     }
 
     var forceDolbyVisionOnNonDVDisplay: Bool {
@@ -511,6 +515,7 @@ final class PlaybackPreferences {
         self.preferServerTrickplay = store.object(forKey: Keys.preferServerTrickplay) as? Bool ?? false
         self.rememberTrackSelections = store.object(forKey: Keys.rememberTrackSelections) as? Bool ?? true
         self.subtitlesOnSkipBack = store.object(forKey: Keys.subtitlesOnSkipBack) as? Bool ?? true
+        self.touchpadScrubbing = store.object(forKey: Keys.touchpadScrubbing) as? Bool ?? true
     }
 
     /// `scope` nil is the unprefixed legacy space. Without a `device`, one is built over the same

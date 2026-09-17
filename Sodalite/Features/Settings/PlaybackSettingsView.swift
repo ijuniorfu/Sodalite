@@ -145,7 +145,6 @@ struct PlaybackSettingsView: View {
                         set: { prefs.touchpadScrubbing = $0 }
                     )
                 )
-                .settingsValueScope(.device)
                 #endif
 
                 boolRow(

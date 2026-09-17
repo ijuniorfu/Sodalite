@@ -121,7 +121,7 @@ struct ProfileSettingsRegistryTests {
         registry.onDeviceEdit = { deviceEdits.append($0) }
         registry.onLocalEdit = { _, _ in profileEdits += 1 }
 
-        registry.settings(for: alice).playback.touchpadScrubbing.toggle()
+        registry.settings(for: alice).playback.preferLosslessAudioBridge.toggle()
         registry.settings(for: alice).appearance.showTopShelfRow.toggle()
 
         #expect(deviceEdits == [.playback, .appearance])

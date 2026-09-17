@@ -41,14 +41,28 @@ struct DevicePreferencesSplitTests {
         #expect(defaults.object(forKey: "s:alice/playback.networkBufferDepth") == nil)
     }
 
+    /// Vincent, 2026-09-17: how a person drives the remote is theirs, not the box's.
+    @Test func touchpadScrubbingBelongsToTheProfile() {
+        let defaults = scratch("touchpad")
+        let device = DevicePreferences(store: defaults)
+        let alice = PlaybackPreferences(store: defaults, scope: "s:alice", device: device)
+        let bob = PlaybackPreferences(store: defaults, scope: "s:bob", device: device)
+
+        alice.touchpadScrubbing = false
+
+        #expect(bob.touchpadScrubbing)
+        #expect(defaults.object(forKey: "s:alice/playback.touchpadScrubbing") as? Bool == false)
+        #expect(defaults.object(forKey: "playback.touchpadScrubbing") == nil)
+    }
+
     @Test func anUpgradedDeviceReadsItsDeviceValuesFromTheOldKeys() {
         let defaults = scratch("upgrade")
         defaults.set("unlimited", forKey: "playback.networkBufferDepth")
-        defaults.set(false, forKey: "playback.touchpadScrubbing")
+        defaults.set(false, forKey: "playback.preferLosslessAudioBridge")
 
         let device = DevicePreferences(store: defaults)
 
         #expect(device.networkBufferDepth == .unlimited)
-        #expect(!device.touchpadScrubbing)
+        #expect(!device.preferLosslessAudioBridge)
     }
 }

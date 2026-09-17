@@ -17,7 +17,6 @@ final class DevicePreferences {
         static let networkBufferDepth = "playback.networkBufferDepth"
         static let liveBufferDepth = "playback.liveBufferDepth"
         static let liveTeletextPage = "playback.liveTeletextPage"
-        static let touchpadScrubbing = "playback.touchpadScrubbing"
         static let forceDolbyVisionOnNonDVDisplay = "playback.forceDolbyVisionOnNonDVDisplay"
         static let showTopShelfRow = "appearance.showTopShelfRow"
         static let topShelfImage = "appearance.topShelfImage"
@@ -55,14 +54,6 @@ final class DevicePreferences {
 
     var liveTeletextPage: PlaybackPreferences.LiveTeletextPage {
         didSet { store.set(liveTeletextPage.rawValue, forKey: Keys.liveTeletextPage) }
-    }
-
-    /// Sodalite#114 (tvOS): OFF stops a horizontal swipe over the remote's touch surface from moving
-    /// the playhead, for people who drive the box by clicking the ring and keep brushing the pad.
-    /// Default ON. Vertical swipes and the list navigation inside menus are untouched, there the swipe
-    /// is the navigation.
-    var touchpadScrubbing: Bool {
-        didSet { store.set(touchpadScrubbing, forKey: Keys.touchpadScrubbing) }
     }
 
     /// AetherEngine#455, experimental, default OFF. On a display that reports no Dolby Vision, serve a
@@ -103,7 +94,6 @@ final class DevicePreferences {
             .flatMap(PlaybackPreferences.LiveBufferDepth.init(rawValue:)) ?? .ninetyMinutes
         self.liveTeletextPage = store.string(forKey: Keys.liveTeletextPage)
             .flatMap(PlaybackPreferences.LiveTeletextPage.init(rawValue:)) ?? .auto
-        self.touchpadScrubbing = store.object(forKey: Keys.touchpadScrubbing) as? Bool ?? true
         self.forceDolbyVisionOnNonDVDisplay = store.object(forKey: Keys.forceDolbyVisionOnNonDVDisplay) as? Bool ?? false
         self.showTopShelfRow = store.object(forKey: Keys.showTopShelfRow) as? Bool ?? true
         self.topShelfImage = store.string(forKey: Keys.topShelfImage)

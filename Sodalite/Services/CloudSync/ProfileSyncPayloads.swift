@@ -56,6 +56,7 @@ struct ProfilePlaybackPayload: Codable, Equatable {
     var preferServerTrickplay: Bool
     var rememberTrackSelections: Bool
     var subtitlesOnSkipBack: Bool
+    var touchpadScrubbing: Bool
 }
 
 extension ProfilePlaybackPayload {
@@ -88,7 +89,8 @@ extension ProfilePlaybackPayload {
             showScrubPreview: p.showScrubPreview,
             preferServerTrickplay: p.preferServerTrickplay,
             rememberTrackSelections: p.rememberTrackSelections,
-            subtitlesOnSkipBack: p.subtitlesOnSkipBack
+            subtitlesOnSkipBack: p.subtitlesOnSkipBack,
+            touchpadScrubbing: p.touchpadScrubbing
         )
     }
 
@@ -121,6 +123,7 @@ extension ProfilePlaybackPayload {
         p.preferServerTrickplay = preferServerTrickplay
         p.rememberTrackSelections = rememberTrackSelections
         p.subtitlesOnSkipBack = subtitlesOnSkipBack
+        p.touchpadScrubbing = touchpadScrubbing
     }
 }
 
