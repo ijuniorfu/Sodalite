@@ -302,26 +302,10 @@ struct AppRouter: View {
                 }
             }
         }
-        .fullScreenCover(item: $deepLinkPresentation) { presentation in
-            NavigationStack {
-                DetailRouterView(item: presentation.item, autoPlay: presentation.autoPlay)
-            }
-            #if os(iOS)
-            // tvOS dismisses this deep-link cover via the Menu button; iOS needs a touch
-            // close. Floating overlay (not a toolbar) because detail views hide the nav bar.
-            .overlay(alignment: .topLeading) {
-                Button {
-                    deepLinkPresentation = nil
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title)
-                        .symbolRenderingMode(.hierarchical)
-                        .padding()
-                }
-                .buttonStyle(.plain)
-            }
-            #endif
-            .pausesAppBackgroundMotion()
+        // The same cover every other detail page opens in, so a deep-linked page closes from the same
+        // corner, hides its close while a page is pushed, and can host the music player (Sodalite#142).
+        .detailCover(item: $deepLinkPresentation) { presentation in
+            DetailRouterView(item: presentation.item, autoPlay: presentation.autoPlay)
         }
         // The router's own player cover, for a track started where nothing is presented above it
         // (the Music tab's card and track list). A surface that IS presented above it hosts its own
