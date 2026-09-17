@@ -304,16 +304,16 @@ private struct NowPlayingContent: View {
             dependencies.jellyfinImageService.musicCoverURL(for: $0, maxWidth: ImageWidth.cover)
         }
 
-        return AsyncCachedImage(url: coverURL) { image in
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        } placeholder: {
-            Rectangle()
-                .fill(Color.Theme.restFillFaint)
+        return NowPlayingBackdropFill {
+            AsyncCachedImage(url: coverURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Rectangle()
+                    .fill(Color.Theme.restFillFaint)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
         .blur(radius: 80)
         .overlay(Color.black.opacity(0.65))
         .ignoresSafeArea()
@@ -434,6 +434,27 @@ private struct NowPlayingContent: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Backdrop fill
+
+/// Fill artwork that takes the size it is OFFERED, never its own (Sodalite#142).
+///
+/// A `.fill` image answers a proposal with the size that covers it, so a square cover offered an
+/// iPhone portrait screen (430x839) reports 839x839, and a `.frame(maxWidth: .infinity)` around it
+/// passes that on instead of capping it. The ZStack it sits in then grows to 839pt, hands that width
+/// to its other children, and is centred back into the screen: every greedy child (title block,
+/// scrubber, the iPad queue column) came out 799pt wide with 184pt hanging off each side, while
+/// fixed-width children looked right. Only a LOADED square image does it, the placeholder is a flexible
+/// shape, and a landscape screen is already wider than tall.
+struct NowPlayingBackdropFill<Art: View>: View {
+    @ViewBuilder let art: () -> Art
+
+    var body: some View {
+        Color.clear
+            .overlay { art() }
+            .clipped()
     }
 }
 
