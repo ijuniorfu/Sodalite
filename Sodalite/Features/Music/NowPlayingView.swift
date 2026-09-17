@@ -175,6 +175,20 @@ private struct NowPlayingContent: View {
         coordinator.queue.count > 1
     }
 
+    /// The title block stands under the cover on its own, with no queue on screen to head. It is one
+    /// predicate for both tiers because it answers both questions the block raises: WHERE it lives in
+    /// the wide layout, and HOW it is aligned in either (Sodalite#142 retest).
+    ///
+    /// Alone it is centred, under a centred cover. Heading a queue it is left-aligned and shares that
+    /// edge with the rows. Stacked, the block used to be left-aligned unconditionally, which on a
+    /// single-track page left it as the only left-anchored element: the cover above is a fixed 280pt
+    /// centred in the content band (390pt on an iPhone Pro Max portrait, ~774 landscape), so the text
+    /// started 55 to 247pt left of the cover's edge, while the scrubber under it is a symmetric
+    /// full-width bar and the transport row is centred.
+    private var metadataStandsAlone: Bool {
+        !showsQueueColumn
+    }
+
     /// Activity reported by the chrome's OWN controls, which only restarts the countdown, never wakes.
     ///
     /// The distinction is load-bearing. Hiding the chrome deletes the views holding focus, and SwiftUI
@@ -232,7 +246,7 @@ private struct NowPlayingContent: View {
             ScrollView {
                 VStack(spacing: 28) {
                     albumCover(compact: compact)
-                    trackMetadata(centered: false)
+                    trackMetadata(centered: metadataStandsAlone)
                     progressRow
                     transportRow
                     queueList
@@ -248,7 +262,7 @@ private struct NowPlayingContent: View {
                     albumCover(compact: compact)
                     // Metadata belongs to whichever column is on screen. Centered it sits under the
                     // cover, Apple Music's arrangement; two-column it heads the queue, as before.
-                    if !showsQueueColumn {
+                    if metadataStandsAlone {
                         trackMetadata(centered: true)
                             .transition(.opacity)
                     }
