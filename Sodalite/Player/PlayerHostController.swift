@@ -913,6 +913,18 @@ final class PlayerHostController: AVPlayerViewController {
     /// played through pays a moment of it to the resume itself.
     nonisolated static let liveForegroundAdvanceSlack: TimeInterval = 2
 
+    /// Sodalite#104 round 4: whether a retune on the way back comes back paused.
+    ///
+    /// The retune used to take the VOD return's rule ("hold paused on the resumed frame, an auto-resume
+    /// after a sleep gap is startling") whatever the viewer had left, so a channel that was PLAYING when
+    /// the television went off came back paused. On the software path that pause landed before the tune
+    /// had a frame, and the reporter got a black screen with a frozen clock and no way out but Back. A
+    /// retune is not a resume at a position the viewer has to find again: it lands on the broadcast, so
+    /// it keeps the transport the viewer left, and only a session they had paused comes back paused.
+    nonisolated static func liveRetuneHoldsPaused(wasPlaying: Bool) -> Bool {
+        !wasPlaying
+    }
+
     nonisolated static func liveForegroundReturn(
         needsReload: Bool,
         tunerReleased: Bool = false,
@@ -987,10 +999,11 @@ final class PlayerHostController: AVPlayerViewController {
             // tvOS deactivates the AVAudioSession on background; without re-arming it the resume drives
             // a synchronizer with no live session (state .playing but no audio, no frames advance).
             try? AVAudioSession.sharedInstance().setActive(true)
+            let holdPaused = Self.liveRetuneHoldsPaused(wasPlaying: backgroundWasPlaying)
             viewModel.beginBackgroundReload()
             Task { @MainActor in
                 await viewModel.retuneLiveStream()
-                viewModel.finishBackgroundReload()
+                viewModel.finishBackgroundReload(holdPaused: holdPaused)
             }
             return
         }

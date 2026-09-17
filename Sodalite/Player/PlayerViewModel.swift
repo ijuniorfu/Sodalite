@@ -1725,12 +1725,13 @@ final class PlayerViewModel {
     }
 
     /// Apply post-reload pause policy: hold paused on the resumed frame UNLESS the user toggled
-    /// play/pause during the reload (their intent wins). Surfaces controls either way.
-    func finishBackgroundReload() {
+    /// play/pause during the reload (their intent wins). Surfaces controls either way. A live retune
+    /// passes `holdPaused: false` for a session that was playing (`liveRetuneHoldsPaused`).
+    func finishBackgroundReload(holdPaused: Bool = true) {
         let userIntervened = userToggledDuringBackgroundReload
         isAwaitingBackgroundReload = false
         userToggledDuringBackgroundReload = false
-        if !userIntervened { player.pause() }
+        if !userIntervened && holdPaused { player.pause() }
         showControlsTemporarily()
     }
 
