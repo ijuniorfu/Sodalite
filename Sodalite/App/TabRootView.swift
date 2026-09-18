@@ -94,7 +94,9 @@ struct TabRootView: View {
                 }
                 #else
                 Tab(value: tab) {
-                    tabContent(for: tab)
+                    ShellChromeHost {
+                        tabContent(for: tab)
+                    }
                 } label: {
                     tabLabel(tab)
                 }
