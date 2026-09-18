@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Sodalite#104: what the live rail says in words, for whichever transport is on screen.
 ///
@@ -23,20 +24,44 @@ struct LiveRailLabels: View {
         #endif
     }
 
-    /// As tall as the tallest thing it draws, which is not a free number.
+    /// As tall as the tallest thing it draws, which is not a free number, and on tvOS not a number
+    /// this file gets to decide either.
     ///
     /// This row was 30 pt on both platforms, a height measured for the phone's `.caption`. tvOS
-    /// `.callout` is 31 pt with a 36.99 pt line and its SF Symbol measures 39.5, so on the television
-    /// the clock sat 3.5 pt above its own row and the press readout, a two-line column of 66 pt, sat
-    /// 18 pt above it: that is where the 4 pt gap to the scrubber went, and the knob grows to 22 pt at
-    /// exactly the moment the readout exists.
+    /// `.callout` is 31 pt with a 36.99 pt line, so on the television the clock sat 3.5 pt above its
+    /// own row and the press readout, a two-line column of 66 pt, sat 18 pt above it: that is where
+    /// the gap to the scrubber went, and the knob grows to 22 pt at exactly the moment the readout
+    /// exists.
+    ///
+    /// The tallest thing is the skip glyph, and **the system owns its height**: measured at
+    /// `.callout`, tvOS 26.5 draws `gobackward.10` 39.5 pt tall and tvOS 27.0 draws the same symbol
+    /// at 41.0, while `.callout` itself does not move between them. The literal 40 that covered the
+    /// first was a point short on the second, and the readout went back to spending the difference
+    /// upwards. So the row asks rather than remembers. On tvOS 26.5 the answer is 40 to the point,
+    /// which is what this replaced.
     static var defaultRowHeight: CGFloat {
         #if os(tvOS)
-        40
+        tallestDrawnHeight
         #else
         20
         #endif
     }
+
+    #if os(tvOS)
+    /// The tallest glyph this rail can put beside the clock, against its own text line, measured once.
+    ///
+    /// UIKit's symbol image reports exactly the height SwiftUI lays the same symbol out at, checked
+    /// across all twenty skip glyphs and both hold chevrons on tvOS 27, which is what lets this be
+    /// asked without rendering a view. `LiveRailChromeTests` holds that equality, because it is the
+    /// assumption the whole number rests on.
+    private static let tallestDrawnHeight: CGFloat = {
+        let configuration = UIImage.SymbolConfiguration(textStyle: .callout)
+        let glyphs = SeekReadout.drawableGlyphNames
+            .compactMap { UIImage(systemName: $0, withConfiguration: configuration)?.size.height }
+        let line = UIFont.preferredFont(forTextStyle: .callout).lineHeight
+        return ceil(max(line, glyphs.max() ?? line))
+    }()
+    #endif
 
     var body: some View {
         GeometryReader { geo in

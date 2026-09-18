@@ -18,6 +18,22 @@ enum SeekReadout: Equatable {
         case .press(_, _, let direction), .hold(_, let direction): return direction
         }
     }
+
+    /// Every symbol `SeekReadoutView` can put on screen, so the rail row can ask how tall the
+    /// tallest of them is instead of carrying a remembered number (Sodalite#104 round 2).
+    ///
+    /// The skip glyphs run 8 pt taller than the hold chevrons, which is why only a press ever
+    /// overflowed the row.
+    static var drawableGlyphNames: [String] {
+        var names = ["chevron.left.2", "chevron.right.2"]
+        for direction in [-1, 1] {
+            names.append(SkipGlyph.name(seconds: 0, direction: direction))
+            for seconds in SkipGlyph.numbered.sorted() {
+                names.append(SkipGlyph.name(seconds: seconds, direction: direction))
+            }
+        }
+        return names
+    }
 }
 
 extension PlayerViewModel {
