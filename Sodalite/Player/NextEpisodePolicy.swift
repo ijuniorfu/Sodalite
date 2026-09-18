@@ -64,6 +64,36 @@ enum NextEpisodePolicy {
         return remainingSeconds < fallbackWindowSeconds
     }
 
+    /// How far ahead of the switch the successor is warmed (AetherEngine#551).
+    ///
+    /// Deliberately NOT the overlay's window. Two minutes rather than thirty seconds, because the
+    /// warm has to finish before the switch rather than start before it, and because the overlay's
+    /// window can BE the switch: with an outro marker the window opens at the credits, and a viewer
+    /// who has outro auto-skip on leaves at that same instant, so a warm armed there would still be
+    /// on the wire when the next episode loads.
+    ///
+    /// It is also the reason the warm is not armed at the start of the episode instead, where the
+    /// successor has been known since the first frame: the PlaybackInfo it rests on would be forty
+    /// minutes old by the time it is used, and the bytes would sit in memory for all of it.
+    static let successorWarmLeadSeconds: Double = 120
+
+    /// True once the successor is close enough to be worth warming.
+    ///
+    /// Same two inputs as the trigger window and the same split between them: with a marker the
+    /// credits are the anchor, and the lead is measured back from there; without one it is measured
+    /// from the end. The fallback window is narrower than this lead, so on a source with no marker
+    /// the warm is always armed before the overlay opens, never after.
+    static func shouldWarmSuccessor(
+        outroStartSeconds: Double?,
+        sourceTime: Double,
+        remainingSeconds: Double
+    ) -> Bool {
+        if let outroStartSeconds {
+            return sourceTime >= outroStartSeconds - successorWarmLeadSeconds
+        }
+        return remainingSeconds < successorWarmLeadSeconds
+    }
+
     /// What the session does when the engine reports end-of-media.
     enum EndOfPlaybackOutcome: Equatable {
         /// Someone else owns the transition (countdown already running, overlay already parked), or

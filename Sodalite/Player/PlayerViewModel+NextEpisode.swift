@@ -80,6 +80,41 @@ extension PlayerViewModel {
         }
     }
 
+    /// Warms the successor's source shortly before the switch (AetherEngine#551).
+    ///
+    /// Two costs sit at that seam and this removes both. The switch drops the cached PlaybackInfo,
+    /// so the next episode asks the server for it again while the viewer waits, and the engine then
+    /// opens a cold source, which on a non-fast-start MP4 is two to three sequential round trips
+    /// before the first sample read. Fetching the response here keeps it for the switch, and the URL
+    /// it yields is warmed on the same pass.
+    ///
+    /// Not armed when the successor is first known, which is at the first frame: a PlaybackInfo
+    /// response would be forty minutes old by the time it was used, and the warmed bytes would sit
+    /// in memory for all of it. `successorWarmLeadSeconds` is where that trade is written down.
+    func warmSuccessorIfDue(remainingSeconds: Double) {
+        guard !hasWarmedSuccessor, !isLiveSession, let next = nextEpisode else { return }
+        guard NextEpisodePolicy.shouldWarmSuccessor(
+            outroStartSeconds: outroSegment?.startSeconds,
+            sourceTime: player.sourceTime,
+            remainingSeconds: remainingSeconds
+        ) else { return }
+        hasWarmedSuccessor = true
+        Task { [weak self] in await self?.warmSuccessor(next) }
+    }
+
+    private func warmSuccessor(_ next: JellyfinItem) async {
+        guard let info = try? await playbackService.getPlaybackInfo(
+            itemID: next.id, userID: userID, profile: DirectPlayProfile.current()
+        ) else { return }
+        // Minutes pass at most, but the successor can still move underneath this: an episode picked
+        // from the season list replaces it, and a response naming the old one would then put its
+        // source id under the new item's path, which the server answers with a 400 (Sodalite#71).
+        guard nextEpisode?.id == next.id else { return }
+        cachedPlaybackInfo = PrefetchedPlaybackInfo(itemID: next.id, response: info)
+        guard let source = PlaybackStreamSelection.defaultSource(in: info) else { return }
+        await PlaybackStreamSelection.warm(itemID: next.id, source: source, using: playbackService)
+    }
+
     /// Starts the auto-advance timer. `from` is always clock-derived (`NextEpisodePolicy.countdownStart`),
     /// so it can never outlive the source; no default, a call site that forgets it is a compile error
     /// rather than a silent return of the old fixed length.
@@ -208,7 +243,13 @@ extension PlayerViewModel {
             userInfo: [PlayerItemSwitchKey.item: newItem]
         )
         startFromBeginning = true
-        cachedPlaybackInfo = nil
+        // A response the successor warm fetched for THIS item is the one thing worth carrying across
+        // the switch: it is exactly what the seam would otherwise ask the server for again while the
+        // viewer waits on a black screen. Anything naming another item still goes, for the reason
+        // `startPlayback` states where it reads this.
+        if cachedPlaybackInfo?.matching(newItem.id) == nil {
+            cachedPlaybackInfo = nil
+        }
         errorMessage = nil
         videoFormat = .sdr
         subtitleCues = []
@@ -229,6 +270,7 @@ extension PlayerViewModel {
         didAttemptReplacedItemRecovery = false
         nextEpisode = nil
         hasFetchedNextEpisode = false
+        hasWarmedSuccessor = false
         nextEpisodeCancelled = false
         nextEpisodeOverlayDismissed = false
         nextEpisodeCountdown = 10

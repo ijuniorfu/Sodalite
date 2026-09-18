@@ -345,6 +345,10 @@ final class PlayerViewModel {
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
+    /// AetherEngine#551: the successor's source has been warmed for this session. Once, because the
+    /// successor cannot change without `resetSessionState` clearing this, and a second warm would
+    /// fetch bytes the engine already holds only to throw the first set away.
+    var hasWarmedSuccessor = false
     /// Successor rejected: the card was dismissed while the engine already sat in the terminal `.ended`
     /// state, where seek and play are no-ops. Routes end-of-media like end-of-content.
     var nextEpisodeCancelled = false
@@ -967,34 +971,18 @@ final class PlayerViewModel {
             // keys on forced/signs/sdh descriptors so distinct same-language tracks don't collapse.
             subtitleStreams = Self.dedupedSubtitleStreams(from: source.mediaStreams)
 
-            let url: URL
-            if source.supportsDirectPlay == true || source.supportsDirectStream == true {
-                let isDirectPlay = source.supportsDirectPlay == true
-                guard let directURL = playbackService.buildStreamURL(
-                    itemID: item.id,
-                    mediaSourceID: source.id,
-                    container: source.container,
-                    isStatic: isDirectPlay
-                ) else {
-                    throw PlayerEngineError.noURL
-                }
-                url = directURL
-                activePlayMethod = isDirectPlay ? .directPlay : .directStream
-                #if DEBUG
-                print("[PlayerViewModel] Using direct \(isDirectPlay ? "play" : "stream")")
-                #endif
-            } else if let transcodePath = source.transcodingUrl, !transcodePath.isEmpty {
-                guard let transcodeURL = playbackService.buildTranscodeURL(relativePath: transcodePath) else {
-                    throw PlayerEngineError.noURL
-                }
-                url = transcodeURL
-                activePlayMethod = .transcode
-                #if DEBUG
-                print("[PlayerViewModel] Using transcoded stream")
-                #endif
-            } else {
+            // The same resolution the successor warm uses, so the URL this opens and the URL that
+            // was warmed for it are the same string (AetherEngine#551 adopts by exact URL).
+            guard let resolved = PlaybackStreamSelection.resolve(
+                itemID: item.id, source: source, using: playbackService
+            ) else {
                 throw PlayerEngineError.noURL
             }
+            let url = resolved.url
+            activePlayMethod = resolved.method
+            #if DEBUG
+            print("[PlayerViewModel] Using \(resolved.method.rawValue)")
+            #endif
 
             // Scrub preview + chapter thumbnails decode stills from the original file (isStatic:true)
             // regardless of playback method, so transcode sessions still get a preview.
@@ -1559,6 +1547,12 @@ final class PlayerViewModel {
                     self.nextEpisodeOverlayDismissed = false
                 }
 
+                // AetherEngine#551: armed outside the overlay's own conditions on purpose. A viewer
+                // who dismissed the card, or cancelled the countdown, can still press Play next, and
+                // the warm is what makes that cheap.
+                if dur > 0, remaining > 0 {
+                    self.warmSuccessorIfDue(remainingSeconds: remaining)
+                }
                 if self.nextEpisode != nil && !self.nextEpisodeCancelled
                     && !self.nextEpisodeOverlayDismissed && dur > 0 && remaining > 0 {
                     // The card opens at the outro marker, or 30s from the end without one. WHERE the
