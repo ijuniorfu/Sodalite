@@ -32,7 +32,26 @@ struct LiveRailChromeTests {
         #expect(LiveRailLabels.defaultRowHeight >= line)
     }
 
+    /// The row asks the system how tall its glyphs are, and this is the assumption that lets it ask
+    /// without rendering anything: a symbol image reports the height SwiftUI lays the same symbol
+    /// out at. Measured true for all twenty skip glyphs and both hold chevrons on tvOS 26.5 and
+    /// 27.0. The day it stops being true, the row goes back to guessing and this says so.
+    @Test func aSymbolImageIsAsTallAsTheSymbolSwiftUIDraws() {
+        #if os(tvOS)
+        let configuration = UIImage.SymbolConfiguration(textStyle: .callout)
+        for name in SeekReadout.drawableGlyphNames {
+            let drawn = size(Image(systemName: name).font(.callout)).height
+            let measured = UIImage(systemName: name, withConfiguration: configuration)?.size.height
+            #expect(measured == drawn, "\(name): image says \(measured as Any), SwiftUI draws \(drawn)")
+        }
+        #endif
+    }
+
     /// A readout taller than its row spends the difference upwards, where the track is.
+    ///
+    /// Not a tautology now that the row is derived: it holds the derivation against the readout as
+    /// it is actually laid out, spacing and all, rather than against the glyph the derivation asked
+    /// about. tvOS 27 grew that glyph from 39.5 to 41.0 pt and the pinned 40 went one point short.
     @Test func aPressReadoutFitsInsideItsRow() {
         let single = size(SeekReadoutView(readout: .press(seconds: 10, count: 1, direction: -1)))
         let burst = size(SeekReadoutView(readout: .press(seconds: 10, count: 4, direction: -1)))
