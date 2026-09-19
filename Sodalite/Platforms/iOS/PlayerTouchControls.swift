@@ -269,7 +269,12 @@ struct PlayerTouchControls: View {
                 iconButton("captions.bubble") { activePicker = .subtitle }
             }
             iconButton("gauge.with.needle") { activePicker = .speed }
-            iconButton(pictureIcon) { activePicker = .picture }
+            // Sodalite#156: picture mode sets videoGravity on this device's layer, which nobody is
+            // looking at while the picture plays on a receiver or an external display.
+            if ExternalPlaybackPresentation.localPictureControlsApply(
+                destination: viewModel.externalPlaybackDestination) {
+                iconButton(pictureIcon) { activePicker = .picture }
+            }
             if viewModel.preferences.showStatsForNerds {
                 iconButton("info.circle", active: viewModel.showStatsOverlay) {
                     viewModel.showStatsOverlay.toggle()
