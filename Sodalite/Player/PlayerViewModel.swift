@@ -291,6 +291,13 @@ final class PlayerViewModel {
 
     var videoFormat: VideoFormat = .sdr
 
+    /// The format the badge is currently announcing, non-nil only while its window is open
+    /// (Sodalite#152). Read by the tvOS overlay in place of `showControls`; see
+    /// `VideoFormatAnnouncement` for why the badge stopped riding the transport.
+    var announcedVideoFormat: VideoFormat?
+
+    @ObservationIgnored var videoFormatAnnouncementTask: Task<Void, Never>?
+
     // MARK: - Shuffle / play queue
 
     /// When non-empty, playback advances through this shuffled list instead of the series
@@ -1632,6 +1639,9 @@ final class PlayerViewModel {
                     let line = "[PlayerVM] videoFormat changed: \(self.videoFormat) → \(format)"
                     print(line)
                     LogTap.shared.note(line)
+                }
+                if VideoFormatAnnouncement.announces(from: self.videoFormat, to: format) {
+                    self.announceVideoFormat(format)
                 }
                 // AE#459: no second clamp here. The engine already publishes what the PANEL presents
                 // (`presentedVideoFormat`), and this one asked the wrong question: tvOS reports Match
@@ -3031,6 +3041,26 @@ final class PlayerViewModel {
     /// How long a notice stays up. Long enough to read a sentence at arm's length on a phone and
     /// across a room on a television, short enough not to sit over the picture.
     static let transientNoticeSeconds: Double = 6
+
+    /// Open the format badge's window (Sodalite#152). Restarting it on a mid-stream change is the
+    /// point: a late HDR10+ T.35 SEI or a Dolby Vision rewrite is a correction to something the
+    /// viewer was already told.
+    func announceVideoFormat(_ format: VideoFormat) {
+        announcedVideoFormat = format
+        videoFormatAnnouncementTask?.cancel()
+        videoFormatAnnouncementTask = Task { [weak self] in
+            try? await Task.sleep(for: VideoFormatAnnouncement.window)
+            guard !Task.isCancelled else { return }
+            self?.announcedVideoFormat = nil
+        }
+    }
+
+    /// Close it early, so a badge cannot outlive the title it describes across an episode seam.
+    func clearVideoFormatAnnouncement() {
+        videoFormatAnnouncementTask?.cancel()
+        videoFormatAnnouncementTask = nil
+        announcedVideoFormat = nil
+    }
 
     func showTransientNotice(_ text: String) {
         transientNotice = text
