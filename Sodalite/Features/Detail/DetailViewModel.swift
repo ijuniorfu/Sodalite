@@ -602,6 +602,13 @@ final class DetailViewModel {
             self.cachedPlaybackInfo = response.map {
                 PrefetchedPlaybackInfo(itemID: itemID, response: $0)
             }
+            // AetherEngine#551: the response is already in hand and the URL builders are pure, so
+            // warming the source the play button would open costs no further round trip. This is the
+            // cheapest warm in the app, and the one with the shortest odds: the viewer is looking at
+            // the page whose play button opens exactly this.
+            guard let response, let playbackService = self.playbackService,
+                  let source = PlaybackStreamSelection.defaultSource(in: response) else { return }
+            await PlaybackStreamSelection.warm(itemID: itemID, source: source, using: playbackService)
         }
     }
 
