@@ -28,11 +28,14 @@ struct ExternalPlaybackBackdrop: View {
             let allotted = geo.frame(in: .global)
             let (screen, _) = PlayerOverlayView.windowGeometry(fallback: geo.size)
             let band = ExternalPlaybackPresentation.contentBand(screenHeight: screen.height)
-            ZStack {
-                background
+            ZStack(alignment: .top) {
+                background(screen: screen)
                 content(bandHeight: band.height)
                     .frame(width: screen.width, height: band.height)
-                    .position(x: screen.width / 2, y: band.minY + band.height / 2)
+                    // Offset, not `.position`: position resolves against the stack's own bounds, and
+                    // anything in the stack that reports a size larger than the proposal moves that
+                    // origin with it. Offset is drawn, not laid out, so it cannot be moved that way.
+                    .offset(y: band.minY)
             }
             .frame(width: screen.width, height: screen.height)
             .position(x: screen.width / 2 - allotted.minX, y: screen.height / 2 - allotted.minY)
@@ -42,15 +45,22 @@ struct ExternalPlaybackBackdrop: View {
     }
 
     @ViewBuilder
-    private var background: some View {
+    private func background(screen: CGRect) -> some View {
         Color.black
         // The same artwork, blurred out into a wash. Nothing is readable in it, it only keeps the
         // screen from being a black rectangle with a card floating on it.
+        //
+        // Sized and clipped to the screen rather than left to fill freely: `scaledToFill` reports the
+        // OVERFLOWING size, which grows the stack around it past the frame, and everything else in
+        // the stack is then laid out against that larger box. Unclipped, the portrait block sat 109pt
+        // left of centre and the landscape one 295pt above the top edge.
         if let artworkURL {
             AsyncCachedImage(url: artworkURL) { image in
                 image
                     .resizable()
                     .scaledToFill()
+                    .frame(width: screen.width, height: screen.height)
+                    .clipped()
                     .blur(radius: 60)
                     .overlay(Color.Theme.scrimHeavy)
             } placeholder: {
