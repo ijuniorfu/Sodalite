@@ -9,7 +9,12 @@ protocol JellyfinPlaybackServiceProtocol: EpisodeCatalogQuerying {
     var deviceID: String { get }
     func getPlaybackInfo(itemID: String, userID: String, profile: [String: Any]?) async throws -> PlaybackInfoResponse
     /// Live PlaybackInfo: AutoOpenLiveStream probes the stream (known codecs → DirectStream/copy, real LiveStreamId for tuner release); maxStreamingBitrate caps a transcode.
-    func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]?, maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse
+    ///
+    /// `enableDirectPlay` is true for every ordinary tune and false only on the second pass a channel
+    /// with undecodable audio takes (#100). Jellyfin answers a DirectPlay verdict with neither a
+    /// TranscodingUrl nor a reason, so taking that verdict off the table is the only way to see what
+    /// else the server would have offered.
+    func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]?, maxStreamingBitrate: Int, enableDirectPlay: Bool) async throws -> PlaybackInfoResponse
     func reportPlaybackStart(_ report: PlaybackStartReport) async throws
     func reportPlaybackProgress(_ report: PlaybackProgressReport) async throws
     func reportPlaybackStopped(_ report: PlaybackStopReport) async throws
@@ -53,8 +58,8 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         }
     }
 
-    func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]? = nil, maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse {
-        try await postPlaybackInfo(profile: profile) { payload in
+    func getLivePlaybackInfo(itemID: String, userID: String, profile: [String: Any]? = nil, maxStreamingBitrate: Int, enableDirectPlay: Bool = true) async throws -> PlaybackInfoResponse {
+        try await postPlaybackInfo(profile: profile, enableDirectPlay: enableDirectPlay) { payload in
             JellyfinEndpoint.livePlaybackInfo(
                 itemID: itemID,
                 userID: userID,
@@ -67,6 +72,7 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
     /// Routes through the shared HTTPClient (limiter, timeouts, APIError, cookie-free) not URLSession.shared; uses requestData + manual decode because DEBUG codec diagnostics need raw data.
     private func postPlaybackInfo(
         profile: [String: Any]?,
+        enableDirectPlay: Bool = true,
         endpoint: (JSONValue) throws -> JellyfinEndpoint
     ) async throws -> PlaybackInfoResponse {
         guard let baseURL = client.baseURL else { throw APIError.invalidURL }
@@ -80,7 +86,13 @@ final class JellyfinPlaybackService: JellyfinPlaybackServiceProtocol {
         }
         #endif
 
-        let payload = try JSONValue(jsonObject: ["DeviceProfile": deviceProfile])
+        // Sent only when it is false. The field defaults to true on every Jellyfin that has it, and a
+        // body that names it on every request would carry a flag most servers never needed to read.
+        var body: [String: Any] = ["DeviceProfile": deviceProfile]
+        if !enableDirectPlay {
+            body["EnableDirectPlay"] = false
+        }
+        let payload = try JSONValue(jsonObject: body)
         let headers = [
             "Authorization": client.buildAuthHeader(),
             "Accept": "application/json",

@@ -201,4 +201,50 @@ struct LiveAudioSupportTests {
             == "[Live] audio streams: -1=AC4 verdict=noDecodableAudio(AC-4) decision=serverReencode")
     }
 
+    // MARK: - The second pass, taken once a refusal is on the table (#100 round 3)
+
+    /// Why the first answer is not the last word: Jellyfin never compares a tuner channel's audio
+    /// codec against the profile at all. The lineup-derived stream carries no `IsDefault`, every
+    /// user has `PlayDefaultAudioTrack` on by default, and StreamBuilder then narrows its candidate
+    /// audio streams to the default ones and finds none, so the comparison is skipped and the
+    /// verdict comes back DirectPlay. That is the one answer carrying neither a TranscodingUrl nor
+    /// a reason, which is exactly the shape that used to read as "no offer, refuse".
+    ///
+    /// The same source, asked again with direct play off, has to go down the transcode path, where
+    /// the soundtrack IS looked at. Nothing here changes the codec, only what the server was
+    /// allowed to answer.
+    @Test("the same AC-4 source is refused on the first answer and playable on the second")
+    func secondPassTurnsARefusalIntoARoute() {
+        let streams = [stream(.video, codec: "hevc"), audio("ac4")]
+        #expect(LiveAudioSupport.decision(for: streams, serverOffersAudioReencode: false)
+            == .refuse(.ac4))
+        #expect(LiveAudioSupport.decision(for: streams, serverOffersAudioReencode: true)
+            == .serverReencodeRequired(.ac4))
+    }
+
+    /// Two lines for one tune otherwise read as two tunes, and the pair is the whole evidence a
+    /// retest on such a channel can carry back.
+    @Test("the second answer names itself as the second answer")
+    func logLineMarksTheSecondPass() {
+        #expect(LiveAudioSupport.logLine(for: [audio("ac4")], serverOffersAudioReencode: true,
+                                         pass: "noDirectPlay")
+            == "[Live] audio streams: -1=ac4 verdict=noDecodableAudio(AC-4) decision=serverReencode"
+            + " pass=noDirectPlay")
+    }
+
+    /// The marker has to survive the branch that returns early, or a server that names no audio at
+    /// all on the second pass logs a line indistinguishable from the first.
+    @Test("a second answer that names no audio is still marked")
+    func logLineMarksTheSecondPassWithoutAudio() {
+        #expect(LiveAudioSupport.logLine(for: [stream(.video, codec: "hevc")],
+                                         serverOffersAudioReencode: false, pass: "noDirectPlay")
+            == "[Live] audio streams: none reported pass=noDirectPlay")
+    }
+
+    @Test("an ordinary tune carries no marker")
+    func logLineUnmarkedByDefault() {
+        #expect(!LiveAudioSupport.logLine(for: [audio("ac3")], serverOffersAudioReencode: false)
+            .contains("pass="))
+    }
+
 }
