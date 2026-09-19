@@ -33,11 +33,8 @@ struct LiveRailLabels: View {
     /// the gap to the scrubber went, and the knob grows to 22 pt at exactly the moment the readout
     /// exists.
     ///
-    /// The tallest thing is the skip glyph, and **the system owns its height**: measured at
-    /// `.callout`, tvOS 26.5 draws `gobackward.10` 39.5 pt tall and tvOS 27.0 draws the same symbol
-    /// at 41.0, while `.callout` itself does not move between them. The literal 40 that covered the
-    /// first was a point short on the second, and the readout went back to spending the difference
-    /// upwards. So the row asks rather than remembers. On tvOS 26.5 the answer is 40 to the point,
+    /// The tallest thing is the skip glyph and the system owns its height, so the row asks
+    /// (`SeekReadoutMetrics`) rather than remembers. On tvOS 26.5 the answer is 40 to the point,
     /// which is what this replaced.
     static var defaultRowHeight: CGFloat {
         #if os(tvOS)
@@ -49,18 +46,9 @@ struct LiveRailLabels: View {
 
     #if os(tvOS)
     /// The tallest glyph this rail can put beside the clock, against its own text line, measured once.
-    ///
-    /// UIKit's symbol image reports exactly the height SwiftUI lays the same symbol out at, checked
-    /// across all twenty skip glyphs and both hold chevrons on tvOS 27, which is what lets this be
-    /// asked without rendering a view. `LiveRailChromeTests` holds that equality, because it is the
-    /// assumption the whole number rests on.
-    private static let tallestDrawnHeight: CGFloat = {
-        let configuration = UIImage.SymbolConfiguration(textStyle: .callout)
-        let glyphs = SeekReadout.drawableGlyphNames
-            .compactMap { UIImage(systemName: $0, withConfiguration: configuration)?.size.height }
-        let line = UIFont.preferredFont(forTextStyle: .callout).lineHeight
-        return ceil(max(line, glyphs.max() ?? line))
-    }()
+    private static let tallestDrawnHeight = SeekReadoutMetrics.rowHeight(
+        symbol: UIImage.SymbolConfiguration(textStyle: .callout),
+        lineHeight: UIFont.preferredFont(forTextStyle: .callout).lineHeight)
     #endif
 
     var body: some View {
@@ -151,50 +139,6 @@ struct LiveNextUpLine: View {
             .formatted(.units(allowed: [.hours, .minutes], width: .wide))
         return String(format: String(localized: "livetv.nextUp",
                                      defaultValue: "In %1$@: %2$@"), inWords, name)
-    }
-}
-
-/// Sodalite#104: a press and a hold, in the two languages they actually speak.
-///
-/// A press names its interval, because the destination is known before it lands, and counts itself,
-/// because a burst of four is the thing a viewer is keeping track of. A hold names its rate and
-/// nothing else: a 15x to 240x scan has no countable step, so a fixed-interval glyph over it would be
-/// a lie. Nothing draws here on the touch transport, where a skip commits on the tap that asked for
-/// it and flashes its own HUD.
-///
-/// Both readouts stay on ONE line, beside the clock rather than over it: a column of glyph over
-/// count is 66 pt against the clock's 37 on tvOS, and a stack centred on the clock's line spends the
-/// difference upwards, into the gap that separates this row from a knob which is 22 pt wide exactly
-/// while the readout is drawn. The burst count reads the same beside the glyph as under it.
-struct SeekReadoutView: View {
-    let readout: SeekReadout
-    var font: Font = LiveRailLabels.defaultFont
-
-    var body: some View {
-        switch readout {
-        case .press(let seconds, let count, let direction):
-            HStack(spacing: 4) {
-                Image(systemName: SkipGlyph.name(seconds: seconds, direction: direction))
-                    .font(font)
-                if count > 1 {
-                    Text(verbatim: "\(count)x")
-                        .font(font)
-                        .monospacedDigit()
-                }
-            }
-            .foregroundStyle(.white)
-            .transition(.opacity)
-        case .hold(let rate, let direction):
-            HStack(spacing: 4) {
-                Image(systemName: direction < 0 ? "chevron.left.2" : "chevron.right.2")
-                    .font(font)
-                Text(verbatim: "\(rate)x")
-                    .font(font)
-                    .monospacedDigit()
-            }
-            .foregroundStyle(.white)
-            .transition(.opacity)
-        }
     }
 }
 

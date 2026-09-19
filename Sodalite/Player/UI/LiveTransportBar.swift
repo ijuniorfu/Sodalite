@@ -316,7 +316,10 @@ struct LiveTransportBar: View {
                     .frame(width: 3, height: trackHeight + 8)
                     .offset(x: min(edgeX, width - 3))
 
-                seekTrail(width: width, knobX: knobX, trackHeight: trackHeight)
+                SeekTrail(readout: viewModel.seekReadout,
+                          originX: clamp(CGFloat(viewModel.scrubStartProgress), width),
+                          knobX: knobX,
+                          trackHeight: trackHeight)
 
                 Circle()
                     .fill(.tint)
@@ -351,29 +354,6 @@ struct LiveTransportBar: View {
 
     private var positionLabel: String {
         viewModel.livePositionLabel
-    }
-
-    /// What the gesture has covered, drawn the way the gesture works: a countable comb of notches for
-    /// a burst of presses, one continuous sweep for a hold, whose weight ramps with the rate.
-    @ViewBuilder
-    private func seekTrail(width: CGFloat, knobX: CGFloat, trackHeight: CGFloat) -> some View {
-        let originX = clamp(CGFloat(viewModel.scrubStartProgress), width)
-        switch viewModel.seekReadout {
-        case .press(_, let count, _) where count > 1:
-            ForEach(1..<count, id: \.self) { step in
-                Capsule()
-                    .fill(.white.opacity(0.75))
-                    .frame(width: 2, height: trackHeight + 4)
-                    .offset(x: originX + (knobX - originX) * CGFloat(step) / CGFloat(count) - 1)
-            }
-        case .hold(let rate, _):
-            Capsule()
-                .fill(.white.opacity(0.15 + 0.35 * min(1, Double(rate) / 240)))
-                .frame(width: abs(knobX - originX), height: trackHeight)
-                .offset(x: min(originX, knobX))
-        default:
-            EmptyView()
-        }
     }
 
     private func clamp(_ fraction: CGFloat, _ width: CGFloat) -> CGFloat {
