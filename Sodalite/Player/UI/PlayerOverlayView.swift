@@ -29,6 +29,22 @@ struct PlayerOverlayView: View {
             // while subtitles are active. (perf: observation altitude)
             SubtitleLayer(viewModel: viewModel)
 
+            #if os(iOS)
+            // Sodalite#156: the picture is on a receiver or an external display, so this screen has
+            // nothing to show but what is running and where. Below the spinner and the error screen,
+            // which both still speak for the session, and below the transport, which still drives it.
+            if let destination = viewModel.externalPlaybackDestination {
+                ExternalPlaybackBackdrop(
+                    destination: destination,
+                    title: viewModel.item.seriesName ?? viewModel.item.name,
+                    subtitle: viewModel.item.seriesName != nil ? viewModel.item.name : nil,
+                    artworkURL: remoteViewArtworkURL,
+                    tintColor: tintColor
+                )
+                .transition(.opacity)
+            }
+            #endif
+
             if viewModel.isLoading {
                 // Inner ZStack + whole-stack ignoresSafeArea so the spinner shares the backdrop's coord space; centering on Color.black's layout bounds (which respect safe-area) drifted the spinner top-half when an outgoing next-episode card shifted the parent's insets.
                 ZStack {
@@ -252,7 +268,12 @@ struct PlayerOverlayView: View {
 
     private var swipeHintsRow: some View {
         HStack {
-            swipeHint(icon: "sun.max.fill")
+            // Sodalite#156: the brightness swipe stands down while the picture is elsewhere, so its
+            // affordance goes with it. The volume one stays, it still reaches an AirPlay 2 receiver.
+            if ExternalPlaybackPresentation.localPictureControlsApply(
+                destination: viewModel.externalPlaybackDestination) {
+                swipeHint(icon: "sun.max.fill")
+            }
             Spacer()
             swipeHint(icon: "speaker.wave.2.fill")
         }
@@ -407,6 +428,26 @@ struct PlayerOverlayView: View {
         }
         if let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId {
             return URL(string: "\(baseURL)/Items/\(seriesId)/Images/Backdrop?tag=\(tag)&maxWidth=\(width)&quality=80")
+        }
+        return nil
+    }
+
+    /// Poster for the remote view (Sodalite#156), built the same way and for the same reason as the
+    /// thumbnail above. An episode shows its SERIES poster: it is the portrait shape this screen is
+    /// laid out around, and the episode's own still is a 16:9 frame from the thing already playing
+    /// somewhere else. Sized like the system Now Playing cover, the app's other big single artwork.
+    private var remoteViewArtworkURL: URL? {
+        guard let baseURL = viewModel.playbackService.baseURL else { return nil }
+        let item = viewModel.item
+        let width = ImageWidth.cover
+        if item.type == .episode, let seriesId = item.seriesId, let tag = item.seriesPrimaryImageTag {
+            return URL(string: "\(baseURL)/Items/\(seriesId)/Images/Primary?tag=\(tag)&maxWidth=\(width)&quality=85")
+        }
+        if let tag = item.imageTags?.primary {
+            return URL(string: "\(baseURL)/Items/\(item.id)/Images/Primary?tag=\(tag)&maxWidth=\(width)&quality=85")
+        }
+        if let tags = item.backdropImageTags, let tag = tags.first {
+            return URL(string: "\(baseURL)/Items/\(item.id)/Images/Backdrop?tag=\(tag)&maxWidth=\(width)&quality=85")
         }
         return nil
     }

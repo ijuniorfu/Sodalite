@@ -227,6 +227,7 @@ final class PlayerHostController: AVPlayerViewController {
                     self.externalPlaybackObservation = nil
                     self.externalPlaybackActive = false
                     self.syncNativeSubtitleRendering()
+                    self.syncExternalPlaybackDestination()
                     self.externalSubtitleWindow.tearDown()
                     self.externalScreenObservers.forEach(NotificationCenter.default.removeObserver)
                     self.externalScreenObservers.removeAll()
@@ -523,8 +524,22 @@ final class PlayerHostController: AVPlayerViewController {
                 self.externalPlaybackActive = active
                 self.syncNativeSubtitleRendering()
                 self.updateExternalSubtitleWindow()
+                self.syncExternalPlaybackDestination()
             }
         }
+    }
+
+    /// Sodalite#156: translate the flag into the destination the overlay's remote view names. Asked on
+    /// every external-playback edge and on every route change, because switching receivers mid-session
+    /// changes the name without touching the flag.
+    private func syncExternalPlaybackDestination() {
+        guard externalPlaybackActive else {
+            viewModel.setExternalPlaybackDestination(nil)
+            return
+        }
+        let ports = AVAudioSession.sharedInstance().currentRoute.outputs
+            .map { (type: $0.portType, name: $0.portName) }
+        viewModel.setExternalPlaybackDestination(ExternalPlaybackPresentation.destination(ports: ports))
     }
 
     /// Sodalite#98: draw the subtitle overlay on a wired external screen, which the app can only do by
@@ -581,6 +596,14 @@ final class PlayerHostController: AVPlayerViewController {
             }
             externalScreenObservers.append(token)
         }
+        // Sodalite#156: switching from one receiver to another leaves isExternalPlaybackActive true
+        // throughout, so the KVO never fires and only the route says the name changed.
+        let routeToken = center.addObserver(
+            forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.syncExternalPlaybackDestination() }
+        }
+        externalScreenObservers.append(routeToken)
     }
     #endif
 

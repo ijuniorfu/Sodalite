@@ -45,7 +45,13 @@ struct PlayerGestureCatcher: View {
             .onChanged { value in
                 if panAxis == .undecided {
                     let isVertical = abs(value.translation.height) > abs(value.translation.width)
-                    let zone = Self.zone(forStartX: value.startLocation.x, width: size.width)
+                    var zone = Self.zone(forStartX: value.startLocation.x, width: size.width)
+                    // Sodalite#156: while the picture is on a receiver, dimming this screen only dims
+                    // the artwork on it. Volume survives: an AirPlay 2 receiver takes the device's.
+                    if zone == .brightness, !ExternalPlaybackPresentation.localPictureControlsApply(
+                        destination: viewModel.externalPlaybackDestination) {
+                        zone = .none
+                    }
                     if isVertical, zone != .none {
                         panAxis = .vertical
                         panZone = zone

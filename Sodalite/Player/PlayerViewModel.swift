@@ -349,6 +349,41 @@ final class PlayerViewModel {
         onPiPStartRequested?()
     }
 
+    // MARK: - External playback (Sodalite#156)
+
+    /// Where the picture is while it is not on this device's own layer: an AirPlay receiver or a wired
+    /// external display, nil while the local screen is showing it. The iOS overlay puts up its remote
+    /// view for anything non-nil. Written by `PlayerHostController` from the external-playback KVO,
+    /// which is also the reason this stays nil on tvOS, where external playback does not exist.
+    private(set) var externalPlaybackDestination: ExternalPlaybackDestination?
+    private var externalPlaybackDropTask: Task<Void, Never>?
+
+    /// Applies an external-playback edge: engaging is immediate, disengaging waits out
+    /// `ExternalPlaybackPresentation.dropGrace` and is cancelled by a re-engage inside it. See that
+    /// constant for the reload edge the delay absorbs.
+    func setExternalPlaybackDestination(_ destination: ExternalPlaybackDestination?) {
+        guard let destination else {
+            // Route changes arrive in bursts while a receiver disconnects, and restarting the grace on
+            // each of them would push the step-down out indefinitely. The first nil owns the clock.
+            guard externalPlaybackDestination != nil, externalPlaybackDropTask == nil else { return }
+            externalPlaybackDropTask = Task { [weak self] in
+                try? await Task.sleep(for: ExternalPlaybackPresentation.dropGrace)
+                guard !Task.isCancelled, let self else { return }
+                self.externalPlaybackDropTask = nil
+                self.externalPlaybackDestination = nil
+                // The auto-hide refused to arm for as long as the remote view stood; the picture is
+                // back on this screen, so the transport goes back to hiding over it.
+                self.scheduleControlsHide()
+            }
+            return
+        }
+        externalPlaybackDropTask?.cancel()
+        externalPlaybackDropTask = nil
+        guard externalPlaybackDestination != destination else { return }
+        externalPlaybackDestination = destination
+        showControlsTemporarily()
+    }
+
     var isCountdownActive = false
     var nextEpisodeTimer: Task<Void, Never>?
     var hasFetchedNextEpisode = false
@@ -3188,6 +3223,9 @@ final class PlayerViewModel {
     func scheduleControlsHide() {
         controlsTimer?.cancel()
         guard isPlaying else { return }
+        // Sodalite#156: hiding the transport over the remote view would reveal nothing, because there
+        // is no picture on this screen to look at.
+        guard ExternalPlaybackPresentation.autoHideApplies(destination: externalPlaybackDestination) else { return }
         controlsTimer = Task {
             try? await Task.sleep(for: TransportAutoHide.idleDelay)
             guard !Task.isCancelled else { return }
