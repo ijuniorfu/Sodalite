@@ -67,4 +67,35 @@ enum ExternalPlaybackPresentation {
     static func autoHideApplies(destination: ExternalPlaybackDestination?) -> Bool {
         destination == nil
     }
+
+    // MARK: - Where the remote view's content fits
+
+    /// Below this band height the block is laid out in its short form. A phone in landscape is the
+    /// case: the band is roughly 190pt there against 410 in portrait, and the portrait metrics do not
+    /// fit in it.
+    static let shortBandHeight: CGFloat = 260
+    /// Everything under the poster, plus the gap above it: two lines of text and the destination
+    /// capsule. Subtracted from the band to leave the poster what is actually left.
+    static let textBlockHeight: CGFloat = 128
+    static let shortTextBlockHeight: CGFloat = 94
+
+    /// The band the transport never reaches: below the title scrim, above the control scrim.
+    ///
+    /// Those two ARE the app's statement of where the chrome sits, and they are proportional rather
+    /// than literal, so reading them here means one orientation-independent answer instead of a second
+    /// set of numbers that a retune of either would silently leave behind. Centering on the screen
+    /// instead put the block a sixth of the height too low in portrait and ran it off the bottom edge
+    /// in landscape, where the two scrims together claim well over half of a phone's height.
+    static func contentBand(screenHeight: CGFloat) -> (minY: CGFloat, height: CGFloat) {
+        let top = PlayerOverlayView.titleScrimHeight(playerHeight: screenHeight)
+        let bottom = PlayerOverlayView.controlScrimHeight(playerHeight: screenHeight)
+        return (top, max(120, screenHeight - top - bottom))
+    }
+
+    /// What is left for the poster once the text under it has been paid for, floored so a very short
+    /// band gets a small poster rather than none, and capped so a tall one does not get a billboard.
+    static func posterHeight(bandHeight: CGFloat, isPad: Bool) -> CGFloat {
+        let reserve = bandHeight < shortBandHeight ? shortTextBlockHeight : textBlockHeight
+        return min(isPad ? 320 : 200, max(64, bandHeight - reserve))
+    }
 }

@@ -53,4 +53,56 @@ struct ExternalPlaybackPresentationTests {
         #expect(ExternalPlaybackPresentation.dropGrace >= .milliseconds(1000))
         #expect(ExternalPlaybackPresentation.dropGrace <= .seconds(3))
     }
+
+    // MARK: - Geometry
+
+    /// iPhone 17 Pro, the device this was measured on, plus an iPad for the regular tier.
+    private let phonePortrait: CGFloat = 932
+    private let phoneLandscape: CGFloat = 430
+    private let padLandscape: CGFloat = 834
+
+    @Test("the band clears both scrims, so the transport never crosses the content")
+    func bandClearsTheChrome() {
+        for height in [phonePortrait, phoneLandscape, padLandscape] {
+            let band = ExternalPlaybackPresentation.contentBand(screenHeight: height)
+            #expect(band.minY >= PlayerOverlayView.titleScrimHeight(playerHeight: height))
+            #expect(band.minY + band.height
+                    <= height - PlayerOverlayView.controlScrimHeight(playerHeight: height) + 0.01)
+        }
+    }
+
+    @Test("the band sits above the screen's own centre, which is what the report was about")
+    func bandSitsHigherThanCentre() {
+        let band = ExternalPlaybackPresentation.contentBand(screenHeight: phonePortrait)
+        #expect(band.minY + band.height / 2 < phonePortrait / 2)
+    }
+
+    @Test("the poster and its text fit the band in every orientation")
+    func contentFitsTheBand() {
+        for (height, isPad) in [(phonePortrait, false), (phoneLandscape, false), (padLandscape, true)] {
+            let band = ExternalPlaybackPresentation.contentBand(screenHeight: height).height
+            let poster = ExternalPlaybackPresentation.posterHeight(bandHeight: band, isPad: isPad)
+            let reserve = band < ExternalPlaybackPresentation.shortBandHeight
+                ? ExternalPlaybackPresentation.shortTextBlockHeight
+                : ExternalPlaybackPresentation.textBlockHeight
+            #expect(poster + reserve <= band)
+            #expect(poster > 0)
+        }
+    }
+
+    @Test("a phone in landscape gets a visibly smaller poster than in portrait")
+    func landscapeShrinksThePoster() {
+        let portrait = ExternalPlaybackPresentation.posterHeight(
+            bandHeight: ExternalPlaybackPresentation.contentBand(screenHeight: phonePortrait).height,
+            isPad: false)
+        let landscape = ExternalPlaybackPresentation.posterHeight(
+            bandHeight: ExternalPlaybackPresentation.contentBand(screenHeight: phoneLandscape).height,
+            isPad: false)
+        #expect(landscape < portrait / 2)
+    }
+
+    @Test("an absurdly short band still leaves a poster rather than none")
+    func degenerateBandKeepsAPoster() {
+        #expect(ExternalPlaybackPresentation.posterHeight(bandHeight: 40, isPad: false) == 64)
+    }
 }
