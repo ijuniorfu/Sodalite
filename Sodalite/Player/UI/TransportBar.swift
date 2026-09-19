@@ -1,5 +1,6 @@
 import SwiftUI
 import AetherEngine
+import UIKit
 
 /// Native tvOS-style transport bar with progress bar, time labels,
 /// and track selection buttons with dropdown menus.
@@ -262,11 +263,35 @@ struct TransportBar: View {
 
     private static let scrubCardWidth: CGFloat = 320
 
+    /// The card's clock, and the gap above it.
+    ///
+    /// Sodalite#151: the row is as tall as the tallest thing it can draw rather than as tall as its
+    /// own text, because the seek readout stands beside that clock and a skip glyph is taller than
+    /// the line it sits on. Without it the card grows on the press that draws the first glyph, which
+    /// is the one moment the card is under a viewer's eye. The 34 pt this replaced was the same two
+    /// numbers with the second one guessed.
+    static let cardClockSize: CGFloat = 22
+    static let cardClockSpacing: CGFloat = 6
+    static let cardClockRowHeight = SeekReadoutMetrics.rowHeight(
+        symbol: UIImage.SymbolConfiguration(pointSize: cardClockSize, weight: .semibold),
+        lineHeight: UIFont.systemFont(ofSize: cardClockSize, weight: .semibold).lineHeight)
+
+    /// The centred clock that stands in for the card when the server carries no trickplay images,
+    /// which for a lot of libraries is every scrub.
+    ///
+    /// Its readout is drawn at half the clock's size (Sodalite#151), and this is the one row on the
+    /// bar that is not pre-sized. It gets away with that only because of the halving: a glyph is
+    /// taller than the line it stands beside at every size, so at the clock's own 56 pt it would lift
+    /// the clock on the press that drew it, and at 28 it cannot. Half is also the proportion the two
+    /// deserve, the number being the answer and the glyph the footnote to it.
+    static let centredClockSize: CGFloat = 56
+    static let centredClockGlyphSize: CGFloat = 28
+
     @ViewBuilder
     private var scrubPreviewArea: some View {
         if let previewImage {
             let imageHeight = Self.previewImageHeight(for: previewImage)
-            let cardHeight = imageHeight + 34
+            let cardHeight = imageHeight + Self.cardClockSpacing + Self.cardClockRowHeight
             GeometryReader { geo in
                 let width = geo.size.width
                 let half = Self.scrubCardWidth / 2
@@ -279,13 +304,33 @@ struct TransportBar: View {
             .padding(.bottom, 12)
             .transition(.opacity)
         } else {
-            Text(scrubTime)
-                .font(.system(size: 56, weight: .medium))
-                .monospacedDigit()
-                .foregroundStyle(.white)
+            scrubClock(font: .system(size: Self.centredClockSize, weight: .medium),
+                       glyphFont: .system(size: Self.centredClockGlyphSize, weight: .medium))
                 .transition(.opacity)
                 .padding(.bottom, 16)
         }
+    }
+
+    /// The scrub clock with its seek readout beside it, on the side of travel.
+    ///
+    /// Sodalite#151: this is the VOD answer to the live rail's playhead clock, and it is the same
+    /// answer because it is the same question. Both follow the knob, which is what makes them the
+    /// place a viewer is already looking when a press lands; the two clocks pinned to the bottom
+    /// corners do not move and would report the gesture somewhere other than where it happened.
+    private func scrubClock(font: Font, glyphFont: Font) -> some View {
+        HStack(spacing: 8) {
+            if let readout = viewModel.seekReadout, readout.direction == -1 {
+                SeekReadoutView(readout: readout, font: glyphFont)
+            }
+            Text(scrubTime)
+                .font(font)
+                .monospacedDigit()
+                .foregroundStyle(.white)
+            if let readout = viewModel.seekReadout, readout.direction == 1 {
+                SeekReadoutView(readout: readout, font: glyphFont)
+            }
+        }
+        .fixedSize()
     }
 
     /// Preview height at the fixed card width from the frame's own (SAR-corrected) aspect, so a
@@ -297,7 +342,7 @@ struct TransportBar: View {
     }
 
     private func scrubPreviewCard(image: CGImage, imageHeight: CGFloat) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: Self.cardClockSpacing) {
             Image(decorative: image, scale: 1.0)
                 .resizable()
                 .frame(width: Self.scrubCardWidth, height: imageHeight)
@@ -308,10 +353,9 @@ struct TransportBar: View {
                 )
                 .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
 
-            Text(scrubTime)
-                .font(.system(size: 22, weight: .semibold))
-                .monospacedDigit()
-                .foregroundStyle(.white)
+            let clockFont = Font.system(size: Self.cardClockSize, weight: .semibold)
+            scrubClock(font: clockFont, glyphFont: clockFont)
+                .frame(height: Self.cardClockRowHeight)
         }
     }
 
@@ -640,6 +684,11 @@ struct TransportBar: View {
                 Capsule()
                     .fill(.tint)
                     .frame(width: knobX, height: trackHeight)
+
+                SeekTrail(readout: viewModel.seekReadout,
+                          originX: max(0, min(width, width * CGFloat(viewModel.scrubStartProgress))),
+                          knobX: knobX,
+                          trackHeight: trackHeight)
 
                 Circle()
                     .fill(.tint)

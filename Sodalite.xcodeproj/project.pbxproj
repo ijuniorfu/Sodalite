@@ -281,6 +281,7 @@
 		39030A3285AEA29BF3D812CF /* SidebarProfileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB7991EF688676E7E9399CA /* SidebarProfileHeader.swift */; };
 		397B90C8513379B003D4EDC0 /* ProfileShellLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA7B92BAD2F5D2F412244E4 /* ProfileShellLayoutTests.swift */; };
 		3982B4B94872D1437AF93345 /* CheckmarkAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD5596E5ED089CD31B3ADB8 /* CheckmarkAnimation.swift */; };
+		39C60C613A55096BAA1193AA /* SeekReadoutChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F52F9B3910324011B0BA5C /* SeekReadoutChromeTests.swift */; };
 		3A1FBDE9DC53F59B43C6C3C5 /* JellyfinEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E5CFBC331D8C9C23D2D0A4 /* JellyfinEndpoints.swift */; };
 		3A22902EF39153941F953804 /* LiveProgramsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADAD381D4AEFEF97223E0EA /* LiveProgramsViewModel.swift */; };
 		3A77AE4E13FAB10643F9D522 /* AppTransportSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68B185438E9063FAD04C4DE /* AppTransportSecurityTests.swift */; };
@@ -675,6 +676,7 @@
 		8B4A55B1019A82FFDB20CB1F /* PlayerTouchInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7AFC9D69550F3562E83D486 /* PlayerTouchInputTests.swift */; };
 		8B58C41637217CBB220D5AB8 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD1784CA145F8A51ADEF045 /* PlayerViewModel.swift */; };
 		8B82DF3918BA8D42B4E5C55C /* SidebarItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543C12D37199F6A551DE517A /* SidebarItemRow.swift */; };
+		8BC25CEB74E26A6A67561C6D /* SeekReadoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54F502DD49E9398E1263DE5 /* SeekReadoutView.swift */; };
 		8BCE43E99F5542D201CD91B7 /* SeerrRequestAdminRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFA36C8B038D0E76AB2717B /* SeerrRequestAdminRow.swift */; };
 		8C532912E1A9FCAA3B302E05 /* DevicePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886AFE7FB51AE5DDA503C45C /* DevicePreferences.swift */; };
 		8D6F590ACEA1E6608E4C0A0D /* NextEpisodePillTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2CA385A598B1BC58D04870 /* NextEpisodePillTests.swift */; };
@@ -841,6 +843,7 @@
 		B08FD0488A680FB3ADE0777A /* MyMediaLibrariesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26ACDA3C53D401F750A2743 /* MyMediaLibrariesTests.swift */; };
 		B0D07388D8F0C65B8F9D6143 /* JellyfinServerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8AFD18467EFC7535B275979 /* JellyfinServerDiscovery.swift */; };
 		B0DE05BFFD3826DFFE50C063 /* TopShelfProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA718B995B00190D977EC3D0 /* TopShelfProgressTests.swift */; };
+		B1462A2CD3D5A0C3B344D226 /* SeekReadoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54F502DD49E9398E1263DE5 /* SeekReadoutView.swift */; };
 		B165E41379689993F2CACDCE /* LogExportServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D6FB14078544984DC2BB89B /* LogExportServerTests.swift */; };
 		B1B636032192CD5EAD5A0B2B /* SeerrLibraryDedupeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961E6A3B7932ED4F14791880 /* SeerrLibraryDedupeTests.swift */; };
 		B285F98E58C222B90F4630F1 /* TransportFocusOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772524EDA57946DC3B36172D /* TransportFocusOrder.swift */; };
@@ -1891,6 +1894,7 @@
 		E25735BA0AC72D8D8AEE8984 /* SeerrRequestFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestFilter.swift; sourceTree = "<group>"; };
 		E2F1B3C38E5D186AFF71A7FA /* ReplacedEpisodeResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplacedEpisodeResolver.swift; sourceTree = "<group>"; };
 		E34B48C22ADA9876864D8093 /* SessionRestoreEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRestoreEnvironment.swift; sourceTree = "<group>"; };
+		E3F52F9B3910324011B0BA5C /* SeekReadoutChromeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeekReadoutChromeTests.swift; sourceTree = "<group>"; };
 		E4CE69511B110DCCF9EC0603 /* JellyfinServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServer.swift; sourceTree = "<group>"; };
 		E57A7B5E3ACBEA39B9DF2941 /* VersionPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionPickerSheet.swift; sourceTree = "<group>"; };
 		E5AB5D7618DDA0234AD98A97 /* HomeRowConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRowConfigTests.swift; sourceTree = "<group>"; };
@@ -1947,6 +1951,7 @@
 		F4FD1A34E31C2A28C00C1939 /* ServerDiscoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerDiscoveryViewModel.swift; sourceTree = "<group>"; };
 		F50568950874ADE4F7B451F0 /* SeerrRequestServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeerrRequestServiceTests.swift; sourceTree = "<group>"; };
 		F520648C64297EA0903FE276 /* StatsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSection.swift; sourceTree = "<group>"; };
+		F54F502DD49E9398E1263DE5 /* SeekReadoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeekReadoutView.swift; sourceTree = "<group>"; };
 		F56B87143B2B70106AE296FD /* TopShelfPrerender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopShelfPrerender.swift; sourceTree = "<group>"; };
 		F5C314F1E3B32FC980FB6F7A /* LegacySettingsRecordCompatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacySettingsRecordCompatTests.swift; sourceTree = "<group>"; };
 		F5D4B4A047A5346B2E847D91 /* SidebarExitPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarExitPolicy.swift; sourceTree = "<group>"; };
@@ -2402,6 +2407,7 @@
 				EB5FE236582E31D523600E74 /* ResumeBarRendererTests.swift */,
 				4B2B22C59C4AD3A35B162268 /* ResumeCapsuleTests.swift */,
 				9E7B70D689AAB2F6EEC80FC4 /* ScrollHintPolicyTests.swift */,
+				E3F52F9B3910324011B0BA5C /* SeekReadoutChromeTests.swift */,
 				E22D02CCB243103E21F36E05 /* SeerrCollectionTests.swift */,
 				0385E1379FFACA0B7CD56111 /* SeerrDecodingTests.swift */,
 				1A939025FF52393099530C53 /* SeerrImageURLTests.swift */,
@@ -3042,6 +3048,7 @@
 				1B9A5495C7680F383A85DFE5 /* PlayerNoticeBanner.swift */,
 				44AD184DF6BCAAD832065C41 /* PlayerOverlayView.swift */,
 				0A8630F13AD6A7B6C4F5C33E /* PlayerTrackDropdown.swift */,
+				F54F502DD49E9398E1263DE5 /* SeekReadoutView.swift */,
 				EBF190F9F2E4A6C551ED0998 /* SkipGlyph.swift */,
 				256CE5DE2B1273662AB9F398 /* StatsOverlayView.swift */,
 				4B03B17EFE49D8718C924101 /* SubtitleDeletePromptView.swift */,
@@ -3693,6 +3700,7 @@
 				C27945C52651E989D9C140ED /* SearchTextField.swift in Sources */,
 				46B31ACF5E8768417EDBDC42 /* SearchView.swift in Sources */,
 				0C5CF71492920A8E046950DA /* SearchViewModel.swift in Sources */,
+				8BC25CEB74E26A6A67561C6D /* SeekReadoutView.swift in Sources */,
 				066D43A85929E970CF6EBA89 /* SeerrAuthResponse.swift in Sources */,
 				5E230A2751756A44ED76BE20 /* SeerrAuthService.swift in Sources */,
 				451C0AB3A94994E7038FE8EC /* SeerrClient.swift in Sources */,
@@ -4055,6 +4063,7 @@
 				A8FE337FDE5B6C496A3C899B /* ResumeCapsuleTests.swift in Sources */,
 				B4A33EEA967E7D84E90EAEC2 /* SRTParserTests.swift in Sources */,
 				E36F24AD81B56F08E18EF983 /* ScrollHintPolicyTests.swift in Sources */,
+				39C60C613A55096BAA1193AA /* SeekReadoutChromeTests.swift in Sources */,
 				C370B460980C28A3F9D5D312 /* SeerrCollectionTests.swift in Sources */,
 				1F6AE771CDD3C9E30ADA22CF /* SeerrDecodingTests.swift in Sources */,
 				311F02E5A3915E83DBCC603B /* SeerrImageURLTests.swift in Sources */,
@@ -4432,6 +4441,7 @@
 				1F8A39DC7F36195835BBBE7F /* SearchTextField.swift in Sources */,
 				48DFF7DDD0ED3316B3A206F1 /* SearchView.swift in Sources */,
 				CFECBC913388A0BBB6142DE1 /* SearchViewModel.swift in Sources */,
+				B1462A2CD3D5A0C3B344D226 /* SeekReadoutView.swift in Sources */,
 				AA66517F0E9AB1705D786F2C /* SeerrAuthResponse.swift in Sources */,
 				821A148868FEBE29EC8B8E6A /* SeerrAuthService.swift in Sources */,
 				4E3929E4DB2C98A3FD1D393F /* SeerrClient.swift in Sources */,
