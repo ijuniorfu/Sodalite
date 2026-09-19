@@ -252,6 +252,7 @@ extension PlayerViewModel {
         }
         errorMessage = nil
         videoFormat = .sdr
+        clearVideoFormatAnnouncement()
         subtitleCues = []
         subtitleStreams = []
         externalEngineTrackIDs = [:]

@@ -600,15 +600,20 @@ struct PlayerOverlayView: View {
 // MARK: - Top-Right Info Column
 
 private extension PlayerOverlayView {
-    /// Top-right informational badges: the format badge follows transport visibility (matches Apple TV's player) on tvOS only, on iOS it sits inside the touch top bar instead; speed badge persists whenever rate != 1.0x so a user who set 1.5x then hid the transport isn't silently at the wrong speed.
+    /// Top-right informational badges. The format badge runs on its own window (`VideoFormatAnnouncement`,
+    /// Sodalite#152) and asks the transport nothing; it used to follow `showControls`, which bounded it at
+    /// five seconds until #93 made a paused transport unbounded on purpose and the badge inherited that.
+    /// tvOS only, on iOS it sits inside the touch top bar instead. The speed badge persists whenever rate
+    /// != 1.0x so a user who set 1.5x then hid the transport isn't silently at the wrong speed; that is the
+    /// argument the format badge never had.
     var topRightInfoColumn: some View {
         VStack {
             HStack(alignment: .top) {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 10) {
                     #if os(tvOS)
-                    if viewModel.showControls && viewModel.videoFormat != .sdr {
-                        VideoFormatBadge(format: viewModel.videoFormat)
+                    if let announced = viewModel.announcedVideoFormat {
+                        VideoFormatBadge(format: announced)
                     }
                     #endif
                     if PlayerViewModel.speedOptions.indices.contains(viewModel.activeSpeedIndex),
@@ -622,8 +627,7 @@ private extension PlayerOverlayView {
             Spacer()
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.activeSpeedIndex)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.showControls)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.videoFormat)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.announcedVideoFormat)
         .allowsHitTesting(false)
     }
 }
