@@ -119,9 +119,15 @@ enum LiveAudioSupport {
     ///
     /// The index is worth printing even though a tuner channel reports `-1` for every stream
     /// (Jellyfin hardcodes it on the lineup-derived streams), because a probed source does not.
-    static func logLine(for streams: [MediaStream]?, serverOffersAudioReencode: Bool) -> String {
+    ///
+    /// `pass` names the second answer apart from the first on a channel that asked twice, so a report
+    /// carrying two of these lines reads as one tune rather than two.
+    static func logLine(
+        for streams: [MediaStream]?, serverOffersAudioReencode: Bool, pass: String? = nil
+    ) -> String {
+        let suffix = pass.map { " pass=\($0)" } ?? ""
         let audio = (streams ?? []).filter { $0.type == .audio }
-        guard !audio.isEmpty else { return "[Live] audio streams: none reported" }
+        guard !audio.isEmpty else { return "[Live] audio streams: none reported" + suffix }
         let listed = audio
             .map { "\($0.index)=\($0.codec.flatMap { $0.isEmpty ? nil : $0 } ?? "?")" }
             .joined(separator: " ")
@@ -133,7 +139,7 @@ enum LiveAudioSupport {
             let decision = decision(for: streams, serverOffersAudioReencode: serverOffersAudioReencode)
             line += " decision=\(decision.logToken)"
         }
-        return line
+        return line + suffix
     }
 
     private static func verdictToken(_ verdict: Verdict) -> String {

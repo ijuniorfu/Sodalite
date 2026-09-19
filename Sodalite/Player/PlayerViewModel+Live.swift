@@ -54,22 +54,44 @@ extension PlayerViewModel {
         }
 
         // Stage-1 PlaybackInfo: copy ceiling + the tuner upstream URL (MediaSource.Path) for the direct attempt.
-        let info = try await openLiveTuner(maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
-        guard let source = info.mediaSources.first else { throw PlayerEngineError.noSource }
-        let stageOneTuner = source.liveStreamId
+        var info = try await openLiveTuner(maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate)
+        guard var source = info.mediaSources.first else { throw PlayerEngineError.noSource }
+        var stageOneTuner = source.liveStreamId
 
         do {
             // Inside the do block so the catch below releases the stage-1 tuner, same as every other
             // live failure (#70). Logged on every tune, not only on a refusal: a report needs to tell
             // "checked, the audio is fine" apart from "the server named no audio at all" (#100).
-            let serverOffersAudioReencode = Self.liveServerOffersAudioReencode(
-                transcodeReasons: source.transcodeReasons, transcodingURL: source.transcodingUrl)
-            LogTap.shared.note(LiveAudioSupport.logLine(
-                for: source.mediaStreams, serverOffersAudioReencode: serverOffersAudioReencode))
-            let audioDecision = LiveAudioSupport.decision(
-                for: source.mediaStreams, serverOffersAudioReencode: serverOffersAudioReencode)
+            var audioDecision = noteLiveAudioDecision(for: source)
             if case .refuse(let codec) = audioDecision {
-                throw PlayerEngineError.liveAudioUnsupported(codec: codec.displayName)
+                // A refusal used to end here, on the reasoning that a server offering no re-encode has
+                // none to give. It has: Jellyfin never CHECKS the audio codec of a tuner channel. The
+                // lineup-derived audio stream carries no `IsDefault` flag, `PlayDefaultAudioTrack` is
+                // on for every user by default, and StreamBuilder then narrows its candidate audio
+                // streams to the default ones, which leaves the list EMPTY and the codec comparison
+                // skipped entirely. Container and video codec pass, so the verdict is DirectPlay, and
+                // DirectPlay is the one answer that carries neither a TranscodingUrl nor a reason.
+                // Asking again with direct play off takes that verdict away: the transcode path does
+                // look at the soundtrack, names AudioCodecNotSupported, and hands back a URL the
+                // server rebuilds the audio on (its ffmpeg has had the AC-4 decoder since v6.0.1-8).
+                // Costs a second tuner open, and only ever on a channel that was about to be refused.
+                if let stale = stageOneTuner {
+                    // Before the second open, never after: Jellyfin's id names the CHANNEL, so the
+                    // second open would replace this registration and leave the first ingesting with
+                    // no handle (#70, same rule as the re-encode cap re-negotiation below).
+                    releaseTuner(stale, reason: "re-asking without direct play")
+                    stageOneTuner = nil
+                }
+                info = try await openLiveTuner(
+                    maxStreamingBitrate: DirectPlayProfile.liveCopyCeilingBitrate,
+                    enableDirectPlay: false)
+                guard let retried = info.mediaSources.first else { throw PlayerEngineError.noSource }
+                source = retried
+                stageOneTuner = source.liveStreamId
+                audioDecision = noteLiveAudioDecision(for: source, pass: "noDirectPlay")
+                if case .refuse = audioDecision {
+                    throw PlayerEngineError.liveAudioUnsupported(codec: codec.displayName)
+                }
             }
 
             // Direct eligibility, decided in liveDirectIngestEligibility: a remux channel whose Path is
@@ -117,6 +139,19 @@ extension PlayerViewModel {
         }
     }
 
+    /// The audio verdict plus the one line that carries it into a report, in that order, because a
+    /// decision taken without the line is one no retest can confirm (#100).
+    private func noteLiveAudioDecision(
+        for source: PlaybackMediaSource, pass: String? = nil
+    ) -> LiveAudioSupport.Decision {
+        let serverOffersAudioReencode = Self.liveServerOffersAudioReencode(
+            transcodeReasons: source.transcodeReasons, transcodingURL: source.transcodingUrl)
+        LogTap.shared.note(LiveAudioSupport.logLine(
+            for: source.mediaStreams, serverOffersAudioReencode: serverOffersAudioReencode, pass: pass))
+        return LiveAudioSupport.decision(
+            for: source.mediaStreams, serverOffersAudioReencode: serverOffersAudioReencode)
+    }
+
     /// Open the tuner via PlaybackInfo without letting cancellation strand it.
     ///
     /// `AutoOpenLiveStream` opens the tuner as part of answering, and the id that would close it again
@@ -126,7 +161,9 @@ extension PlayerViewModel {
     /// always comes back; if the tune it was for is gone by then, the tuner is released here instead.
     /// A viewer giving up during the seconds Jellyfin spends probing a tuner is the common case on a slow
     /// channel, not a corner (#70).
-    private func openLiveTuner(maxStreamingBitrate: Int) async throws -> PlaybackInfoResponse {
+    private func openLiveTuner(
+        maxStreamingBitrate: Int, enableDirectPlay: Bool = true
+    ) async throws -> PlaybackInfoResponse {
         // Never open while one of our own closes is still unanswered: the id Jellyfin closes by names
         // the CHANNEL, not this stream, so an open that overtakes a close either orphans the tuner it
         // replaces or hands that close the stream we are about to play (LiveTunerGate, #70).
@@ -141,7 +178,8 @@ extension PlayerViewModel {
             try await svc.getLivePlaybackInfo(
                 itemID: itemID, userID: user,
                 profile: DirectPlayProfile.liveProfile(),
-                maxStreamingBitrate: maxStreamingBitrate)
+                maxStreamingBitrate: maxStreamingBitrate,
+                enableDirectPlay: enableDirectPlay)
         }
         let info = try await request.value
         let source = info.mediaSources.first
