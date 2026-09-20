@@ -178,32 +178,4 @@ struct ContentLogoBudgetTests {
         #expect(abs(threeX.width - 3 * oneX.width) <= 2)
     }
 
-    // MARK: - The pinned copy (Sodalite#146)
-
-    /// Both axes shrink together, so the small mark at the top of a scrolled page is the same
-    /// decision drawn smaller rather than a second one.
-    @Test func shrinkScalesBothAxes() {
-        let full = ContentLogoTier.tv.budget(columnWidth: 1820)
-        let small = ContentLogoTier.tv.budget(columnWidth: 1820, shrink: 0.4)
-        #expect(abs(small.maxWidth - full.maxWidth * 0.4) < 0.01)
-        #expect(abs(small.nominalHeight - full.nominalHeight * 0.4) < 0.01)
-    }
-
-    /// The invariant that makes the pinned mark free: it must not move the URL. Two copies at two
-    /// sizes read one cache entry and cost one download, and a URL that differed between them would
-    /// also be a URL that moves as the page scrolls, which re-fires the image task and flashes.
-    @Test func shrinkDoesNotReachTheRequestBox() {
-        #expect(ContentLogoTier.tv.requestPixels(scale: 2)
-            == ContentLogoTier.tv.requestPixels(scale: 2))
-        // The request is a property of the tier alone, which is what leaves shrink no way in.
-        let box = ContentLogoTier.tv.requestPoints
-        #expect(box.width >= ContentLogoTier.tv.budget(columnWidth: 1820).maxWidth)
-        #expect(box.width >= ContentLogoTier.tv.budget(columnWidth: 1820, shrink: 0.4).maxWidth)
-    }
-
-    /// A default of 1 keeps every existing caller exactly where it was.
-    @Test func theDefaultIsTheFullBudget() {
-        #expect(ContentLogoTier.regular.budget(columnWidth: 900)
-            == ContentLogoTier.regular.budget(columnWidth: 900, shrink: 1))
-    }
 }

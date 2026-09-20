@@ -301,15 +301,6 @@ struct MovieDetailView: View {
         }
     }
 
-    /// What pins to the top once the hero has scrolled away.
-    private func pinnedMark(vm: DetailViewModel) -> PinnedPageMark {
-        PinnedPageMark(
-            itemID: vm.item.id,
-            logo: .from(imageTags: vm.item.imageTags, hasFullDetail: vm.hasFullDetail),
-            title: vm.item.name
-        )
-    }
-
     private func contentView(vm: DetailViewModel) -> some View {
         ZStack {
             DetailBackdrop(
@@ -322,7 +313,6 @@ struct MovieDetailView: View {
             DetailContentOverlay(
                 heroImageURL: vm.backdropURL(for: vm.item),
                 heroPosterURL: vm.heroPosterURL(for: vm.item),
-                pinnedMark: pinnedMark(vm: vm),
                 hero: {
                 DetailHeroLogo(viewModel: vm)
             }, primary: {

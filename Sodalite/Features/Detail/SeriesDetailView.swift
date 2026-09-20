@@ -514,7 +514,6 @@ struct SeriesDetailView: View {
         DetailContentOverlay(
             heroImageURL: backdropURL,
             heroPosterURL: vm.heroPosterURL(for: vm.item),
-            pinnedMark: pinnedMark(vm: vm),
             hero: {
             // Series logo, both modes (episode has none); observes the VM so it appears once an episode deep-link's series stub loads imageTags, no scroll needed.
             DetailHeroLogo(viewModel: vm)
@@ -622,16 +621,6 @@ struct SeriesDetailView: View {
         }
         .modifier(PageScrollProxyCapture(proxy: $pageScrollProxy))
         .transition(.opacity)
-    }
-
-    /// What pins to the top once the hero has scrolled away. Always the SERIES, even in the episode
-    /// state: the mark says whose page this is, and the page is the show's.
-    private func pinnedMark(vm: DetailViewModel) -> PinnedPageMark {
-        PinnedPageMark(
-            itemID: vm.item.id,
-            logo: .from(imageTags: vm.item.imageTags, hasFullDetail: vm.hasFullDetail),
-            title: vm.item.name
-        )
     }
 
     // MARK: - Glass Panel

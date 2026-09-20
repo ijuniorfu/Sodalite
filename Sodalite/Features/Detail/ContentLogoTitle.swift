@@ -36,25 +36,6 @@ struct ContentLogoTitle<Fallback: View>: View {
     /// right away; the other two have a request in flight whose mark would replace it (Sodalite#97,
     /// Sodalite#125). No default on purpose, so a new surface has to answer the question.
     let logo: ContentLogoAvailability
-    /// Fraction of the tier's budget the mark may take. 1 is the hero; the pinned copy at the top of
-    /// a scrolled page asks for less (Sodalite#146). It scales the BUDGET and never the requested
-    /// pixel box, so both copies read one cache entry: a URL that differs between them would be a
-    /// second download of the same mark, and a URL that moves after the image lands re-fires
-    /// AsyncCachedImage's `task(id:)` and flashes.
-    var shrink: CGFloat = 1
-    /// Centres the mark in the width it is given. iPhone portrait does this anyway, to match its
-    /// centred primary action; the pinned copy asks for it on iOS, where the top leading corner
-    /// belongs to the navigation bar's back button (Sodalite#146 round 2).
-    var centered: Bool = false
-    /// Whether the slot holds the tier's ceiling open whatever the mark turns out to be.
-    ///
-    /// True in the hero, and that is the whole point of it there: the mark and the text title share a
-    /// baseline, so a logo arriving late cannot move the block's top edge (Sodalite#15). The PINNED
-    /// copy sets it false, because it is an overlay and sizes nothing, and because reserving the
-    /// ceiling there had a visible cost: the mark is bottom-anchored in its slot, so a wide wordmark
-    /// sat 49 pt lower than it is tall and the band behind it had to be that much deeper, reaching
-    /// down into the episode row (Apple TV, 2026-09-15).
-    var reservesHeight: Bool = true
     @ViewBuilder let fallback: () -> Fallback
 
     @Environment(\.dependencies) private var dependencies
@@ -85,7 +66,7 @@ struct ContentLogoTitle<Fallback: View>: View {
     /// iPhone portrait centers the title to match the centered primary action button.
     private var isPhonePortrait: Bool { tier == .phonePortrait }
 
-    private var centersMark: Bool { centered || isPhonePortrait }
+    private var centersMark: Bool { isPhonePortrait }
 
     /// tvOS draws its 1920x1080 point grid at 2x on the 4K box and reports no useful `displayScale`,
     /// so it asks for the same fixed 2x LayoutMetrics.castImageWidth assumes.
@@ -124,7 +105,7 @@ struct ContentLogoTitle<Fallback: View>: View {
     }
 
     var body: some View {
-        let budget = tier.budget(columnWidth: columnWidth, shrink: shrink)
+        let budget = tier.budget(columnWidth: columnWidth)
         // Always an AsyncCachedImage, never a branch: the fallback is its placeholder, so the stable per-id URL never swaps the subtree or resets `.id` to disturb the enclosing ScrollView.
         AsyncCachedImage(
             url: logoURL,
@@ -164,8 +145,8 @@ struct ContentLogoTitle<Fallback: View>: View {
         // floats, and the panel below it does not move (rendered at 1920x1080, Sodalite#97 round 2).
         .frame(
             maxWidth: .infinity,
-            minHeight: reservesHeight ? budget.maxHeight : nil,
-            maxHeight: reservesHeight ? budget.maxHeight : nil,
+            minHeight: budget.maxHeight,
+            maxHeight: budget.maxHeight,
             alignment: centersMark ? .bottom : .bottomLeading
         )
         .onGeometryChange(for: CGFloat.self) { proxy in
