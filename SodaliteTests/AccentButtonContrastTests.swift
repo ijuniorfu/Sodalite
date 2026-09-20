@@ -27,7 +27,10 @@ struct AccentButtonContrastTests {
     func foregroundSurvivesTheFill() {
         let opacities = [
             GlassButtonStyle.restingFillOpacity,
-            GlassButtonStyle.focusedFillOpacity
+            GlassButtonStyle.focusedFillOpacity,
+            // The watched part of a resume pill is the bare accent, so the label crosses a seam
+            // with this on one side of it (Sodalite#146 round 3).
+            GlassButtonStyle.watchedFillOpacity
         ]
         for preset in AccentPreset.allCases {
             let foreground = preset.palette.foreground

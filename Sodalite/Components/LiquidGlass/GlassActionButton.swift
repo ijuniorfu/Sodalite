@@ -240,7 +240,7 @@ struct GlassButtonStyle: ButtonStyle {
     var isProminent: Bool = false
     /// With `isProminent`, makes the fill destructive red; non-prominent destructive stays grey (parent Button's role handles VoiceOver).
     var isDestructive: Bool = false
-    /// 0…1 resume progress, drawn as a bar along the bottom of the fill; ignored when nil.
+    /// 0…1 resume progress, drawn as the filled part of the pill itself; ignored when nil.
     var progressFraction: Double? = nil
     /// What the label, the glyph and the progress bar are painted in. Derived by the button from
     /// the accent, so this style never has to know which accent is in play.
@@ -251,22 +251,20 @@ struct GlassButtonStyle: ButtonStyle {
     /// composite the same values instead of copying two literals that would drift.
     static let restingFillOpacity: Double = 0.7
     static let focusedFillOpacity: Double = 0.9
+    /// The watched part of a resume pill: the accent with nothing behind it. A third ground the
+    /// label has to survive (Sodalite#146 round 3), so the contrast suite composites it too.
+    static let watchedFillOpacity: Double = 1.0
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(contentColor)
-            // Label and bar read as one block, so the block gets centred rather than the label
-            // alone: without the lift the text keeps the middle and the bar hangs in the bottom
-            // padding, which leaves the top half of the tile looking empty. Layout-neutral, so the
-            // tile stays exactly as tall as its siblings in the action row.
-            .offset(y: -progressReserve / 2)
             .background(
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(backgroundFill)
 
                     if let fraction = progressFraction, fraction > 0 {
-                        progressBar(fraction)
+                        watchedPortion(fraction)
                     }
                 }
             )
@@ -307,57 +305,43 @@ struct GlassButtonStyle: ButtonStyle {
     /// of the three. `DetailActionRowFocusLiftTests` holds the numbers together.
     static let liftCeiling: CGFloat = 4
 
-    /// Progress used to be an accent capsule filling the tile from the leading edge, which forced
-    /// the tile to drop its accent fill (accent on accent does not read) and put half the label on
-    /// the accent and half on grey, so no single label colour was right. Drawing it in the label's
-    /// own colour instead means the tile keeps the prominent fill every other primary action wears,
-    /// and the whole label sits on one known ground.
-    private func progressBar(_ fraction: Double) -> some View {
+    /// The watched part of the pill, drawn as the pill's own fill at full strength (Sodalite#146
+    /// round 3). The bar this replaces was two rows of content in a one-row control: it reserved
+    /// `barHeight + barGap` out of the label's block and lifted the label by half of that, so the
+    /// one pill on the page that carries a meter sat its text 7 pt above every sibling's.
+    ///
+    /// An accent capsule filling the tile from the leading edge WAS tried once and went back out,
+    /// because it put half the label on the accent and half on grey and no single label colour was
+    /// right. The difference now is that both sides of the seam are the same hue at two levels, so
+    /// the label never crosses a colour, and the levels are measured rather than picked: the derived
+    /// foreground clears 3:1 on the composited fill from alpha 0.60 upwards (amber on black is the
+    /// binding case), and this runs 0.70 to 1.00, inside that band on both sides.
+    ///
+    /// The unwatched part holds `restingFillOpacity` even under focus, which is the one place the
+    /// prominent fill ignores focus. Otherwise the step would be 0.90 against 1.00 exactly when it
+    /// matters: Play is auto-focused, so focused IS the page's resting state on tvOS.
+    private func watchedPortion(_ fraction: Double) -> some View {
         GeometryReader { geo in
-            Capsule()
-                .fill(contentColor.opacity(0.28))
-                .frame(height: Self.barHeight)
-                .overlay(alignment: .leading) {
-                    Capsule()
-                        .fill(contentColor)
-                        .frame(
-                            width: (geo.size.width - Self.barInset * 2) * CGFloat(min(1.0, max(0, fraction))),
-                            height: Self.barHeight
-                        )
-                }
-                .padding(.horizontal, Self.barInset)
-                // Sits the same distance below the lifted label as the label sits below the top
-                // edge, which is what makes the pair read as centred.
-                .position(x: geo.size.width / 2, y: geo.size.height - Self.labelPadding + progressReserve / 2 - Self.barHeight / 2)
+            Rectangle()
+                .fill(isDestructive
+                      ? AnyShapeStyle(Color.Theme.destructive.opacity(Self.watchedFillOpacity))
+                      : AnyShapeStyle(TintShapeStyle.tint.opacity(Self.watchedFillOpacity)))
+                .frame(width: geo.size.width * CGFloat(min(1, max(0, fraction))))
+                .frame(maxHeight: .infinity, alignment: .leading)
         }
+        .clipShape(Capsule())
     }
-
-    /// The vertical room the bar and its gap take out of the label's block. Zero without progress,
-    /// so a plain button is untouched.
-    private var progressReserve: CGFloat {
-        (progressFraction ?? 0) > 0 ? Self.barHeight + Self.barGap : 0
-    }
-
-    /// Lines the bar up with the label's own leading edge rather than the capsule's, and matches
-    /// `GlassActionButtonLabel`'s own vertical padding so the two margins can be reasoned about.
-    private static let barInset: CGFloat = 24
-    private static let labelPadding: CGFloat = 12
-    /// Fixed rather than a share of the height: tvOS runs the same paddings at roughly twice the
-    /// type size, so a bar sized off the button would be thin on the platform with the big text.
-    #if os(tvOS)
-    private static let barHeight: CGFloat = 7
-    private static let barGap: CGFloat = 7
-    #else
-    private static let barHeight: CGFloat = 4
-    private static let barGap: CGFloat = 5
-    #endif
 
     private var backgroundFill: AnyShapeStyle {
         if isProminent {
+            // A pill carrying progress keeps the resting level on its unwatched part whatever focus
+            // does, so the step stays the same size on the state the page actually rests in.
+            let carriesProgress = (progressFraction ?? 0) > 0
+            let alpha = (isFocused && !carriesProgress) ? Self.focusedFillOpacity : Self.restingFillOpacity
             if isDestructive {
-                return AnyShapeStyle(Color.Theme.destructive.opacity(isFocused ? Self.focusedFillOpacity : Self.restingFillOpacity))
+                return AnyShapeStyle(Color.Theme.destructive.opacity(alpha))
             }
-            return AnyShapeStyle(TintShapeStyle.tint.opacity(isFocused ? Self.focusedFillOpacity : Self.restingFillOpacity))
+            return AnyShapeStyle(TintShapeStyle.tint.opacity(alpha))
         }
         // The tint arrives on focus as the ring, so this pair is the token set for a control whose
         // lift comes from the COLOUR: a brighter resting ground, a small step under focus. It used
