@@ -704,7 +704,10 @@ struct SeriesDetailView: View {
             )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(30)
+        // The movie page's number, and the phone-portrait branch with it: the series panel was a
+        // flat 30 on every tier, so on a phone the two pages inset their text differently by 14 pt
+        // (Sodalite#146 round 3).
+        .padding(isPhonePortrait ? 16 : 30)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
