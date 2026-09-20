@@ -2434,6 +2434,21 @@ final class PlayerViewModel {
         nativeSubtitleRenderingActive = false
     }
 
+    /// Sodalite#156: set by `selectSubtitleTrack` when a user pick has to reach a receiver, consumed
+    /// once the engine select has landed. A flag rather than an inline call because the rebuild has to
+    /// follow the selection, not race it: the reload reads the session's own active track to decide
+    /// what the rebuilt item carries.
+    private var subtitleReloadForReceiver = false
+
+    /// Rebuild the session so the picked rendition is selected at MOUNT, the one arrangement measured
+    /// to render on a receiver. No-op unless `selectSubtitleTrack` asked for it.
+    private func rebuildForReceiverSubtitleIfNeeded() {
+        guard subtitleReloadForReceiver else { return }
+        subtitleReloadForReceiver = false
+        LogTap.shared.note("[Subtitles] #156 rebuilding the session so the pick is selected at mount")
+        Task { [player] in try? await player.reloadAtCurrentPosition() }
+    }
+
     /// Drop the native rendering selection state so the next entry re-selects (item rebuilt, or subtitle changed).
     func resetNativeSubtitleRenderingState() {
         nativeSubtitleRenderingActive = false
@@ -2650,7 +2665,29 @@ final class PlayerViewModel {
     }
 
     func selectSubtitleTrack(id: Int?, userInitiated: Bool = false) {
-        defer { onSubtitleSelectionChanged?() }
+        // The rebuild rides the same defer as the change hook so it runs on every exit of this
+        // function, including the early ones, and always AFTER the engine select it depends on.
+        defer { onSubtitleSelectionChanged?(); rebuildForReceiverSubtitleIfNeeded() }
+        // Sodalite#156: while the picture is on a receiver, a pick is applied by REBUILDING the
+        // session rather than by moving the selection under a running one.
+        //
+        // The measurement that decided this: the receiver fetched 22 populated .vtt segments after an
+        // in-place re-select and drew an empty caption box anyway (device log 2026-09-20). Nothing was
+        // served empty, no 404, and the cue times matched the windows their playlist declares, so the
+        // delivery was correct and AVKit simply did not render it. The one arrangement that does work
+        // on the device is the one where the selection already exists when the item mounts, which is
+        // why starting AirPlay with subtitles on has always been fine. So put the pick into that
+        // arrangement instead of fighting the other one, which #15, #32, #38, #65, #93, #170 and #227
+        // have all already fought in their own way.
+        //
+        // The cost, stated rather than hidden: a subtitle change during AirPlay now costs a rebuild,
+        // about a second. Fullscreen is untouched. Only a USER pick pays it, never the silent forced
+        // fallback below, which fires on every subtitles-off and would otherwise make turning them off
+        // cost a rebuild for nothing.
+        if userInitiated, id != nil, externalPlaybackDestination != nil,
+           id != activeSubtitleIndex, player.playbackBackend == .native {
+            subtitleReloadForReceiver = true
+        }
         // Sodalite#63 / #65: the user's own pick ends the temporary windows; their selection stands
         // and is never switched off behind their back.
         if userInitiated {
