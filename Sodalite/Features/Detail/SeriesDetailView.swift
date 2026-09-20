@@ -42,6 +42,12 @@ struct SeriesDetailView: View {
     @FocusState private var focusedAction: DetailAction?
     @State private var isPresentingDeleteSheet: Bool = false
     @State private var isPresentingMoreDetails = false
+    /// Sodalite#146 round 3: Watched on a SERIES is the one control on the page that cannot be
+    /// undone by pressing it again. The server cascades the mark to every episode and drops the
+    /// show out of Resume, and pressing it a second time marks the whole show UNWATCHED rather than
+    /// restoring what it replaced, so a mis-press costs per-episode progress a viewer may be three
+    /// seasons into. Single episodes stay a plain toggle; they act on one asset and reverse cleanly.
+    @State private var isConfirmingPlayedChange = false
     /// Set on episode "Show Details": the context menu restores focus to its anchor card on dismiss, so the focusedEpisodeID observer bounces focus up to the play button.
     @State private var pendingPlayFocusAfterMenu = false
 
@@ -433,6 +439,29 @@ struct SeriesDetailView: View {
                 ),
                 isPresented: $isPresentingMoreDetails
             )
+        }
+        .alert(
+            viewModel?.isPlayed == true
+                ? "detail.markUnwatched.confirm.title"
+                : "detail.markWatched.confirm.title",
+            isPresented: $isConfirmingPlayedChange,
+            presenting: viewModel
+        ) { vm in
+            Button(vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched") {
+                Task { await vm.togglePlayed() }
+            }
+            Button("common.cancel", role: .cancel) {}
+        } message: { vm in
+            // No message rather than an invented one when the server sent no count: the title alone
+            // still names the scope, and a number the client guessed at would be the one part of
+            // this alert a viewer could not check.
+            if let episodes = vm.item.recursiveItemCount, episodes > 0 {
+                Text(
+                    vm.isPlayed
+                        ? "detail.markUnwatched.confirm.message \(episodes) \(vm.item.name)"
+                        : "detail.markWatched.confirm.message \(episodes) \(vm.item.name)"
+                )
+            }
         }
         .menuPresentation(isPresented: $isPresentingDeleteSheet, panel: .plain) {
             if let vm = viewModel {
@@ -948,7 +977,7 @@ struct SeriesDetailView: View {
                 GlassActionButton(
                     title: vm.isPlayed ? "detail.markUnwatched" : "detail.markWatched",
                     systemImage: vm.isPlayed ? "checkmark.circle.fill" : "checkmark.circle",
-                    action: { Task { await vm.togglePlayed() } }
+                    action: { isConfirmingPlayedChange = true }
                 )
                 .focused($focusedAction, equals: .watched)
             }
