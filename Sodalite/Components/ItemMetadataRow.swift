@@ -12,6 +12,12 @@ struct ItemMetadataRow: View {
     /// nothing to add adds nothing: a closure handing back an EmptyView is still a segment, and the
     /// row put a separator in front of it, leaving the line ending on a dot with nothing behind it.
     var extras: [AnyView] = []
+    /// Segments that carry their own border, appended last and with NO separator in front of the
+    /// run. The format pills are the case: they are boxes with edges, the age rating beside them is
+    /// another, and a dot between two bordered things lands hard against the first edge instead of
+    /// standing between two words (Sodalite#146 round 3). Inside the run `FormatBadgeRow` already
+    /// separates by spacing for the same reason.
+    var badges: [AnyView] = []
 
     @Environment(\.dependencies) private var dependencies
 
@@ -20,6 +26,9 @@ struct ItemMetadataRow: View {
             ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
                 if index > 0 { separator }
                 segment
+            }
+            ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
+                badge
             }
         }
         .font(.subheadline)

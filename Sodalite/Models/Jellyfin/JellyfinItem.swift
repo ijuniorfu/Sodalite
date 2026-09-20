@@ -45,6 +45,10 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
     /// carries it only when `Fields` names it, which no query here does. `var` with no default so
     /// the hand-written inits below stay untouched, and nil falls back to the user policy.
     var canDelete: Bool?
+    /// Jellyfin `RecursiveItemCount`: for a series, how many episodes sit under it. Same delivery
+    /// rule as `canDelete` above, so a detail response carries it and a list response does not,
+    /// which is why every reader has to survive nil rather than print a zero (Sodalite#146 round 3).
+    var recursiveItemCount: Int?
     /// Jellyfin `LocationType`. Carried on every /Items response without asking for a Field, and
     /// "Virtual" is the only value that matters here (see `isVirtual`). `var` with a default so the
     /// hand-written inits below stay untouched.
@@ -169,6 +173,7 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         case studios = "Studios"
         case collectionType = "CollectionType"
         case canDelete = "CanDelete"
+        case recursiveItemCount = "RecursiveItemCount"
         case locationType = "LocationType"
         case mediaType = "MediaType"
         case childCount = "ChildCount"

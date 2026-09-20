@@ -92,9 +92,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     /// `DetailBackdrop` owns the artwork). Same two URLs that surface passes to the backdrop.
     var heroImageURL: URL? = nil
     var heroPosterURL: URL? = nil
-    /// What pins to the top once the hero has scrolled away (Sodalite#146). nil on the overlays that
-    /// have no hero of their own (collection, catalog, person).
-    var pinnedMark: PinnedPageMark? = nil
     @ViewBuilder let hero: () -> Hero
     @ViewBuilder let primary: () -> Primary
     @ViewBuilder let content: () -> Content
@@ -109,8 +106,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     @State private var containerHeight: CGFloat = 0
     @State private var belowFoldHeight: CGFloat = 0
     @State private var hintSettled = false
-    /// Measured height of the pinned mark's bar, which is what its band is sized from.
-    @State private var pinnedMarkHeight: CGFloat = 0
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @Environment(\.verticalSizeClass) private var vSizeClass
@@ -201,14 +196,12 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     init(
         heroImageURL: URL? = nil,
         heroPosterURL: URL? = nil,
-        pinnedMark: PinnedPageMark? = nil,
         @ViewBuilder hero: @escaping () -> Hero = { EmptyView() },
         @ViewBuilder primary: @escaping () -> Primary,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.heroImageURL = heroImageURL
         self.heroPosterURL = heroPosterURL
-        self.pinnedMark = pinnedMark
         self.hero = hero
         self.primary = primary
         self.content = content
@@ -327,7 +320,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         } action: { _, height in
             containerHeight = height
         }
-        .overlay(alignment: .top) { pinnedMarkBar }
         // Hold the hint back through the cover's present transition, so a viewer who immediately
         // presses down never sees it appear.
         .task {
@@ -353,140 +345,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
         // The colour arrives after the first paint (the artwork has to decode first), so it fades in
         // rather than switching.
         .animation(.easeInOut(duration: 0.4), value: artworkPalette)
-    }
-
-    /// The page's own mark, pinned once the hero has left (Sodalite#146). Deep in the rows a detail
-    /// page is poster art and section headings and nothing that says whose page it is.
-    ///
-    /// It carries a short fade of the page ground with it, or a row scrolling under it would run
-    /// through the mark. Leading, not centred the way Apple pins its own: every heading on the page
-    /// below starts at the same inset, and a centred mark would be the one thing that does not.
-    @ViewBuilder
-    private var pinnedMarkBar: some View {
-        if let pinnedMark, pinnedMarkOpacity > 0 {
-            ContentLogoTitle(
-                itemID: pinnedMark.itemID,
-                logo: pinnedMark.logo,
-                shrink: PinnedMarkMetrics.shrink,
-                centered: centersPinnedMark,
-                reservesHeight: false
-            ) {
-                Text(pinnedMark.title)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
-            }
-            .padding(.horizontal, metrics.rowInset)
-            .padding(.top, pinnedMarkTopInset)
-            .frame(maxWidth: .infinity, alignment: centersPinnedMark ? .center : .leading)
-            .onGeometryChange(for: CGFloat.self) { proxy in
-                proxy.size.height
-            } action: { height in
-                pinnedMarkHeight = height
-            }
-            .background(alignment: .top) { pinnedMarkBand }
-            .opacity(pinnedMarkOpacity)
-            .allowsHitTesting(false)
-        }
-    }
-
-    /// Centred, on both platforms, which is what Apple pins on either of them.
-    ///
-    /// It was leading on tvOS first, argued from the page below: every heading there starts at
-    /// `rowInset`, so a leading mark lines up with them. That turned out to be the argument against
-    /// it. Sharing the inset with the headings is exactly why "Besetzung" ran THROUGH the mark
-    /// instead of under it (Sodalite#146 round 2, photographed): the band covers that now, but
-    /// centring removes the case rather than covering it, and the reporter asked for centred in the
-    /// same breath.
-    ///
-    /// On iOS there is a second reason and it is not optional: the top leading corner belongs to the
-    /// navigation bar's back button, and a mark drawn behind it is what shipped.
-    ///
-    /// The route through the navigation bar itself was tried and abandoned. A toolbar item is
-    /// something the scroll view measures, so it can only appear on scroll by changing the bar's
-    /// metrics, and the scroll view answers that by shifting its content offset. It crept upward
-    /// over a few scrolls, and the mark a bar will give a page is a fraction of the size this one is.
-    private var centersPinnedMark: Bool { true }
-
-    /// The tier the pinned mark is drawn at, which is what makes its band's height knowable.
-    private var pinnedMarkTier: ContentLogoTier {
-        #if os(tvOS)
-        .tv
-        #else
-        ContentLogoTier.tier(isTV: false, compact: hSizeClass == .compact, portrait: vSizeClass != .compact)
-        #endif
-    }
-
-    /// The ground the mark stands on.
-    ///
-    /// It used to be a gradient from the page colour to nothing across the bar's own height, which
-    /// put the mark's own baseline at roughly 13% cover: the section headings below share the mark's
-    /// leading inset, so they ran THROUGH it rather than under it, and on a title with no logo that
-    /// was text over text (Sodalite#146 round 2, photographed on a device). Full cover has to reach
-    /// past the ink, and the dissolve belongs after it.
-    ///
-    /// A material rather than the page colour, because there is no one colour to use: while the mark
-    /// fades in, the first page is still holding the top of the screen with its own scrim, then comes
-    /// the artwork handover, and only after that the ground itself, which keeps deepening down the
-    /// page. A material is whatever it covers, so it is right at every one of those depths and stays
-    /// right as the page scrolls. If the frost reads wrong on the television it is one line back to a
-    /// colour.
-    private var pinnedMarkBand: some View {
-        let run = pinnedMarkInkDepth + PinnedMarkMetrics.fade
-        return Rectangle()
-            .fill(.ultraThinMaterial)
-            .frame(height: run)
-            .mask(alignment: .top) {
-                LinearGradient(
-                    stops: [
-                        .init(color: .black, location: 0),
-                        .init(color: .black, location: pinnedMarkInkDepth / run),
-                        .init(color: .clear, location: 1)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            .ignoresSafeArea(edges: .top)
-            .allowsHitTesting(false)
-    }
-
-    /// How far down the mark's ink reaches, from the screen's top edge.
-    ///
-    /// Measured, and it has to be. The arithmetic answer is the tier's CEILING, what a 1:1 mark would
-    /// draw, and most marks are wordmarks that draw around half of that: sizing the band off the
-    /// ceiling made it 89 pt deeper than the mark it covers, which is what pushed it down into the
-    /// episode row. The measurement is safe here in a way it is not in the hero, because the pinned
-    /// copy no longer reserves a slot and because it is an overlay that sizes nothing.
-    ///
-    /// The tier arithmetic stands in only for the first frame, before the measurement lands.
-    private var pinnedMarkInkDepth: CGFloat {
-        guard pinnedMarkHeight > 0 else {
-            return pinnedMarkTopInset
-                + ContentLogoSizing.ceiling(nominal: pinnedMarkTier.nominalHeight * PinnedMarkMetrics.shrink)
-        }
-        return pinnedMarkHeight
-    }
-
-
-    /// Inside the tvOS title-safe band; the page itself is full-bleed, so the inset cannot come from
-    /// the safe area here.
-    private var pinnedMarkTopInset: CGFloat {
-        #if os(tvOS)
-        60
-        #else
-        hSizeClass == .compact ? 12 : 24
-        #endif
-    }
-
-    /// Fades in across the last third of the first page, so the mark arrives as the hero leaves
-    /// rather than on a timing of its own. Driven by the scroll offset, which means it tracks a
-    /// finger one-to-one and follows tvOS's section-sized jumps rather than being caught halfway.
-    private var pinnedMarkOpacity: Double {
-        guard pinnedMark != nil, containerHeight > 0 else { return 0 }
-        let start = containerHeight * 0.55
-        let end = containerHeight * 0.85
-        return min(max((scrollOffset - start) / (end - start), 0), 1)
     }
 
     // MARK: - iPhone portrait
@@ -753,18 +611,6 @@ struct DetailContentOverlay<Hero: View, Primary: View, Content: View>: View {
     }
 }
 
-/// The pinned mark's two constants. Free-standing because `DetailContentOverlay` is generic over
-/// its three slots, and a generic type cannot hold a static stored property.
-enum PinnedMarkMetrics {
-    /// What the pinned copy of the mark asks of the tier's budget.
-    static let shrink: CGFloat = 0.4
-    /// How far past the ink the band takes to let go. Long enough that a row crossing it dissolves
-    /// rather than clipping off at a line, short enough that the band stops well above the first row
-    /// (Apple TV, 2026-09-15: at 120 under a ceiling-sized slot the frost reached into the episode
-    /// strip).
-    static let fade: CGFloat = 80
-}
-
 /// The ground under everything below the fold (Sodalite#146).
 ///
 /// It used to be `Color.Theme.scrim`, black at 0.55, so the backdrop carried on behind the poster
@@ -836,17 +682,6 @@ struct TuckGround: View {
         // at the fold has nothing to step over.
         .background(Color.Theme.scrim)
     }
-}
-
-/// What identifies a detail page once its hero has scrolled away (Sodalite#146). Three plain values
-/// rather than a view slot, so the overlay can size the mark itself and the pages stay free of the
-/// pinning rule.
-struct PinnedPageMark {
-    /// The item that owns the logo; for an episode this is the SERIES, which has no per-episode mark.
-    let itemID: String
-    let logo: ContentLogoAvailability
-    /// Text title when there is no mark, the same string the hero falls back to.
-    let title: String
 }
 
 /// Legacy shape for overlays without a `primary` slot (collection, catalog, person): fixed 500 pt hero window.

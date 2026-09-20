@@ -65,14 +65,10 @@ enum ContentLogoTier: Equatable {
         }
     }
 
-    /// `shrink` scales both axes together, so a smaller copy of a mark keeps the tier's shape rather
-    /// than becoming a different decision (Sodalite#146). It deliberately does not reach
-    /// `requestPixels`: the pixel box is per device family so that two copies share one cache entry
-    /// and one download.
-    func budget(columnWidth: CGFloat, shrink: CGFloat = 1) -> ContentLogoBudget {
+    func budget(columnWidth: CGFloat) -> ContentLogoBudget {
         let column = columnWidth > 0 ? columnWidth : nominalColumn
-        return ContentLogoBudget(maxWidth: column * columnFraction * shrink,
-                                 nominalHeight: nominalHeight * shrink)
+        return ContentLogoBudget(maxWidth: column * columnFraction,
+                                 nominalHeight: nominalHeight)
     }
 
     /// Box to ask Jellyfin for, in points, per DEVICE FAMILY rather than per tier: the two phone

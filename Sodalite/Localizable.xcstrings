@@ -66911,6 +66911,330 @@
         }
       }
     },
+    "detail.markUnwatched.confirm.message %lld %@" : {
+      "comment" : "Confirmation body: episode count, then series name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tím se všech %lld epizod seriálu %@ označí jako nezhlédnuté a váš postup se zahodí."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det markerer alle %lld afsnit af %@ som uset og kasserer dit forløb."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das markiert alle %lld Folgen von %@ als ungesehen und verwirft deinen Fortschritt."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτό επισημαίνει και τα %lld επεισόδια του %@ ως μη παρακολουθημένα και διαγράφει την πρόοδό σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This marks all %lld episodes of %@ as unwatched and discards your progress through the show."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto marca los %lld episodios de %@ como no vistos y descarta tu progreso."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tämä merkitsee kaikki %lld jaksoa sarjasta %@ katsomattomiksi ja hylkää edistymisesi."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cela marque les %lld épisodes de %@ comme non vus et supprime votre progression."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time se svih %lld epizoda serije %@ označava kao neodgledano i vaš se napredak odbacuje."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ez a(z) %lld epizódot megnézetlenként jelöli meg a(z) %@ sorozatban, és elveti az előrehaladásodat."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo segna tutti i %lld episodi di %@ come non visti e cancella i tuoi progressi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 本のエピソード（%@）すべてが未再生になり、視聴の進行状況は破棄されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld개 에피소드(%@) 전체가 시청 안 함으로 표시되고 시청 기록이 삭제됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dette merker alle %lld episodene av %@ som usett og forkaster fremdriften din."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiermee worden alle %lld afleveringen van %@ als niet bekeken gemarkeerd en gaat je voortgang verloren."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spowoduje to oznaczenie wszystkich %lld odcinków serialu %@ jako nieobejrzane i odrzucenie Twojego postępu."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso marca todos os %lld episódios de %@ como não assistidos e descarta seu progresso."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto marca todos os %lld episódios de %@ como não vistos e descarta o seu progresso."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Astfel toate cele %lld episoade din %@ sunt marcate ca nevizionate, iar progresul tău se pierde."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все %lld серий сериала %@ будут отмечены как непросмотренные, а ваш прогресс будет сброшен."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Týmto sa všetkých %lld epizód seriálu %@ označí ako nepozreté a váš postup sa zahodí."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det markerar alla %lld avsnitt av %@ som osedda och kastar bort dina framsteg."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu, %lld bölümün tamamını (%@) izlenmedi olarak işaretler ve ilerlemenizi siler."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усі %lld епізодів серіалу %@ буде позначено як непереглянуті, а ваш прогрес буде скинуто."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这会把全部 %lld 集（%@）标记为未观看，并放弃你的观看进度。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這會把全部 %lld 集（%@）標記為未觀看，並放棄你的觀看進度。"
+          }
+        }
+      }
+    },
+    "detail.markUnwatched.confirm.title" : {
+      "comment" : "Confirmation title before marking a whole series unwatched",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Označit celý seriál jako nezhlédnutý?"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markér hele serien som uset?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ganze Serie als ungesehen markieren?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επισήμανση ολόκληρης της σειράς ως μη παρακολουθημένης;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark the whole series as unwatched?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Marcar toda la serie como no vista?"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merkitäänkö koko sarja katsomattomaksi?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marquer toute la série comme non vue ?"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Označiti cijelu seriju kao neodgledanu?"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Megjelölöd az egész sorozatot megnézetlenként?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segnare l'intera serie come non vista?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シリーズ全体を未再生にしますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시리즈 전체를 시청 안 함으로 표시할까요?"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merk hele serien som usett?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hele serie als niet bekeken markeren?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oznaczyć cały serial jako nieobejrzany?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar a série inteira como não assistida?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar toda a série como não vista?"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marchezi tot serialul ca nevizionat?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отметить весь сериал как непросмотренный?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Označiť celý seriál ako nepozretý?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markera hela serien som osedd?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm dizi izlenmedi olarak işaretlensin mi?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити весь серіал як непереглянутий?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将整部剧集标记为未观看？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將整部影集標記為未觀看？"
+          }
+        }
+      }
+    },
     "detail.markWatched" : {
       "comment" : "Mark as watched action",
       "extractionState" : "manual",
@@ -67069,6 +67393,330 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已觀看"
+          }
+        }
+      }
+    },
+    "detail.markWatched.confirm.message %lld %@" : {
+      "comment" : "Confirmation body: episode count, then series name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tím se všech %lld epizod seriálu %@ označí jako zhlédnuté, včetně těch, které jste neviděli."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det markerer alle %lld afsnit af %@ som set, også dem du ikke har set endnu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das markiert alle %lld Folgen von %@ als gesehen, auch die noch nicht gesehenen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτό επισημαίνει και τα %lld επεισόδια του %@ ως παρακολουθημένα, ακόμη και όσα δεν έχετε δει."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This marks all %lld episodes of %@ as watched, including the ones you have not seen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto marca los %lld episodios de %@ como vistos, incluidos los que aún no has visto."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tämä merkitsee kaikki %lld jaksoa sarjasta %@ katsotuiksi, myös ne joita et ole nähnyt."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cela marque les %lld épisodes de %@ comme vus, y compris ceux que vous n'avez pas encore regardés."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time se svih %lld epizoda serije %@ označava kao odgledano, uključujući one koje niste vidjeli."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ez a(z) %lld epizódot megnézettként jelöli meg a(z) %@ sorozatban, azokat is, amelyeket még nem láttál."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo segna tutti i %lld episodi di %@ come visti, compresi quelli che non hai ancora guardato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 本のエピソード（%@）すべてが再生済みになります。まだ見ていないものも含まれます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld개 에피소드(%@) 전체가 시청함으로 표시됩니다. 아직 보지 않은 것도 포함됩니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dette merker alle %lld episodene av %@ som sett, også de du ikke har sett."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiermee worden alle %lld afleveringen van %@ als bekeken gemarkeerd, ook de afleveringen die je nog niet hebt gezien."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spowoduje to oznaczenie wszystkich %lld odcinków serialu %@ jako obejrzane, także tych, których jeszcze nie widziałeś."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso marca todos os %lld episódios de %@ como assistidos, incluindo os que você ainda não viu."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isto marca todos os %lld episódios de %@ como vistos, incluindo os que ainda não viu."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Astfel toate cele %lld episoade din %@ sunt marcate ca vizionate, inclusiv cele pe care nu le-ai văzut."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все %lld серий сериала %@ будут отмечены как просмотренные, включая те, которые вы не видели."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Týmto sa všetkých %lld epizód seriálu %@ označí ako pozreté, vrátane tých, ktoré ste nevideli."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det markerar alla %lld avsnitt av %@ som sedda, även de du inte har sett."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu, %lld bölümün tamamını (%@) izlendi olarak işaretler, henüz izlemediklerinizi de."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Усі %lld епізодів серіалу %@ буде позначено як переглянуті, зокрема ті, яких ви не бачили."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这会把全部 %lld 集（%@）标记为已观看，包括你还没看过的。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這會把全部 %lld 集（%@）標記為已觀看，包括你還沒看過的。"
+          }
+        }
+      }
+    },
+    "detail.markWatched.confirm.title" : {
+      "comment" : "Confirmation title before marking a whole series watched",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Označit celý seriál jako zhlédnutý?"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markér hele serien som set?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ganze Serie als gesehen markieren?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Επισήμανση ολόκληρης της σειράς ως παρακολουθημένης;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark the whole series as watched?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Marcar toda la serie como vista?"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merkitäänkö koko sarja katsotuksi?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marquer toute la série comme vue ?"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Označiti cijelu seriju kao odgledanu?"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Megjelölöd az egész sorozatot megnézettként?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segnare l'intera serie come vista?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シリーズ全体を再生済みにしますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시리즈 전체를 시청함으로 표시할까요?"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merk hele serien som sett?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hele serie als bekeken markeren?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oznaczyć cały serial jako obejrzany?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar a série inteira como assistida?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marcar toda a série como vista?"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marchezi tot serialul ca vizionat?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отметить весь сериал как просмотренный?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Označiť celý seriál ako pozretý?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markera hela serien som sedd?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm dizi izlendi olarak işaretlensin mi?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити весь серіал як переглянутий?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将整部剧集标记为已观看？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將整部影集標記為已觀看？"
           }
         }
       }
