@@ -39,6 +39,7 @@ struct PlayerOverlayView: View {
                     title: viewModel.item.seriesName ?? viewModel.item.name,
                     subtitle: viewModel.item.seriesName != nil ? viewModel.item.name : nil,
                     artworkURL: remoteViewArtworkURL,
+                    backdropURL: remoteViewBackdropURL,
                     tintColor: tintColor
                 )
                 .transition(.opacity)
@@ -450,6 +451,26 @@ struct PlayerOverlayView: View {
             return URL(string: "\(baseURL)/Items/\(item.id)/Images/Backdrop?tag=\(tag)&maxWidth=\(width)&quality=85")
         }
         return nil
+    }
+
+    /// The 16:9 art the landscape remote view fills the screen with. Backdrop first, then the
+    /// episode's own still, which is the same shape; the portrait poster is the last resort and only
+    /// because a filled screen beats a black one. Built here for the same reason its portrait sibling
+    /// above is, and sized full-bleed rather than at a card width.
+    private var remoteViewBackdropURL: URL? {
+        guard let baseURL = viewModel.playbackService.baseURL else { return nil }
+        let item = viewModel.item
+        let width = ImageWidth.fullBleed
+        if let tags = item.backdropImageTags, let tag = tags.first {
+            return URL(string: "\(baseURL)/Items/\(item.id)/Images/Backdrop?tag=\(tag)&maxWidth=\(width)&quality=85")
+        }
+        if let tags = item.parentBackdropImageTags, let tag = tags.first, let seriesId = item.seriesId {
+            return URL(string: "\(baseURL)/Items/\(seriesId)/Images/Backdrop?tag=\(tag)&maxWidth=\(width)&quality=85")
+        }
+        if item.type == .episode, let tag = item.imageTags?.primary {
+            return URL(string: "\(baseURL)/Items/\(item.id)/Images/Primary?tag=\(tag)&maxWidth=\(width)&quality=85")
+        }
+        return remoteViewArtworkURL
     }
 
     @ViewBuilder

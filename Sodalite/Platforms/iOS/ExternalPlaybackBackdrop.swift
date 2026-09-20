@@ -15,6 +15,9 @@ struct ExternalPlaybackBackdrop: View {
     let title: String
     let subtitle: String?
     let artworkURL: URL?
+    /// The 16:9 art the landscape form fills the screen with. Portrait never uses it: a backdrop
+    /// cropped into a tall frame loses exactly the part that makes it recognisable.
+    let backdropURL: URL?
     let tintColor: Color
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
@@ -28,8 +31,9 @@ struct ExternalPlaybackBackdrop: View {
             let allotted = geo.frame(in: .global)
             let (screen, _) = PlayerOverlayView.windowGeometry(fallback: geo.size)
             let band = ExternalPlaybackPresentation.contentBand(screenHeight: screen.height)
+            let short = band.height < ExternalPlaybackPresentation.shortBandHeight
             ZStack(alignment: .top) {
-                background(screen: screen)
+                background(screen: screen, short: short)
                 content(bandHeight: band.height)
                     .frame(width: screen.width, height: band.height)
                     // Offset, not `.position`: position resolves against the stack's own bounds, and
@@ -45,8 +49,25 @@ struct ExternalPlaybackBackdrop: View {
     }
 
     @ViewBuilder
-    private func background(screen: CGRect) -> some View {
+    private func background(screen: CGRect, short: Bool) -> some View {
         Color.black
+        // Landscape fills the screen with the 16:9 art itself, dimmed, and carries nothing but the
+        // destination line in the middle. The portrait block does not fit a landscape band: at ~190pt
+        // it crushed the poster and pushed its capsule down into the icon row, so the one thing the
+        // viewer needs to read sat under the chrome. There is also nothing to lose by dropping the
+        // title here, the transport's own top bar already carries it two centimetres above.
+        if short, let backdropURL {
+            AsyncCachedImage(url: backdropURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: screen.width, height: screen.height)
+                    .clipped()
+                    .overlay(Color.Theme.scrim)
+            } placeholder: {
+                Color.clear
+            }
+        } else {
         // The same artwork, blurred out into a wash. Nothing is readable in it, it only keeps the
         // screen from being a black rectangle with a card floating on it.
         //
@@ -67,11 +88,16 @@ struct ExternalPlaybackBackdrop: View {
                 Color.clear
             }
         }
+        }
     }
 
+    @ViewBuilder
     private func content(bandHeight: CGFloat) -> some View {
         let short = bandHeight < ExternalPlaybackPresentation.shortBandHeight
-        return VStack(spacing: short ? 12 : 20) {
+        if short, backdropURL != nil {
+            destinationLabel(short: true)
+        } else {
+        VStack(spacing: short ? 12 : 20) {
             poster(height: ExternalPlaybackPresentation.posterHeight(bandHeight: bandHeight, isPad: isPad))
             VStack(spacing: short ? 2 : 6) {
                 Text(title)
@@ -91,6 +117,7 @@ struct ExternalPlaybackBackdrop: View {
         }
         .frame(maxWidth: 420)
         .padding(.horizontal, 32)
+        }
     }
 
     @ViewBuilder
