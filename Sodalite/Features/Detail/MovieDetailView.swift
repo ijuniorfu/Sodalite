@@ -427,7 +427,7 @@ struct MovieDetailView: View {
                         }
                     }
                 } else {
-                    ItemMetadataRow(item: vm.item, extras: formatBadges(vm: vm))
+                    ItemMetadataRow(item: vm.item, badges: formatBadges(vm: vm))
                 }
             }
 

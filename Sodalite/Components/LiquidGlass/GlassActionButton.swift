@@ -270,6 +270,19 @@ struct GlassButtonStyle: ButtonStyle {
                     }
                 }
             )
+            // A resting edge on the secondary pills, which have no fill strong enough to draw one
+            // for them. They float over a detail page's artwork, where an unfocused row of flat
+            // 0.1 white reads as smudges rather than as controls (Sodalite#146 round 3, reported on
+            // a television and an iPad). The prominent pill needs none: its accent IS the edge.
+            //
+            // `hairline` rather than `panelEdge` because of what is BEHIND it. The quiet edge is for
+            // a panel whose ground the app draws; these sit on whatever the scraper found, so the
+            // failure case is a dark pill on a dark frame, which is the case hairline is bright for.
+            .overlay {
+                if !isProminent {
+                    Capsule().strokeBorder(Color.Theme.hairline, lineWidth: 1)
+                }
+            }
             .focusStroke(Capsule(), isFocused: isFocused)
             // The role's curve matches the label-reveal spring here, so scale, border and
             // icon->label expansion move together. Capped, and therefore measured: see liftCeiling.
@@ -346,6 +359,10 @@ struct GlassButtonStyle: ButtonStyle {
             }
             return AnyShapeStyle(TintShapeStyle.tint.opacity(isFocused ? Self.focusedFillOpacity : Self.restingFillOpacity))
         }
-        return AnyShapeStyle(.white.opacity(isFocused ? 0.2 : 0.1))
+        // The tint arrives on focus as the ring, so this pair is the token set for a control whose
+        // lift comes from the COLOUR: a brighter resting ground, a small step under focus. It used
+        // to be a bare 0.1/0.2 white, which is both a wider step than the system asks for and the
+        // literal the theme tokens exist to replace.
+        return AnyShapeStyle(isFocused ? Color.Theme.focusFill : Color.Theme.restFillStrong)
     }
 }
