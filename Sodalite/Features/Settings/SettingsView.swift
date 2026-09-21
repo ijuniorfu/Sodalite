@@ -374,7 +374,9 @@ struct SettingsView: View {
                 .monospacedDigit()
             // The engine is a separate product with its own release line, and a playback report is
             // read against its version rather than the app's (AetherPlayer#7).
-            Text("AetherEngine \(AetherEngine.version)")
+            // verbatim: a version number is not translatable, and without it the string catalog
+            // grows an empty "AetherEngine %@" key on every build that extracts strings.
+            Text(verbatim: "AetherEngine \(AetherEngine.version)")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .monospacedDigit()
