@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# Catches the two ways Xcode has silently damaged tracked files in this repo.
+# Installed by Scripts/generate-project.sh via core.hooksPath, bypass with --no-verify.
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+staged() { git diff --cached --name-only --diff-filter=ACM | grep -Fxq "$1"; }
+fail() { echo "pre-commit: $*" >&2; exit 1; }
+
+# 1. Info.plist. Xcode's Info tab, the capabilities editor and the "Perform Changes"
+#    validation dialog rewrite this file alphabetically, drop every comment and have
+#    already dropped whole keys (measured 2026-09-21: NSLocalNetworkUsageDescription and
+#    ITSAppUsesNonExemptEncryption). The comments carry measurements, so losing them is
+#    losing the reason a key is there.
+PLIST=SupportingFiles/Info.plist
+if staged "$PLIST"; then
+    BLOB=$(mktemp -t infoplist); trap 'rm -f "$BLOB"' EXIT
+    git show ":$PLIST" > "$BLOB"
+    for key in ITSAppUsesNonExemptEncryption NSLocalNetworkUsageDescription UIBackgroundModes GCSupportsMultipleMicroGamepads NSAppTransportSecurity; do
+        plutil -extract "$key" raw -o /dev/null "$BLOB" >/dev/null 2>&1 \
+            || fail "$PLIST no longer has $key. Xcode's Info tab drops keys; edit the file as text."
+    done
+    grep -q "remote-notification" "$BLOB" \
+        || fail "$PLIST lost the remote-notification background mode, CloudKit sync needs it."
+    # grep -c prints its count but exits 1 when that count is zero, so swallow the status.
+    was=$(git show "HEAD:$PLIST" 2>/dev/null | grep -c -- "<!--" || true)
+    now=$(grep -c -- "<!--" "$BLOB" || true)
+    [ "$now" -ge "$was" ] \
+        || fail "$PLIST lost $((was - now)) comment block(s). Xcode strips them; edit the file as text."
+fi
+
+# 2. String catalogs. Xcode rewrites the whole catalog on every string extraction and writes
+#    the keys sorted, so an unsorted catalog buys a five-figure cosmetic diff on the next
+#    build, and a diff that changes nothing semantically is that churn rather than work.
+SORTER="swift Scripts/xcstrings-sort.swift"
+for CATALOG in Sodalite/Localizable.xcstrings SodaliteTopShelf/Localizable.xcstrings; do
+    staged "$CATALOG" || continue
+
+    WORK=$(mktemp -d -t xcstrings)
+    git show ":$CATALOG" > "$WORK/staged.xcstrings"
+    git show "HEAD:$CATALOG" > "$WORK/head.xcstrings" 2>/dev/null
+
+    # The check fails both on a wrong key order and on a catalog whose formatting no longer
+    # parses, which is what a whole-file reserialise looks like. Pass its own words through.
+    if ! REASON=$($SORTER "$WORK/staged.xcstrings" --check 2>&1); then
+        REASON=${REASON//$WORK\/staged.xcstrings/$CATALOG}
+        rm -rf "$WORK"
+        fail "${REASON#xcstrings-sort: } The next Xcode build would rewrite the whole file."
+    fi
+
+    CHURN=$(git diff --cached --numstat -- "$CATALOG" | awk '{print $1 + $2}')
+    if [ "${CHURN:-0}" -gt 200 ] && [ -s "$WORK/head.xcstrings" ]; then
+        # A big diff that changes no string is churn, unless it is the one commit that brings
+        # an unsorted catalog into Xcode's order.
+        SAME=$(python3 -c 'import json,sys; print("yes" if json.load(open(sys.argv[1]))==json.load(open(sys.argv[2])) else "no")' \
+               "$WORK/head.xcstrings" "$WORK/staged.xcstrings")
+        WAS_SORTED=yes
+        $SORTER "$WORK/head.xcstrings" --check >/dev/null 2>&1 || WAS_SORTED=no
+        if [ "$SAME" = "yes" ] && [ "$WAS_SORTED" = "yes" ]; then
+            rm -rf "$WORK"
+            fail "$CATALOG changes $CHURN lines without changing a single string. That is Xcode's reserialisation, not work: git checkout -- $CATALOG"
+        fi
+    fi
+    rm -rf "$WORK"
+done
+
+exit 0

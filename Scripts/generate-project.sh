@@ -26,3 +26,11 @@ fi
 rm -f "$BACKUP"
 
 echo "Regenerated Sodalite.xcodeproj from project.yml (Package.resolved preserved)"
+
+# The repo's hooks are tracked in Scripts/git-hooks, so a fresh clone gets them from the
+# first generate rather than from a step nobody remembers. See that folder for what they guard.
+if [ "$(git config --get core.hooksPath || true)" != "Scripts/git-hooks" ]; then
+  chmod +x Scripts/git-hooks/*
+  git config core.hooksPath Scripts/git-hooks
+  echo "Installed the repo's git hooks (core.hooksPath = Scripts/git-hooks)"
+fi
