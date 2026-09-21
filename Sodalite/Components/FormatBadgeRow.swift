@@ -35,20 +35,27 @@ struct FormatBadgeRow: View {
     /// `sourceID` is the version the page is showing. Without it a multi-version title describes its
     /// first source while the viewer is looking at the one they picked, which is Sodalite#139 again,
     /// one row further up the page.
-    static func extras(for item: JellyfinItem, sourceID: String?, enabled: Bool) -> [AnyView] {
-        let pills = pills(for: item, sourceID: sourceID, enabled: enabled)
+    static func extras(for item: JellyfinItem, sourceID: String?, enabled: Bool,
+                       carriesHDR10Plus: Bool = false) -> [AnyView] {
+        let pills = pills(for: item, sourceID: sourceID, enabled: enabled, carriesHDR10Plus: carriesHDR10Plus)
         guard !pills.isEmpty else { return [] }
         return [AnyView(FormatBadgeRow(pills: pills))]
     }
 
     /// What the row would say, for callers that place it themselves instead of handing it to the
     /// metadata row. Empty when the viewer turned the pills off or the server said nothing.
-    static func pills(for item: JellyfinItem, sourceID: String?, enabled: Bool) -> [String] {
+    ///
+    /// `carriesHDR10Plus` is the probe's answer for this version (AE#579), and only a detail page
+    /// has one: the poster corners read the same resolver without it, so a card says HDR10 where the
+    /// page it opens says HDR10+. That is the one direction the disagreement is allowed to run, a
+    /// grid cannot open every file it draws.
+    static func pills(for item: JellyfinItem, sourceID: String?, enabled: Bool,
+                      carriesHDR10Plus: Bool = false) -> [String] {
         guard enabled else { return [] }
-        return MediaBadgeResolver.badges(
+        let badges = MediaBadgeResolver.badges(
             width: item.width,
             height: item.height,
-            streams: item.effectiveMediaStreams(id: sourceID)
-        ).detailPills
+            streams: item.effectiveMediaStreams(id: sourceID))
+        return (carriesHDR10Plus ? badges.upgradedToHDR10Plus() : badges).detailPills
     }
 }

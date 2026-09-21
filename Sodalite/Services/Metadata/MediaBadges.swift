@@ -53,6 +53,18 @@ struct MediaBadges: Equatable, Sendable {
     var detailPills: [String] {
         [resolution?.rawValue, dynamicRange?.rawValue, audioCodec, audio?.rawValue].compactMap { $0 }
     }
+
+    /// What `HDR10PlusProbeStore` found (AE#579), applied to the badge the container produced.
+    ///
+    /// One-directional, like the engine pass it comes from: it can only ever raise HDR10 to HDR10+.
+    /// A Dolby Vision badge stays, because it already describes the layer the panel will present,
+    /// and nothing without an HDR10 base layer is touched.
+    func upgradedToHDR10Plus() -> MediaBadges {
+        guard dynamicRange == .hdr10 else { return self }
+        var upgraded = self
+        upgraded.dynamicRange = .hdr10Plus
+        return upgraded
+    }
 }
 
 enum MediaBadgeResolver {

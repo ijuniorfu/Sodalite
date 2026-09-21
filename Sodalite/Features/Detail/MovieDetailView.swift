@@ -142,6 +142,14 @@ struct MovieDetailView: View {
             didAutoPlay = true
             requestPlay(fromBeginning: false)
         }
+        // AE#579. After the detail round trip, because the media sources it needs arrive with it,
+        // and again when the viewer picks another version.
+        .task(id: hdr10PlusProbeKey) {
+            guard let item = viewModel?.item else { return }
+            await dependencies.hdr10PlusProbeStore.probeIfNeeded(
+                item: item,
+                sourceID: versionSelection.preferredSourceID(for: item))
+        }
         .menuPresentation(item: $versionChoice) { choice in
             VersionPickerSheet(
                 sources: choice.sources,
@@ -454,7 +462,8 @@ struct MovieDetailView: View {
         FormatBadgeRow.extras(
             for: vm.item,
             sourceID: versionSelection.preferredSourceID(for: vm.item),
-            enabled: dependencies.appearancePreferences.showDetailBadges
+            enabled: dependencies.appearancePreferences.showDetailBadges,
+            carriesHDR10Plus: carriesHDR10Plus(vm: vm)
         )
     }
 
@@ -464,8 +473,27 @@ struct MovieDetailView: View {
         FormatBadgeRow.pills(
             for: vm.item,
             sourceID: versionSelection.preferredSourceID(for: vm.item),
-            enabled: dependencies.appearancePreferences.showDetailBadges
+            enabled: dependencies.appearancePreferences.showDetailBadges,
+            carriesHDR10Plus: carriesHDR10Plus(vm: vm)
         )
+    }
+
+    /// The file the probe would open. Keyed on the resolved source rather than on `hasFullDetail`,
+    /// because a page can render from a slim item that carries no media sources at all: the id only
+    /// appears once the detail round trip has landed, and that is the moment there is something to
+    /// ask about.
+    private var hdr10PlusProbeKey: String {
+        guard let item = viewModel?.item else { return "-" }
+        let source = item.effectiveMediaSource(id: versionSelection.preferredSourceID(for: item))
+        return [item.id, source?.id ?? "-"].joined(separator: "|")
+    }
+
+    /// AE#579. The server cannot see an in-band HDR10+ SEI, so the page asks the engine once per
+    /// version and repaints the pill if the answer comes back positive.
+    private func carriesHDR10Plus(vm: DetailViewModel) -> Bool {
+        dependencies.hdr10PlusProbeStore.carriesHDR10Plus(
+            itemID: vm.item.id,
+            sourceID: versionSelection.preferredSourceID(for: vm.item))
     }
 
     private func isSynopsisVeiled(vm: DetailViewModel) -> Bool {

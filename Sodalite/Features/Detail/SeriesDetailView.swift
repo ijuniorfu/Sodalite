@@ -259,6 +259,14 @@ struct SeriesDetailView: View {
             maybeAutoPlay()
             maybePendingPlay()
         }
+        // AE#579, see hdr10PlusProbeKey: asked for the episode on screen, once per version.
+        .task(id: hdr10PlusProbeKey) {
+            guard isShowingEpisode else { return }
+            let episode = displayItem
+            await dependencies.hdr10PlusProbeStore.probeIfNeeded(
+                item: episode,
+                sourceID: versionSelection.preferredSourceID(for: episode))
+        }
         .menuPresentation(item: $versionChoice) { choice in
             VersionPickerSheet(
                 sources: choice.sources,
@@ -748,8 +756,21 @@ struct SeriesDetailView: View {
         return FormatBadgeRow.pills(
             for: displayItem,
             sourceID: versionSelection.preferredSourceID(for: displayItem),
-            enabled: dependencies.appearancePreferences.showDetailBadges
+            enabled: dependencies.appearancePreferences.showDetailBadges,
+            carriesHDR10Plus: dependencies.hdr10PlusProbeStore.carriesHDR10Plus(
+                itemID: displayItem.id,
+                sourceID: versionSelection.preferredSourceID(for: displayItem))
         )
+    }
+
+    /// AE#579, the episode state only: the probe follows the episode on screen, and a series root
+    /// has no file to open. Keyed on the resolved source, because an episode opened from Home or
+    /// search arrives slim and only grows its media sources when the detail fetch lands.
+    private var hdr10PlusProbeKey: String {
+        guard isShowingEpisode else { return "-" }
+        let item = displayItem
+        let source = item.effectiveMediaSource(id: versionSelection.preferredSourceID(for: item))
+        return [item.id, source?.id ?? "-"].joined(separator: "|")
     }
 
     /// displayItem, so the episode state asks about the episode: the policy ignores a series, which

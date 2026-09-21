@@ -50,6 +50,8 @@ final class DependencyContainer {
     /// Sodalite#79. One store for the whole app so a title enriched in a Home row is already known
     /// when the same title shows up in a grid.
     let posterBadgeStore: PosterBadgeStore
+    /// AE#579. The detail page's HDR10+ answer, which no Jellyfin field carries.
+    let hdr10PlusProbeStore: HDR10PlusProbeStore
     let authPreferences: AuthPreferences
     let parentalControlsPreferences: ParentalControlsPreferences
     let parentalGate: ParentalGate
@@ -169,6 +171,15 @@ final class DependencyContainer {
         self.posterBadgeStore = PosterBadgeStore(
             library: self.jellyfinLibraryService,
             isEnabled: { profileSettings.current.appearance.showPosterBadges }
+        )
+        // Static=true, so the probe always opens the original file and never a transcode.
+        let playbackService = self.jellyfinPlaybackService
+        self.hdr10PlusProbeStore = HDR10PlusProbeStore(
+            streamURL: { itemID, sourceID, container in
+                playbackService.buildStreamURL(
+                    itemID: itemID, mediaSourceID: sourceID, container: container, isStatic: true)
+            },
+            isEnabled: { profileSettings.current.appearance.showDetailBadges }
         )
         self.authPreferences = AuthPreferences(store: defaults)
         // The pre-1.0 default-profile pin had no server scope; attribute it to the pinned default server, else the one that was active when it was written.
