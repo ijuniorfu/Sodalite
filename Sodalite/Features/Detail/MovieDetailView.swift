@@ -492,7 +492,7 @@ struct MovieDetailView: View {
     /// version and repaints the pill if the answer comes back positive.
     private func carriesHDR10Plus(vm: DetailViewModel) -> Bool {
         dependencies.hdr10PlusProbeStore.carriesHDR10Plus(
-            itemID: vm.item.id,
+            item: vm.item,
             sourceID: versionSelection.preferredSourceID(for: vm.item))
     }
 

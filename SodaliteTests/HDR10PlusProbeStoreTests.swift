@@ -46,7 +46,7 @@ struct HDR10PlusProbeStoreTests {
                 URL(string: "https://jf.example/Videos/\(itemID)/stream.\(container ?? "mp4")?MediaSourceId=\(sourceID)&Static=true")
             },
             isEnabled: { enabled },
-            probe: { try spy.probe($0) }
+            probe: { url, _ in try spy.probe(url) }
         )
         return (store, spy)
     }
@@ -102,11 +102,25 @@ struct HDR10PlusProbeStoreTests {
     func confirmedUpgradesBadge() async throws {
         let (store, _) = Self.store(answer: .success(true))
         let item = try Self.item()
-        #expect(!store.carriesHDR10Plus(itemID: item.id, sourceID: "src1"))
+        #expect(!store.carriesHDR10Plus(item: item, sourceID: "src1"))
 
         await store.probeIfNeeded(item: item, sourceID: "src1")
 
-        #expect(store.carriesHDR10Plus(itemID: item.id, sourceID: "src1"))
+        #expect(store.carriesHDR10Plus(item: item, sourceID: "src1"))
+    }
+
+    /// The trap this caught: `VersionSelection.preferredSourceID` returns nil for a title with ONE
+    /// source, which is most of them, so the page reads with nil while the probe wrote under the
+    /// resolved source id. Both sides have to resolve the same way.
+    @Test("a single-source title, where the page has no version id to pass, is still recognised")
+    func singleSourceTitleIsRecognised() async throws {
+        let (store, spy) = Self.store()
+        let item = try Self.item()
+
+        await store.probeIfNeeded(item: item, sourceID: nil)
+
+        #expect(spy.count == 1)
+        #expect(store.carriesHDR10Plus(item: item, sourceID: nil))
     }
 
     @Test("the probe reads the version the page is showing, not the first source")
@@ -143,7 +157,7 @@ struct HDR10PlusProbeStoreTests {
         await store.probeIfNeeded(item: item, sourceID: "src1")
 
         #expect(spy.count == 1)
-        #expect(!store.carriesHDR10Plus(itemID: item.id, sourceID: "src1"))
+        #expect(!store.carriesHDR10Plus(item: item, sourceID: "src1"))
     }
 
     @Test("a probe that fails leaves the badge alone and does not loop on the next visit")
@@ -155,7 +169,7 @@ struct HDR10PlusProbeStoreTests {
         await store.probeIfNeeded(item: item, sourceID: "src1")
 
         #expect(spy.count == 1)
-        #expect(!store.carriesHDR10Plus(itemID: item.id, sourceID: "src1"))
+        #expect(!store.carriesHDR10Plus(item: item, sourceID: "src1"))
     }
 
     @Test("two versions of one title are two questions")

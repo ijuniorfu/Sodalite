@@ -42,26 +42,32 @@ final class HDR10PlusProbeStore {
 
     private let streamURL: @MainActor (_ itemID: String, _ sourceID: String, _ container: String?) -> URL?
     private let isEnabled: @MainActor () -> Bool
-    private let probe: @Sendable (URL) throws -> Bool
+    private let probe: @Sendable (URL, ProbeCancellation) throws -> Bool
 
     init(streamURL: @escaping @MainActor (String, String, String?) -> URL?,
          isEnabled: @escaping @MainActor () -> Bool,
-         probe: @escaping @Sendable (URL) throws -> Bool = HDR10PlusProbeStore.engineProbe) {
+         probe: @escaping @Sendable (URL, ProbeCancellation) throws -> Bool = HDR10PlusProbeStore.engineProbe) {
         self.streamURL = streamURL
         self.isEnabled = isEnabled
         self.probe = probe
     }
 
     /// The default pass. Blocking FFmpeg work, so every caller runs it off the main actor.
-    static let engineProbe: @Sendable (URL) throws -> Bool = { url in
-        try AetherEngine.probe(url: url, detecting: .hdr10Plus, limits: limits).carriesHDR10PlusMetadata
+    nonisolated static let engineProbe: @Sendable (URL, ProbeCancellation) throws -> Bool = { url, cancellation in
+        try AetherEngine.probe(url: url, detecting: .hdr10Plus,
+                               limits: limits, cancellation: cancellation).carriesHDR10PlusMetadata
     }
 
     /// Whether this version was opened and found to carry HDR10+. False while nothing is known,
     /// which is also what a page wants to paint: the server's own answer, unchanged.
-    func carriesHDR10Plus(itemID: String, sourceID: String?) -> Bool {
-        guard let sourceID, !sourceID.isEmpty else { return false }
-        return confirmed.contains(Key(itemID: itemID, sourceID: sourceID))
+    ///
+    /// Takes the item, not an id, so the key is built the same way on both sides. A page passes the
+    /// version it is showing, and `VersionSelection.preferredSourceID` is nil for the ordinary
+    /// single-source title: reading the raw id here would have missed every answer the probe wrote
+    /// under the resolved source.
+    func carriesHDR10Plus(item: JellyfinItem, sourceID: String?) -> Bool {
+        guard let source = item.effectiveMediaSource(id: sourceID) else { return false }
+        return confirmed.contains(Key(itemID: item.id, sourceID: source.id))
     }
 
     /// The only case worth a connection: a movie or episode whose badge currently reads plain HDR10.
@@ -93,14 +99,23 @@ final class HDR10PlusProbeStore {
         defer { inFlight.remove(key) }
 
         let probe = self.probe
-        let carries = await Task.detached(priority: .utility) { () -> Bool? in
-            do {
-                return try probe(url)
-            } catch {
-                return nil
-            }
-        }.value
+        // A viewer who leaves the page takes the connection with them: the task the page owns is
+        // cancelled, and that has to reach a blocking read inside FFmpeg, which only the engine's
+        // own cancellation token can do.
+        let cancellation = ProbeCancellation()
+        let carries = await withTaskCancellationHandler {
+            await Task.detached(priority: .utility) { () -> Bool? in
+                do {
+                    return try probe(url, cancellation)
+                } catch {
+                    return nil
+                }
+            }.value
+        } onCancel: {
+            cancellation.cancel()
+        }
 
+        guard !Task.isCancelled else { return }
         answered.insert(key)
         if carries == true {
             confirmed.insert(key)

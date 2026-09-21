@@ -758,7 +758,7 @@ struct SeriesDetailView: View {
             sourceID: versionSelection.preferredSourceID(for: displayItem),
             enabled: dependencies.appearancePreferences.showDetailBadges,
             carriesHDR10Plus: dependencies.hdr10PlusProbeStore.carriesHDR10Plus(
-                itemID: displayItem.id,
+                item: displayItem,
                 sourceID: versionSelection.preferredSourceID(for: displayItem))
         )
     }
