@@ -74,6 +74,11 @@ struct TransportBar: View {
     /// Scrub-position preview frame; nil falls back to the time-only label.
     let previewImage: CGImage?
 
+    /// What the time row needs to know about itself to let the readout cross it (Sodalite#151).
+    @State private var readoutWidth: CGFloat = 0
+    @State private var elapsedWidth: CGFloat = 0
+    @State private var remainingWidth: CGFloat = 0
+
     var body: some View {
         VStack(spacing: 10) {
             if isScrubbing {
@@ -230,26 +235,7 @@ struct TransportBar: View {
 
             progressBar
 
-            HStack(spacing: 8) {
-                if isPaused {
-                    PausedGlyph()
-                        .font(.callout)
-                }
-
-                Text(currentTime)
-                    .font(.callout)
-                    .fontWeight(.medium)
-                    .monospacedDigit()
-                    .foregroundStyle(.white.opacity(0.7))
-
-                Spacer()
-
-                Text(remainingTime)
-                    .font(.callout)
-                    .fontWeight(.medium)
-                    .monospacedDigit()
-                    .foregroundStyle(.white.opacity(0.7))
-            }
+            timeRow
         }
         .padding(.horizontal, 80)
         .padding(.bottom, 60)
@@ -259,33 +245,99 @@ struct TransportBar: View {
         .animation(.smooth(duration: 0.32), value: trackDropdown)
     }
 
+    // MARK: - Time Row
+
+    /// The gap a label keeps from the readout crossing the row before it steps aside.
+    private static let readoutLabelGap: CGFloat = 16
+
+    /// The elapsed and remaining clocks, and the seek readout that travels across them.
+    ///
+    /// Sodalite#151 round 2: the readout follows the knob HERE, below the track and at the live
+    /// rail's size, which is where the live rail draws it and where it depends on nothing but the
+    /// gesture. Round 1 hung it on the scrub clock above the track, and that clock is two clocks:
+    /// `ScrubPreviewProvider` answers per position and per moment rather than per library (server
+    /// trickplay, then a resident segment, then a network seek, each behind a debounce), so a burst
+    /// could start beside the 56 pt centred clock and finish under a 22 pt card label, changing size
+    /// and side of the track while the glyph was on screen.
+    ///
+    /// It carries no clock of its own. The scrub clock above the track already says where the
+    /// gesture is going, and a readout that is only glyph and count grows symmetrically around the
+    /// knob, so nothing steps sideways when the burst count appears.
+    ///
+    /// Near the ends of the track the readout arrives where a corner clock is standing, and it is the
+    /// CLOCK that gives way: the readout is what the gesture is saying, and its neighbour is saying
+    /// what the scrub clock above the track is already saying. Whether they meet is three measured
+    /// widths, two of which change with their content (an hour digit, a burst count), so it is asked
+    /// of the layout rather than guessed from a share of the width.
+    private var timeRow: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let readout = viewModel.seekReadout
+            let half = readoutWidth / 2
+            let x = max(half, min(width - half, width * CGFloat(progress)))
+            let coversElapsed = readout != nil && x - half < elapsedWidth + Self.readoutLabelGap
+            let coversRemaining = readout != nil
+                && x + half > width - remainingWidth - Self.readoutLabelGap
+
+            ZStack {
+                HStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        if isPaused {
+                            PausedGlyph()
+                                .font(.callout)
+                        }
+
+                        Text(currentTime)
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(.white.opacity(0.7))
+                    .opacity(coversElapsed ? 0 : 1)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { elapsedWidth = $0 }
+
+                    Spacer()
+
+                    Text(remainingTime)
+                        .font(.callout)
+                        .fontWeight(.medium)
+                        .monospacedDigit()
+                        .foregroundStyle(.white.opacity(0.7))
+                        .opacity(coversRemaining ? 0 : 1)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { remainingWidth = $0 }
+                }
+                .animation(.easeInOut(duration: 0.2), value: coversElapsed)
+                .animation(.easeInOut(duration: 0.2), value: coversRemaining)
+
+                if let readout {
+                    SeekReadoutView(readout: readout)
+                        .fixedSize()
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { readoutWidth = $0 }
+                        .position(x: x, y: geo.size.height / 2)
+                }
+            }
+            .frame(width: width, height: geo.size.height)
+        }
+        .frame(height: SeekReadoutMetrics.standardRowHeight)
+    }
+
     // MARK: - Scrub Preview
 
     private static let scrubCardWidth: CGFloat = 320
 
     /// The card's clock, and the gap above it.
     ///
-    /// Sodalite#151: the row is as tall as the tallest thing it can draw rather than as tall as its
-    /// own text, because the seek readout stands beside that clock and a skip glyph is taller than
-    /// the line it sits on. Without it the card grows on the press that draws the first glyph, which
-    /// is the one moment the card is under a viewer's eye. The 34 pt this replaced was the same two
-    /// numbers with the second one guessed.
+    /// Sodalite#151 round 2: the row holds a clock and nothing else now that the readout draws below
+    /// the track, so it is that clock's line rather than the tallest glyph that could stand beside
+    /// it. Derived either way: the 34 pt it started as was this number with the second half guessed.
     static let cardClockSize: CGFloat = 22
     static let cardClockSpacing: CGFloat = 6
-    static let cardClockRowHeight = SeekReadoutMetrics.rowHeight(
-        symbol: UIImage.SymbolConfiguration(pointSize: cardClockSize, weight: .semibold),
-        lineHeight: UIFont.systemFont(ofSize: cardClockSize, weight: .semibold).lineHeight)
+    static let cardClockRowHeight =
+        ceil(UIFont.systemFont(ofSize: cardClockSize, weight: .semibold).lineHeight)
 
-    /// The centred clock that stands in for the card when the server carries no trickplay images,
-    /// which for a lot of libraries is every scrub.
-    ///
-    /// Its readout is drawn at half the clock's size (Sodalite#151), and this is the one row on the
-    /// bar that is not pre-sized. It gets away with that only because of the halving: a glyph is
-    /// taller than the line it stands beside at every size, so at the clock's own 56 pt it would lift
-    /// the clock on the press that drew it, and at 28 it cannot. Half is also the proportion the two
-    /// deserve, the number being the answer and the glyph the footnote to it.
+    /// The centred clock that stands in for the card whenever no frame has resolved for the position
+    /// under the knob, which is a moment-to-moment answer and not a property of the library.
     static let centredClockSize: CGFloat = 56
-    static let centredClockGlyphSize: CGFloat = 28
 
     @ViewBuilder
     private var scrubPreviewArea: some View {
@@ -304,33 +356,23 @@ struct TransportBar: View {
             .padding(.bottom, 12)
             .transition(.opacity)
         } else {
-            scrubClock(font: .system(size: Self.centredClockSize, weight: .medium),
-                       glyphFont: .system(size: Self.centredClockGlyphSize, weight: .medium))
+            scrubClock(font: .system(size: Self.centredClockSize, weight: .medium))
                 .transition(.opacity)
                 .padding(.bottom, 16)
         }
     }
 
-    /// The scrub clock with its seek readout beside it, on the side of travel.
+    /// Where the knob is pointing, in two sizes depending on whether a frame stands above it.
     ///
-    /// Sodalite#151: this is the VOD answer to the live rail's playhead clock, and it is the same
-    /// answer because it is the same question. Both follow the knob, which is what makes them the
-    /// place a viewer is already looking when a press lands; the two clocks pinned to the bottom
-    /// corners do not move and would report the gesture somewhere other than where it happened.
-    private func scrubClock(font: Font, glyphFont: Font) -> some View {
-        HStack(spacing: 8) {
-            if let readout = viewModel.seekReadout, readout.direction == -1 {
-                SeekReadoutView(readout: readout, font: glyphFont)
-            }
-            Text(scrubTime)
-                .font(font)
-                .monospacedDigit()
-                .foregroundStyle(.white)
-            if let readout = viewModel.seekReadout, readout.direction == 1 {
-                SeekReadoutView(readout: readout, font: glyphFont)
-            }
-        }
-        .fixedSize()
+    /// Sodalite#151 round 2: no readout beside it any more. A clock that comes in two sizes, in two
+    /// places, chosen by a thumbnail that may or may not have arrived yet, is a fine thing to be a
+    /// clock and the wrong thing to hang a gesture's feedback on. That lives in `timeRow` now.
+    private func scrubClock(font: Font) -> some View {
+        Text(scrubTime)
+            .font(font)
+            .monospacedDigit()
+            .foregroundStyle(.white)
+            .fixedSize()
     }
 
     /// Preview height at the fixed card width from the frame's own (SAR-corrected) aspect, so a
@@ -354,7 +396,7 @@ struct TransportBar: View {
                 .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
 
             let clockFont = Font.system(size: Self.cardClockSize, weight: .semibold)
-            scrubClock(font: clockFont, glyphFont: clockFont)
+            scrubClock(font: clockFont)
                 .frame(height: Self.cardClockRowHeight)
         }
     }

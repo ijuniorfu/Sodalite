@@ -3,13 +3,14 @@ import SwiftUI
 import UIKit
 @testable import Sodalite
 
-/// Sodalite#151: the seek readout on the stored-title transport, where the numbers are not the live
-/// rail's.
+/// Sodalite#151: the seek readout on the stored-title transport.
 ///
-/// The readout stands beside the scrub clock, and on this bar that clock comes in two sizes: 22 pt
-/// under a trickplay frame, 56 pt in the middle of the screen when the server carries no frames. A
-/// skip glyph is taller than the line it sits beside at its own size, so the first of those has to be
-/// a pre-sized row and the second has to draw its glyph smaller. Both are numbers, so both are here.
+/// Round 1 drew it beside the scrub clock above the track, and that clock is two clocks: 22 pt under
+/// a trickplay frame, 56 pt in the middle of the screen when no frame has resolved. Which one a
+/// viewer got was `ScrubPreviewProvider`'s answer for that position at that moment, so a burst could
+/// change size and side of the track while the glyph was on screen. Round 2 moved it below the
+/// track, to the knob, at the size the live rail draws it. What is pinned here is that there is one
+/// size and one row, and that the card it left is no longer sized for a guest that never arrives.
 @Suite("The stored-title seek readout (Sodalite#151)")
 struct SeekReadoutChromeTests {
 
@@ -29,102 +30,89 @@ struct SeekReadoutChromeTests {
         .hold(rate: 240, direction: 1),
     ]
 
-    // MARK: - Under a trickplay frame
+    // MARK: - One gesture, one size
 
-    /// The card's clock row is sized before anything appears in it, because what appears in it arrives
-    /// mid-gesture. A row that grows on the press that draws the first glyph moves the frame above it
-    /// at the one moment the frame is being read.
-    @Test func theCardClockRowHoldsEveryReadoutItCanDraw() {
-        let font = Font.system(size: TransportBar.cardClockSize, weight: .semibold)
+    /// The point of the issue, as a number: the same press reports itself at the same size whatever
+    /// is playing. The live rail asks `SeekReadoutMetrics` for both, so this is the stored-title bar
+    /// holding the other end of it.
+    @Test func bothTransportsDrawTheReadoutInTheSameRow() {
+        #expect(LiveRailLabels.defaultRowHeight == SeekReadoutMetrics.standardRowHeight)
+        #expect(LiveRailLabels.defaultFont == SeekReadoutMetrics.standardFont)
+    }
+
+    /// A readout taller than the row it crosses spends the difference upwards, where the track is,
+    /// and the knob grows to 22 pt at exactly the moment the readout exists.
+    @Test func theTimeRowHoldsEveryReadoutItCanDraw() {
         for readout in readouts {
-            let drawn = size(SeekReadoutView(readout: readout, font: font)).height
-            #expect(drawn <= TransportBar.cardClockRowHeight,
-                    "\(readout) draws \(drawn) in a row of \(TransportBar.cardClockRowHeight)")
+            let drawn = size(SeekReadoutView(readout: readout)).height
+            #expect(drawn <= SeekReadoutMetrics.standardRowHeight,
+                    "\(readout) draws \(drawn) in a row of \(SeekReadoutMetrics.standardRowHeight)")
         }
     }
 
-    @Test func theCardClockRowHoldsItsOwnClock() {
-        let clock = size(Text(verbatim: "01:23:45")
-            .font(.system(size: TransportBar.cardClockSize, weight: .semibold))).height
-        #expect(clock <= TransportBar.cardClockRowHeight)
+    /// The row also has to hold what it held before the readout ever crossed it, which on this bar is
+    /// a `.callout` clock rather than the live rail's.
+    @Test func theTimeRowHoldsItsOwnClocks() {
+        let clock = size(Text(verbatim: "-01:23:45").font(.callout).fontWeight(.medium)).height
+        #expect(clock <= SeekReadoutMetrics.standardRowHeight)
     }
 
-    /// The row is derived rather than remembered, and the point of deriving it is that it lands above
-    /// the text it was once guessed from. The literal this replaced was 28 pt of a 34 pt card.
-    @Test func theCardClockRowIsTallerThanItsTextAlone() {
+    /// The count sits beside the glyph, never under it: a fourth press widens the readout, which is
+    /// what lets the row be pre-sized at all. Width is also why the labels at the row's corners have
+    /// to give way rather than the readout, and why that is measured instead of guessed.
+    @Test func aBurstCountCostsWidthAndNotHeight() {
+        let single = size(SeekReadoutView(readout: .press(seconds: 10, count: 1, direction: -1)))
+        let burst = size(SeekReadoutView(readout: .press(seconds: 10, count: 9, direction: -1)))
+        #expect(burst.height == single.height)
+        #expect(burst.width > single.width)
+    }
+
+    /// Nothing the readout can say is wider than the space between the row's two clocks, so a
+    /// readout the corner labels step aside for is always a readout that fits where they stood.
+    @Test func noReadoutIsWiderThanTheGapBetweenTheCorners() {
+        let elapsed = size(Text(verbatim: "01:23:45").font(.callout).fontWeight(.medium)).width
+        let remaining = size(Text(verbatim: "-01:23:45").font(.callout).fontWeight(.medium)).width
+        // The stored-title bar is 80 pt inside each edge of a 1920 pt screen.
+        let row: CGFloat = 1920 - 160
+        for readout in readouts {
+            #expect(size(SeekReadoutView(readout: readout)).width < row - elapsed - remaining)
+        }
+    }
+
+    // MARK: - What the preview card is left holding
+
+    /// The card's clock row was sized for a glyph that stood beside it, and that glyph moved below
+    /// the track. A row that still reserves the glyph's height is a gap under the frame that nothing
+    /// ever fills, so the reservation goes with it.
+    @Test func theCardClockRowIsItsOwnClockAndNothingElse() {
         let clock = size(Text(verbatim: "01:23:45")
             .font(.system(size: TransportBar.cardClockSize, weight: .semibold))).height
         #expect(TransportBar.cardClockRowHeight >= clock)
-    }
-
-    // MARK: - Without one
-
-    /// This is the one row on the bar that is NOT pre-sized, and it gets away with it because its
-    /// glyph is drawn at half the clock's size: shorter than the clock's own line, so it cannot move
-    /// anything by appearing.
-    @Test func theCentredClockIsNotMovedByItsReadout() {
-        let clock = size(Text(verbatim: "01:23:45")
-            .font(.system(size: TransportBar.centredClockSize, weight: .medium))).height
-        let glyphFont = Font.system(size: TransportBar.centredClockGlyphSize, weight: .medium)
-        for readout in readouts {
-            let drawn = size(SeekReadoutView(readout: readout, font: glyphFont)).height
-            #expect(drawn <= clock,
-                    "\(readout) draws \(drawn) beside a \(clock) pt clock")
-        }
-    }
-
-    /// The reason the centred clock gets a smaller glyph at all, kept as the measurement that decided
-    /// it: a glyph is taller than the line it stands beside at every size, so at the clock's own size
-    /// it would lift a row that nothing is holding.
-    ///
-    /// Width is deliberately not the argument, though it reads like one. Measured, it is the wrong way
-    /// round: a full-size readout is 133.5 x 72.5 against this clock's 222.5 x 67.0, so it would have
-    /// fitted beside the time comfortably and lifted it by 5.5 pt anyway.
-    @Test func aFullSizeGlyphWouldHaveLiftedTheCentredClock() {
-        let font = Font.system(size: TransportBar.centredClockSize, weight: .medium)
-        let clock = size(Text(verbatim: "01:23:45").font(font))
-        let fullSize = size(SeekReadoutView(readout: .press(seconds: 30, count: 4, direction: -1),
-                                            font: font))
-        #expect(fullSize.height > clock.height,
-                "a full-size readout draws \(fullSize.height) beside a \(clock.height) pt clock")
-        #expect(fullSize.width < clock.width)
-    }
-
-    // MARK: - The burst count costs width, never height
-
-    /// Same rule the live rail holds, at this bar's sizes: the count sits beside the glyph, so a
-    /// fourth press widens the readout and never lifts it into the frame above.
-    @Test func aBurstCountCostsWidthAndNotHeight() {
-        for pointSize in [TransportBar.cardClockSize, TransportBar.centredClockGlyphSize] {
-            let font = Font.system(size: pointSize, weight: .semibold)
-            let single = size(SeekReadoutView(readout: .press(seconds: 10, count: 1, direction: -1),
-                                              font: font))
-            let burst = size(SeekReadoutView(readout: .press(seconds: 10, count: 9, direction: -1),
-                                             font: font))
-            #expect(burst.height == single.height)
-            #expect(burst.width > single.width)
-        }
+        let withGlyph = SeekReadoutMetrics.rowHeight(
+            symbol: UIImage.SymbolConfiguration(pointSize: TransportBar.cardClockSize,
+                                                weight: .semibold),
+            lineHeight: UIFont.systemFont(ofSize: TransportBar.cardClockSize,
+                                          weight: .semibold).lineHeight)
+        #expect(TransportBar.cardClockRowHeight < withGlyph,
+                "the card still reserves \(withGlyph) pt for a readout that is drawn below the track")
     }
 
     // MARK: - The measurement both bars ask
 
-    /// `SeekReadoutMetrics` is what replaced two literals, one per bar, and a row shorter than its
-    /// glyph spends the difference upwards where the track is.
-    @Test func theMeasuredRowCoversEveryGlyphAtItsOwnSize() {
-        for pointSize in [TransportBar.cardClockSize, TransportBar.centredClockGlyphSize] {
-            let height = SeekReadoutMetrics.rowHeight(
-                symbol: UIImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold),
-                lineHeight: UIFont.systemFont(ofSize: pointSize, weight: .semibold).lineHeight)
-            for name in SeekReadout.drawableGlyphNames {
-                let drawn = size(Image(systemName: name)
-                    .font(.system(size: pointSize, weight: .semibold))).height
-                #expect(drawn <= height, "\(name) at \(pointSize) draws \(drawn) in a row of \(height)")
-            }
+    /// `SeekReadoutMetrics` is what replaced a literal per bar, and the literal went a point short on
+    /// the next tvOS: at `.callout`, 26.5 draws `gobackward.10` 39.5 pt tall and 27.0 draws it 41.0.
+    @Test func theMeasuredRowCoversEveryGlyphItCanDraw() {
+        #if os(tvOS)
+        for name in SeekReadout.drawableGlyphNames {
+            let drawn = size(Image(systemName: name).font(.callout)).height
+            #expect(drawn <= SeekReadoutMetrics.standardRowHeight,
+                    "\(name) draws \(drawn) in a row of \(SeekReadoutMetrics.standardRowHeight)")
         }
+        #endif
     }
 
-    /// A line taller than every glyph still gets a row it fits in: the measurement takes the larger of
-    /// the two, which is what the centred clock relies on from the other side.
+    /// A line taller than every glyph still gets a row it fits in: the measurement takes the larger
+    /// of the two.
     @Test func theMeasuredRowNeverFallsShortOfItsTextLine() {
         let line = UIFont.systemFont(ofSize: 56, weight: .medium).lineHeight
         let height = SeekReadoutMetrics.rowHeight(

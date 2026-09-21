@@ -64,6 +64,24 @@ struct ScrubPreviewResolutionTests {
         #expect(serverCalls == 1)
     }
 
+    /// Sodalite#151 round 2, as the premise rather than the symptom: the tiers are asked per
+    /// position, so one session answers with a frame at one point on the track and with nothing at
+    /// another. The cache tier only holds what has been played or read ahead, so the same position
+    /// changes its answer as the session goes on. That is why the seek readout cannot be drawn
+    /// beside a clock whose size and place this decides.
+    @Test("a frame is a property of the position, not of the session")
+    func availabilityIsPerPosition() async {
+        let provider = ScrubPreviewProvider()
+        let img = dummyImage()
+        provider.configure(extractor: nil,
+                           cacheThumbnail: { seconds, _ in seconds < 60 ? img : nil },
+                           enabled: true)
+        let resident = await provider.resolveThumbnail(seconds: 10)
+        let beyond = await provider.resolveThumbnail(seconds: 600)
+        #expect(resident != nil)
+        #expect(beyond == nil)
+    }
+
     @Test("reset clears the cache source")
     func resetClearsCache() async {
         let provider = ScrubPreviewProvider()

@@ -19,7 +19,7 @@ import UIKit
 /// in two languages depending on what was playing.
 struct SeekReadoutView: View {
     let readout: SeekReadout
-    var font: Font = LiveRailLabels.defaultFont
+    var font: Font = SeekReadoutMetrics.standardFont
 
     var body: some View {
         switch readout {
@@ -98,6 +98,41 @@ struct SeekTrail: View {
 /// rendering a view. `LiveRailChromeTests` holds that equality, because it is the assumption the
 /// whole number rests on.
 enum SeekReadoutMetrics {
+    /// `.callout` on the ten-foot bars, `.caption` on the phone, matching what each transport already
+    /// gives the row the readout crosses.
+    ///
+    /// Sodalite#151 round 2: ONE size, because one gesture. Round 1 drew it at 22 pt under a
+    /// trickplay card and at 28 pt beside the centred clock, against the live rail's 39.5, and which
+    /// of those two a viewer got was decided by whether a thumbnail had resolved yet.
+    static var standardFont: Font {
+        #if os(tvOS)
+        .callout
+        #else
+        .caption
+        #endif
+    }
+
+    /// How tall a row has to be to hold a readout at `standardFont`, measured once.
+    ///
+    /// This row was 30 pt on both platforms, a height measured for the phone's `.caption`. tvOS
+    /// `.callout` is 31 pt with a 36.99 pt line, so on the television the clock sat 3.5 pt above its
+    /// own row and the press readout, a two-line column of 66 pt, sat 18 pt above it: that is where
+    /// the gap to the scrubber went, and the knob grows to 22 pt at exactly the moment the readout
+    /// exists.
+    static var standardRowHeight: CGFloat {
+        #if os(tvOS)
+        tallestDrawnHeight
+        #else
+        20
+        #endif
+    }
+
+    #if os(tvOS)
+    private static let tallestDrawnHeight = rowHeight(
+        symbol: UIImage.SymbolConfiguration(textStyle: .callout),
+        lineHeight: UIFont.preferredFont(forTextStyle: .callout).lineHeight)
+    #endif
+
     /// The tallest glyph `SeekReadoutView` can draw at `configuration`, never shorter than the text
     /// line it stands beside.
     static func rowHeight(symbol configuration: UIImage.SymbolConfiguration,

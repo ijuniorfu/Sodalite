@@ -13,43 +13,11 @@ struct LiveRailLabels: View {
     var font: Font = defaultFont
     var rowHeight: CGFloat = defaultRowHeight
 
-    /// `.callout` on the ten-foot bar, `.caption` on the phone, matching what each transport already
-    /// gives the two slots this row replaces. The pair lives here rather than at the call sites so
-    /// the row and its height cannot be set from two different readings of the same platform.
-    static var defaultFont: Font {
-        #if os(tvOS)
-        .callout
-        #else
-        .caption
-        #endif
-    }
-
-    /// As tall as the tallest thing it draws, which is not a free number, and on tvOS not a number
-    /// this file gets to decide either.
-    ///
-    /// This row was 30 pt on both platforms, a height measured for the phone's `.caption`. tvOS
-    /// `.callout` is 31 pt with a 36.99 pt line, so on the television the clock sat 3.5 pt above its
-    /// own row and the press readout, a two-line column of 66 pt, sat 18 pt above it: that is where
-    /// the gap to the scrubber went, and the knob grows to 22 pt at exactly the moment the readout
-    /// exists.
-    ///
-    /// The tallest thing is the skip glyph and the system owns its height, so the row asks
-    /// (`SeekReadoutMetrics`) rather than remembers. On tvOS 26.5 the answer is 40 to the point,
-    /// which is what this replaced.
-    static var defaultRowHeight: CGFloat {
-        #if os(tvOS)
-        tallestDrawnHeight
-        #else
-        20
-        #endif
-    }
-
-    #if os(tvOS)
-    /// The tallest glyph this rail can put beside the clock, against its own text line, measured once.
-    private static let tallestDrawnHeight = SeekReadoutMetrics.rowHeight(
-        symbol: UIImage.SymbolConfiguration(textStyle: .callout),
-        lineHeight: UIFont.preferredFont(forTextStyle: .callout).lineHeight)
-    #endif
+    /// The type scale and the row height both belong to the readout rather than to this rail
+    /// (Sodalite#151 round 2): the stored-title bar draws the same readout in a row of its own, and
+    /// two rows reading the same platform twice is how the sizes came apart in the first place.
+    static var defaultFont: Font { SeekReadoutMetrics.standardFont }
+    static var defaultRowHeight: CGFloat { SeekReadoutMetrics.standardRowHeight }
 
     var body: some View {
         GeometryReader { geo in
