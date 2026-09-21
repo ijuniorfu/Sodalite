@@ -429,10 +429,17 @@ final class PlayerHostController: AVPlayerViewController {
             self, selector: #selector(appDidBecomeActive),
             name: UIApplication.didBecomeActiveNotification, object: nil
         )
-        // didEnterBackground fires only for a real background trip (Home/sleep/screensaver), not the app switcher.
+        // didEnterBackground fires for a real background trip (Home/sleep), not the app switcher. Whether
+        // the tvOS screensaver counts as one is exactly what Sodalite#149 turns on, hence the log lines below.
         NotificationCenter.default.addObserver(
             self, selector: #selector(appDidEnterBackground),
             name: UIApplication.didEnterBackgroundNotification, object: nil
+        )
+        // Sodalite#149: a screensaver that never reaches didEnterBackground leaves NO trace in the log at
+        // all, so a report about one cannot be told apart from a truncated paste. This line is the trace.
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification, object: nil
         )
     }
 
@@ -849,7 +856,34 @@ final class PlayerHostController: AVPlayerViewController {
         viewModel.stopPlayback()
     }
 
+    /// Sodalite#149: the one word that says which kind of trip this was, short enough to read next to a
+    /// playhead in a log line.
+    private var lifecycleSessionFacts: String {
+        let state: String
+        switch viewModel.player.state {
+        case .idle: state = "idle"
+        case .loading: state = "loading"
+        case .playing: state = "playing"
+        case .paused: state = "paused"
+        case .seeking: state = "seeking"
+        case .ended: state = "ended"
+        case .error: state = "error"
+        }
+        return "state=\(state) backend=\(viewModel.player.playbackBackend.rawValue)"
+    }
+
+    /// Fires for the app switcher AND for the tvOS screensaver, neither of which reaches
+    /// `didEnterBackground`. On its own it changes nothing; it is here so the log says the screensaver
+    /// happened at all, which is the fork Sodalite#149 turns on.
+    @objc private func appWillResignActive() {
+        guard viewModel.hasStartedPlaying else { return }
+        LogTap.shared.note("[Lifecycle] #149 resignActive: \(lifecycleSessionFacts)")
+    }
+
     @objc private func appDidEnterBackground() {
+        if viewModel.hasStartedPlaying {
+            LogTap.shared.note("[Lifecycle] #149 background: \(lifecycleSessionFacts)")
+        }
         wasFullyBackgrounded = true
         // Sodalite#104: what the session looked like on the way out, so the return can tell one that
         // kept playing from one that was suspended. See `liveForegroundReturn`.
@@ -970,6 +1004,19 @@ final class PlayerHostController: AVPlayerViewController {
         // flag it set is what the live branch below reads.
         liveSuspensionRelease?.cancel()
         guard viewModel.hasStartedPlaying else { return }
+
+        // Sodalite#149: logged on EVERY return, including the one that goes on to do nothing. A trip that
+        // never backgrounded the app leaves this routine at the guard below without a trace of its own, and
+        // an absent reload then reads exactly like an absent log. This line tells the two apart.
+        if wasFullyBackgrounded {
+            let away = backgroundedAt.map { Date().timeIntervalSince($0) } ?? 0
+            LogTap.shared.note(String(format: "[Lifecycle] #149 active after a background trip of %.1fs: %@",
+                                      away, lifecycleSessionFacts))
+        } else {
+            LogTap.shared.note(
+                "[Lifecycle] #149 active, never backgrounded (screensaver or app switcher): "
+                + lifecycleSessionFacts)
+        }
 
         // App switcher lands here without didEnterBackground; decoders + audio are still alive, so nothing to rebuild.
         guard wasFullyBackgrounded else { return }
