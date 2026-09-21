@@ -23,6 +23,7 @@ ENGINE_API="https://api.github.com/repos/superuser404notfound/AetherEngine/commi
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PROJECT_YML="$PROJECT_DIR/project.yml"
 RESOLVED="$PROJECT_DIR/Sodalite.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+PBXPROJ="$PROJECT_DIR/Sodalite.xcodeproj/project.pbxproj"
 
 if [ ! -f "$PROJECT_YML" ]; then
     echo "❌ project.yml not found at $PROJECT_YML"
@@ -133,7 +134,13 @@ echo "→ Resolving packages…"
 xcodebuild -project Sodalite.xcodeproj \
     -resolvePackageDependencies > /dev/null
 
-git add "$PROJECT_YML" "$RESOLVED" Sodalite.xcodeproj
+# Stage the three files a bump actually changes, never the whole .xcodeproj.
+# `git add Sodalite.xcodeproj` swept up whatever else was dirty in there, and the
+# shared schemes always are: Xcode rewrites them on open (scheme version 1.3, the
+# product name for BuildableName), XcodeGen writes them back the other way, and
+# eight bump commits in the history carry that ping-pong instead of a dependency
+# change. AetherPlayer's copy of this script has always staged explicitly.
+git add "$PROJECT_YML" "$RESOLVED" "$PBXPROJ"
 git commit -m "chore(deps): bump AetherEngine to $LATEST_TAG ($SHORT_SHA) - $HUMAN_SUBJECT"
 git push
 
