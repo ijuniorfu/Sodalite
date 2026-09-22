@@ -275,6 +275,17 @@ struct LiveProgramMetadataTests {
     private let channel = JellyfinChannel(id: "c", name: "Comedy One", channelNumber: "1",
                                           imageTags: nil, currentProgram: nil, userData: nil)
 
+    /// What the three title surfaces draw, which is the outcome both issues are about. Asserted
+    /// instead of the individual fields because Sodalite#159 moves a field (`seriesName` now falls
+    /// back to the programme name) without moving the rendered line above it.
+    private func lines(name: String, seriesName: String?, episodeTitle: String?,
+                       season: Int?, episode: Int?) -> PlayerTitleLines {
+        PlayerTitleLines(item: JellyfinItem(
+            liveChannel: channel,
+            program: program(name: name, seriesName: seriesName, episodeTitle: episodeTitle,
+                             season: season, episode: episode)))
+    }
+
     @Test("an episode reaches the overlay as a series and an episode")
     func anEpisodeCarriesItsNumbers() {
         let item = JellyfinItem(liveChannel: channel,
@@ -285,20 +296,17 @@ struct LiveProgramMetadataTests {
         #expect(item.parentIndexNumber == 3)
         #expect(item.indexNumber == 15)
         #expect(item.name == "The One With the Ball")
-        #expect(EpisodeMetadataFormatter.episodeLine(
-            under: item.seriesName, season: item.parentIndexNumber,
-            episode: item.indexNumber, title: item.name) == "S3, E15 · The One With the Ball")
+        let lines = PlayerTitleLines(item: item)
+        #expect(lines.header == "Friends")
+        #expect(lines.subtitle == "S3, E15 · The One With the Ball")
     }
 
     @Test("a title that just repeats the series name is dropped from the line under it")
     func arepeatedTitleIsNotDrawnTwice() {
-        let item = JellyfinItem(liveChannel: channel,
-                                program: program(name: "Friends", seriesName: "Friends",
-                                                 episodeTitle: nil, season: 3, episode: 15))
-        #expect(item.name == "Friends")
-        #expect(EpisodeMetadataFormatter.episodeLine(
-            under: item.seriesName, season: item.parentIndexNumber,
-            episode: item.indexNumber, title: item.name) == "S3, E15")
+        let lines = lines(name: "Friends", seriesName: "Friends", episodeTitle: nil,
+                          season: 3, episode: 15)
+        #expect(lines.header == "Friends")
+        #expect(lines.subtitle == "S3, E15")
     }
 
     @Test("half a numbering is no numbering")
@@ -308,17 +316,85 @@ struct LiveProgramMetadataTests {
                                                  episodeTitle: nil, season: 4, episode: nil))
         #expect(item.parentIndexNumber == nil)
         #expect(item.indexNumber == nil)
+        #expect(PlayerTitleLines(item: item).subtitle == nil)
     }
 
     @Test("a programme that is not an episode still reads as itself")
     func aplainProgrammeIsUnchanged() {
-        let item = JellyfinItem(liveChannel: channel,
-                                program: program(name: "Evening News", seriesName: nil,
-                                                 episodeTitle: nil, season: nil, episode: nil))
-        #expect(item.seriesName == nil)
-        #expect(item.name == "Evening News")
+        // Sodalite#159 gives `seriesName` the programme name, so the assertion moved off the field
+        // and onto the line: the header is still the programme, and the subtitle, which would now
+        // repeat it verbatim, is still dropped.
+        let lines = lines(name: "Evening News", seriesName: nil, episodeTitle: nil,
+                          season: nil, episode: nil)
+        #expect(lines.header == "Evening News")
+        #expect(lines.subtitle == nil)
         // And a channel with no guide entry at all keeps the channel's own name.
-        #expect(JellyfinItem(liveChannel: channel, program: nil).name == "Comedy One")
+        let bare = PlayerTitleLines(item: JellyfinItem(liveChannel: channel, program: nil))
+        #expect(bare.header == "Comedy One")
+        #expect(bare.subtitle == nil)
+    }
+
+    @Test("a programme with an episode but no series leads with the programme (Sodalite#159)")
+    func aseriesLessEpisodeKeepsItsProgrammeName() {
+        // NOVA: the EPG names the programme and the episode, and no series at all. `name` is the
+        // episode title by then, so without the fallback the programme name was simply gone.
+        let lines = lines(name: "NOVA", seriesName: nil, episodeTitle: "Chasing Carbon",
+                          season: 52, episode: 3)
+        #expect(lines.header == "NOVA")
+        #expect(lines.subtitle == "S52, E3 · Chasing Carbon")
+    }
+
+    @Test("a sports broadcast leads with the programme, not the fixture (Sodalite#159)")
+    func asportsBroadcastNamesItsProgramme() {
+        let lines = lines(name: "NFL Football", seriesName: nil,
+                          episodeTitle: "Eagles at Cowboys", season: nil, episode: nil)
+        #expect(lines.header == "NFL Football")
+        #expect(lines.subtitle == "Eagles at Cowboys")
+    }
+
+    @Test("a named series still wins the header over the programme name (Sodalite#159)")
+    func anamedSeriesOutranksTheProgrammeName() {
+        let lines = lines(name: "NOVA", seriesName: "NOVA Science", episodeTitle: "Chasing Carbon",
+                          season: 52, episode: 3)
+        #expect(lines.header == "NOVA Science")
+        #expect(lines.subtitle == "S52, E3 · Chasing Carbon")
+    }
+}
+
+/// Sodalite#159: the player draws its title on three surfaces, and only one of them ran the second
+/// line through `EpisodeMetadataFormatter`. The iOS touch controls and the AirPlay backdrop took
+/// `item.name` raw, so a header and a subtitle holding the same string were drawn twice, which the
+/// live fallback above makes reachable on every plain programme.
+@Suite("One cascade for all three title surfaces (Sodalite#159)")
+struct PlayerTitleLinesTests {
+
+    /// Stored media, so the item comes off a decoded server row rather than the live adapter.
+    private func lines(_ fields: String...) throws -> PlayerTitleLines {
+        let json = "{\"Id\":\"i\",\"Type\":\"Episode\",\(fields.joined(separator: ","))}"
+        return PlayerTitleLines(item: try JSONDecoder().decode(JellyfinItem.self,
+                                                               from: Data(json.utf8)))
+    }
+
+    @Test("a stored episode reads series over episode identity")
+    func astoredEpisodeIsUnchanged() throws {
+        let lines = try lines("\"Name\":\"The One With the Ball\"", "\"SeriesName\":\"Friends\"",
+                              "\"ParentIndexNumber\":3", "\"IndexNumber\":15")
+        #expect(lines.header == "Friends")
+        #expect(lines.subtitle == "S3, E15 · The One With the Ball")
+    }
+
+    @Test("a film reads its name over its year")
+    func afilmKeepsItsYear() throws {
+        let lines = try lines("\"Name\":\"Heat\"", "\"ProductionYear\":1995")
+        #expect(lines.header == "Heat")
+        #expect(lines.subtitle == "1995")
+    }
+
+    @Test("a subtitle that repeats the header is not drawn")
+    func arepeatedLineIsDropped() throws {
+        let lines = try lines("\"Name\":\"Evening News\"", "\"SeriesName\":\"Evening News\"")
+        #expect(lines.header == "Evening News")
+        #expect(lines.subtitle == nil)
     }
 }
 

@@ -244,7 +244,12 @@ struct JellyfinItem: Codable, Sendable, Identifiable, Equatable, Hashable {
         self.originalTitle = nil
         self.overview = program?.overview
         self.type = .tvChannel
-        self.seriesName = program?.seriesName
+        // Sodalite#159: the header slot, which is what the guide puts above the episode line. With
+        // only `SeriesName` in it, an EPG entry that names a programme and an episode but no series
+        // (NOVA, and every sports broadcast) lost the programme name entirely: `name` above has
+        // already been overwritten with the episode title, and the `?? program?.name` fallback
+        // there is unreachable in exactly that case.
+        self.seriesName = program?.seriesName ?? program?.name
         self.seriesId = nil
         self.seasonId = nil
         // Both halves or neither: a lone "S4" beside a programme name identifies nothing, and the
