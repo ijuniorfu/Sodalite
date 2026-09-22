@@ -1,7 +1,10 @@
 import SwiftUI
 
 /// The format pills on a detail page's metadata line (Sodalite#145): resolution, dynamic range,
-/// audio codec, spatial format. Same shape as the age-rating box two segments to the left, so the
+/// audio codec, and how big the sound is, which is the spatial format where there is one and the
+/// channel layout everywhere else (Sodalite#160).
+///
+/// Same shape as the age-rating box two segments to the left, so the
 /// line reads as one row rather than as a row with a badge strip stapled onto it.
 ///
 /// Text, not the brand artwork the request arrived with: the Dolby Vision, Dolby Atmos, DTS:X and

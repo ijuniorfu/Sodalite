@@ -1,7 +1,8 @@
 import Foundation
 
 /// What a card or a detail page can say about a copy without playing it: resolution, dynamic range,
-/// spatial audio (Sodalite#79), and for the detail page the audio codec too (Sodalite#145).
+/// spatial audio (Sodalite#79), and for the detail page the audio codec (Sodalite#145) and the
+/// channel layout behind it (Sodalite#160).
 ///
 /// Resolution rides on every card query (`Width` costs two ints out of the BaseItem row), the other
 /// two only exist once `MediaStreams` have been fetched, so the resolver answers partially rather
@@ -37,6 +38,13 @@ struct MediaBadges: Equatable, Sendable {
     /// `pills` leaves it out, but on the one page that describes one title it is the fact the
     /// spatial pill alone cannot give.
     var audioCodec: String?
+    /// How big the bed of the same track is ("2.0", "5.1", "7.1", "6ch"), for the detail page's
+    /// last pill when there is no spatial format to name (Sodalite#160).
+    ///
+    /// Numeric layout notation rather than `TechFacts.channelLayout`'s "Stereo": the pill row is
+    /// unlocalised brand shorthand in all 26 catalogs, and the tech section further down the page
+    /// is where the friendlier wording belongs.
+    var channelLayout: String?
 
     var isEmpty: Bool { detailPills.isEmpty }
 
@@ -50,8 +58,13 @@ struct MediaBadges: Equatable, Sendable {
     /// the sound is, how big the sound is. Same four facts the poster corner draws from, one richer,
     /// and deliberately resolved by the same code so a card saying DV can never sit above a page
     /// saying HDR10.
+    ///
+    /// The last pill answers one question with whichever of two facts says more about it: a spatial
+    /// format when the track has one, the channel layout otherwise (Sodalite#160). Never both, the
+    /// bed of an Atmos track is the fact its name already carries.
     var detailPills: [String] {
-        [resolution?.rawValue, dynamicRange?.rawValue, audioCodec, audio?.rawValue].compactMap { $0 }
+        [resolution?.rawValue, dynamicRange?.rawValue, audioCodec, audio?.rawValue ?? channelLayout]
+            .compactMap { $0 }
     }
 
     /// What `HDR10PlusProbeStore` found (AE#579), applied to the badge the container produced.
@@ -83,7 +96,8 @@ enum MediaBadgeResolver {
             resolution: resolution(width: video?.width ?? width, height: video?.height ?? height),
             dynamicRange: dynamicRange(video),
             audio: spatial(audio),
-            audioCodec: codecLabel(audio)
+            audioCodec: codecLabel(audio),
+            channelLayout: channelLayout(audio)
         )
     }
 
@@ -183,6 +197,21 @@ enum MediaBadgeResolver {
         case "opus":            return "Opus"
         case "vorbis":          return "Vorbis"
         default:                return raw.uppercased()
+        }
+    }
+
+    /// The bed of the track the codec pill describes (Sodalite#160). Only the counts whose layout
+    /// is unambiguous get named: 3 channels is 2.1 as often as 3.0 and 10 can be 9.1 or 7.1.2, and
+    /// Jellyfin sends a count, not a layout, so those fall back to "\(n)ch" rather than guessing a
+    /// speaker arrangement the file may not have.
+    private static func channelLayout(_ stream: MediaStream?) -> String? {
+        guard let channels = stream?.channels, channels > 0 else { return nil }
+        switch channels {
+        case 1: return "1.0"
+        case 2: return "2.0"
+        case 6: return "5.1"
+        case 8: return "7.1"
+        default: return "\(channels)ch"
         }
     }
 

@@ -47,7 +47,8 @@ final class PosterBadgeStore {
         return MediaBadges(resolution: found.resolution ?? base.resolution,
                            dynamicRange: found.dynamicRange ?? base.dynamicRange,
                            audio: found.audio ?? base.audio,
-                           audioCodec: found.audioCodec ?? base.audioCodec)
+                           audioCodec: found.audioCodec ?? base.audioCodec,
+                           channelLayout: found.channelLayout ?? base.channelLayout)
     }
 
     func enrich(userID: String, _ items: [JellyfinItem]) async {
