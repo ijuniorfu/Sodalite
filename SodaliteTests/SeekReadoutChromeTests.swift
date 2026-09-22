@@ -79,6 +79,40 @@ struct SeekReadoutChromeTests {
         }
     }
 
+    // MARK: - A press that cannot move anything
+
+    /// Round 3, from the device: standing at 0:00 the burst went on counting 5x, 6x, 7x while the
+    /// knob was already against the stop, because the clamp that ate the jump ran after the count.
+    /// A readout that counts presses the playhead never answered is worse than no readout, since the
+    /// whole point of counting is to be able to tell a four-press burst from a three-press one.
+    @Test func aPressAgainstTheStopLandsWhereItAlreadyIs() {
+        let hour = 3600.0
+        #expect(PlayerViewModel.jumpTarget(from: 0, seconds: -10, duration: hour, ceiling: 1) == 0)
+        #expect(PlayerViewModel.jumpTarget(from: 1, seconds: 10, duration: hour, ceiling: 1) == 1)
+    }
+
+    /// The other half of the same rule: a press that has anywhere to go still goes there, including
+    /// the short one that runs into the stop from five seconds out.
+    @Test func aPressWithSomewhereToGoStillMoves() {
+        let hour = 3600.0
+        #expect(PlayerViewModel.jumpTarget(from: 0.5, seconds: -10, duration: hour, ceiling: 1) < 0.5)
+        let fiveSecondsIn = Float(5.0 / hour)
+        let landed = PlayerViewModel.jumpTarget(from: fiveSecondsIn, seconds: -10,
+                                                duration: hour, ceiling: 1)
+        #expect(landed == 0)
+        #expect(landed != fiveSecondsIn)
+    }
+
+    /// On live the stop is not the end of the rail. The part of a programme block that has not aired
+    /// is drawn and cannot be aimed at (Sodalite#104), so a forward press stops at the live edge, and
+    /// a press that is already there is a press that cannot move.
+    @Test func aLivePressStopsAtTheLiveEdge() {
+        #expect(PlayerViewModel.jumpTarget(from: 0.7, seconds: 3000, duration: 600, ceiling: 0.8)
+                == 0.8)
+        #expect(PlayerViewModel.jumpTarget(from: 0.8, seconds: 30, duration: 600, ceiling: 0.8)
+                == 0.8)
+    }
+
     // MARK: - What the preview card is left holding
 
     /// The card's clock row was sized for a glyph that stood beside it, and that glyph moved below

@@ -1790,9 +1790,32 @@ final class PlayerViewModel {
         seekJump(seconds: Double(signed))
     }
 
+    /// Where a press-seek lands, given where it starts from and what it is allowed to reach.
+    ///
+    /// Sodalite#151 round 3: a press that cannot move the playhead is not a press the readout may
+    /// count. Standing at 0:00, every further press left went on counting 5x, 6x, 7x, because the
+    /// clamp that ate the jump ran after the count, and the comb had nothing left to draw between.
+    /// The ceiling is the one every other scrub path uses, so on live a forward press stops at the
+    /// live edge rather than at the right end of a rail that cannot be aimed at.
+    nonisolated static func jumpTarget(from base: Float, seconds: Double,
+                                       duration: Double, ceiling: Float) -> Float {
+        guard duration > 0 else { return base }
+        return max(0, min(ceiling, base + Float(seconds / duration)))
+    }
+
     func seekJump(seconds: Double) {
         let dur = scrubReferenceDuration
         guard dur > 0 else { return }
+
+        let base = isScrubbing ? scrubProgress : progress
+        let target = Self.jumpTarget(from: base, seconds: seconds, duration: dur,
+                                     ceiling: scrubCeiling)
+        guard target != base else {
+            // The press was made even though the playhead cannot answer it, so the bar stays up:
+            // what it is saying is that the end is the end.
+            showControlsTemporarily()
+            return
+        }
 
         // Sodalite#63: remember where a backward jump started so the commit can open the subtitle
         // window. A forward jump abandons a pending origin rather than extending it. Both jump gestures
@@ -1833,8 +1856,7 @@ final class PlayerViewModel {
         showControls = true
         controlsTimer?.cancel()
 
-        let jumpProgress = Float(seconds / dur)
-        scrubProgress = max(0, min(1, scrubProgress + jumpProgress))
+        scrubProgress = target
         // scrubTime is VOD-only (live bar renders its own behind-live label); preview is fed for live
         // via updateLiveScrubPreview (DVR-cache thumbnails).
         if !isLiveSession {

@@ -130,9 +130,10 @@ extension PlayerViewModel {
     /// Sodalite#104: a live scrub stops at the live edge, which on a programme block is not the right
     /// end of the rail. The part of the block that has not aired is drawn, because a viewer wants to
     /// see how much of the programme is still to come, and it cannot be aimed at.
+    var scrubCeiling: Float { isLiveSession ? liveRail.liveEdge : 1 }
+
     func clampedScrubProgress(_ value: Float) -> Float {
-        let ceiling = isLiveSession ? liveRail.liveEdge : 1
-        return max(0, min(ceiling, value))
+        max(0, min(scrubCeiling, value))
     }
 
     func scrubPanEnded() {
