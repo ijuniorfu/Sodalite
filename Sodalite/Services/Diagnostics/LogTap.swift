@@ -67,9 +67,9 @@ final class LogTap: ObservableObject {
         if Self.isDiagnosticBuild {
             print(line)
         }
-#if DEBUG
-        appendToFile(line)
-#endif
+        if Self.fileSinkEnabled {
+            appendToFile(line)
+        }
         DispatchQueue.main.async { [weak self] in
             MainActor.assumeIsolated {
                 guard let self else { return }
@@ -81,7 +81,6 @@ final class LogTap: ObservableObject {
         }
     }
 
-#if DEBUG
     /// A measurement that outlives the app.
     ///
     /// The buffer above is 300 lines in memory, wiped on every launch, which is the right shape for
@@ -90,10 +89,15 @@ final class LogTap: ObservableObject {
     /// both: measured on a device, the session that was meant to produce the evidence came back with
     /// nothing in it but the next launch.
     ///
-    /// Debug builds only, so it never runs for anyone but us, and capped so a long session cannot
-    /// fill the container. `Library/Caches` because tvOS forbids app writes to `Documents` and the
-    /// failure there is a swallowed throw, which reads exactly like "the app produced no logs".
-    /// Pull it with:
+    /// AE#597: it used to be debug-only, which made the one class of bug that needs it the one class
+    /// it could not be used on. A wake-from-sleep failure puts an hour between the cause and the
+    /// symptom and ends with a reboot, so a TestFlight capture came back holding 300 lines of
+    /// aftermath and nothing of the transition. It is now a switch anybody can turn on, off by
+    /// default, and every line has already been through `LogRedaction` by the time it gets here.
+    ///
+    /// Capped so a long session cannot fill the container. `Library/Caches` because tvOS forbids app
+    /// writes to `Documents` and the failure there is a swallowed throw, which reads exactly like
+    /// "the app produced no logs". Pull it with:
     ///
     ///     xcrun devicectl device copy from --device <uuid> \
     ///       --domain-type appDataContainer --domain-identifier de.superuser404.Sodalite \
@@ -101,6 +105,25 @@ final class LogTap: ObservableObject {
     private nonisolated static let fileQueue =
         DispatchQueue(label: "de.superuser404.sodalite.logfile")
     private nonisolated static let fileCapBytes = 32 * 1024 * 1024
+
+    /// Read once per line on the emitting thread, so it is a cached flag rather than a defaults
+    /// read: `note(_:)` runs several times a second on a live session. Written at launch and when
+    /// the switch is flipped.
+    nonisolated(unsafe) static var fileSinkEnabled = false
+    nonisolated static let fileSinkDefaultsKey = "diagnostics.persistentLog"
+
+    /// Owned here rather than by `DevicePreferences`, because the log is reachable from setup,
+    /// before a server exists and before the dependency graph is built, and the switch has to work
+    /// on exactly that screen.
+    nonisolated static func setFileSinkEnabled(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: fileSinkDefaultsKey)
+        fileSinkEnabled = enabled
+        if enabled {
+            startFileSink()
+        } else {
+            LogTap.shared.note("[LogTap] file sink off; the file on disk is left where it is")
+        }
+    }
 
     nonisolated static var fileSinkURL: URL? {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
@@ -128,7 +151,6 @@ final class LogTap: ObservableObject {
             try? handle.write(contentsOf: Data((line + "\n").utf8))
         }
     }
-#endif
 
     /// Moves what the Top Shelf extension logged in its own process into the buffer (see `ShelfLog`).
     ///

@@ -81,12 +81,12 @@ struct SodaliteApp: App {
             LogTap.shared.importShelfLines()
         }
 
-#if DEBUG
         // A measurement that outlives the app: the in-memory buffer is 300 lines and is wiped on
-        // every launch, so a test that ends with the app being force-quit or terminated in the
-        // background comes back with nothing in it. Debug builds only.
-        LogTap.startFileSink()
-#endif
+        // every launch, so a session that ends with a force-quit, a reboot, or an hour of standby
+        // comes back holding the aftermath and none of the transition. Off by default, armed here
+        // when the switch under the diagnostic log is on (AE#597).
+        LogTap.fileSinkEnabled = UserDefaults.standard.bool(forKey: LogTap.fileSinkDefaultsKey)
+        if LogTap.fileSinkEnabled { LogTap.startFileSink() }
 
         // The engine's own fetches, and AVPlayer's behind the AE#495 relay, answer a server-trust
         // challenge from the same pin store the app's sessions read. Same fingerprint, same

@@ -32,6 +32,10 @@ struct DiagnosticLogView: View {
     /// button was pressed, not the ones that arrived while it was opening.
     @State private var exportedLines: LogSnapshot?
 
+    /// AE#597: mirrors `LogTap.fileSinkEnabled`, which is a plain flag rather than observable
+    /// state because it is read on the emitting thread for every line.
+    @State private var persistsLog = LogTap.fileSinkEnabled
+
     /// tvOS groups the lines into focusable blocks (see LogBlock). 12 keeps a block roughly one
     /// screenful, so one swipe of the remote is one page.
     private static let blockSize = 12
@@ -186,6 +190,18 @@ struct DiagnosticLogView: View {
                 isEnabled: !tap.lines.isEmpty
             ) {
                 tap.clear()
+            }
+
+            // AE#597: the buffer above is this launch only, which is the wrong shape for anything
+            // with an hour between its cause and its symptom. Always enabled: it is most worth
+            // turning on when there is nothing on screen yet.
+            LogActionButton(
+                titleKey: "settings.log.persist",
+                systemImage: persistsLog ? "externaldrive.fill.badge.checkmark" : "externaldrive",
+                isEnabled: true
+            ) {
+                persistsLog.toggle()
+                LogTap.setFileSinkEnabled(persistsLog)
             }
         }
     }
