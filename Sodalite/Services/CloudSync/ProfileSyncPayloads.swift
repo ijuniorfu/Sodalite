@@ -148,6 +148,10 @@ struct ProfileAppearancePayload: Codable, Equatable {
     var showPosterProgress: Bool
     var showCommunityRating: Bool
     var showCriticRating: Bool
+    /// nil from a build without the tagline switch (Sodalite#146 round 4). Optional and unapplied
+    /// when absent, the rule this file states at the top: a sender that has no opinion must not
+    /// hand one over.
+    var showTagline: Bool?
 }
 
 extension ProfileAppearancePayload {
@@ -173,7 +177,8 @@ extension ProfileAppearancePayload {
             showLibraryNames: a.showLibraryNames,
             showPosterProgress: a.showPosterProgress,
             showCommunityRating: a.showCommunityRating,
-            showCriticRating: a.showCriticRating
+            showCriticRating: a.showCriticRating,
+            showTagline: a.showTagline
         )
     }
 
@@ -196,6 +201,7 @@ extension ProfileAppearancePayload {
         a.showPosterProgress = showPosterProgress
         a.showCommunityRating = showCommunityRating
         a.showCriticRating = showCriticRating
+        if let showTagline { a.showTagline = showTagline }
     }
 }
 

@@ -101,6 +101,7 @@ struct DetailInfoRows<LeftPrimary: View>: View {
     @ViewBuilder let leftPrimary: () -> LeftPrimary
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.dependencies) private var dependencies
 
     /// Whether there is anything for the trailing cell to show.
     static func hasContent(_ item: JellyfinItem) -> Bool {
@@ -108,11 +109,12 @@ struct DetailInfoRows<LeftPrimary: View>: View {
     }
 
     var body: some View {
-        let tagline = item.taglines?.first
+        let wantsTagline = dependencies.appearancePreferences.showTagline
+        let tagline = wantsTagline ? item.taglines?.first : nil
         let hasTagline = !(tagline?.isEmpty ?? true)
         // Reserved only while the trailing cell can still gain content: once the detail fetch
-        // settles empty, the row collapses to its left cell.
-        let showPlaceholder = !hasFullDetail && !Self.hasContent(item)
+        // settles empty, or the viewer switched taglines off, the row collapses to its left cell.
+        let showPlaceholder = wantsTagline && !hasFullDetail && !Self.hasContent(item)
 
         if hSizeClass == .compact {
             // Phone: the metadata alone, in a no-wrap horizontal scroll, so values never break

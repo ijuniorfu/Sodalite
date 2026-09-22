@@ -238,6 +238,9 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     /// default would blank the scores on every device the moment one old sender uploaded.
     var showCommunityRating: Bool
     var showCriticRating: Bool
+    /// nil from a build without the tagline switch (Sodalite#146 round 4). Same reading as the two
+    /// scores above: those builds drew the tagline unconditionally, so absent means "shown".
+    var showTagline: Bool
     /// nil from a device on a build without tab visibility (Sodalite#62); applying nil would reset
     /// the receiver's hidden tabs, so it means "no opinion", not "nothing hidden".
     var hiddenTabs: [String]?
@@ -266,6 +269,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         showPosterProgress: Bool = false,
         showCommunityRating: Bool = true,
         showCriticRating: Bool = true,
+        showTagline: Bool = true,
         hiddenTabs: [String]? = nil,
         navigationStyle: String? = nil
     ) {
@@ -288,6 +292,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         self.showPosterProgress = showPosterProgress
         self.showCommunityRating = showCommunityRating
         self.showCriticRating = showCriticRating
+        self.showTagline = showTagline
         self.hiddenTabs = hiddenTabs
         self.navigationStyle = navigationStyle
     }
@@ -312,6 +317,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         case showPosterProgress
         case showCommunityRating
         case showCriticRating
+        case showTagline
         case hiddenTabs
         case navigationStyle
     }
@@ -341,6 +347,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         showPosterProgress = try values.decodeIfPresent(Bool.self, forKey: .showPosterProgress) ?? false
         showCommunityRating = try values.decodeIfPresent(Bool.self, forKey: .showCommunityRating) ?? true
         showCriticRating = try values.decodeIfPresent(Bool.self, forKey: .showCriticRating) ?? true
+        showTagline = try values.decodeIfPresent(Bool.self, forKey: .showTagline) ?? true
         hiddenTabs = try values.decodeIfPresent([String].self, forKey: .hiddenTabs)
         navigationStyle = try values.decodeIfPresent(String.self, forKey: .navigationStyle)
     }
@@ -366,6 +373,7 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(showPosterProgress, forKey: .showPosterProgress)
         try values.encode(showCommunityRating, forKey: .showCommunityRating)
         try values.encode(showCriticRating, forKey: .showCriticRating)
+        try values.encode(showTagline, forKey: .showTagline)
         try values.encodeIfPresent(hiddenTabs, forKey: .hiddenTabs)
         try values.encodeIfPresent(navigationStyle, forKey: .navigationStyle)
     }

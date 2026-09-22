@@ -141,6 +141,8 @@ struct RatingVisibilityTests {
         #expect(source.contains("settings.appearance.criticRating"))
         #expect(source.contains("appearance.showCommunityRating"))
         #expect(source.contains("appearance.showCriticRating"))
+        #expect(source.contains("settings.appearance.tagline"))
+        #expect(source.contains("appearance.showTagline"))
     }
 
     private func sourceFile(_ relativePath: String) throws -> String {
