@@ -4,7 +4,19 @@ import Foundation
 nonisolated final class AsyncSemaphore: @unchecked Sendable {
     private struct Waiter {
         let id: UInt64
+        let isBackground: Bool
         let continuation: CheckedContinuation<Void, Error>
+    }
+
+    /// Sodalite#72: the lane a waiter joins, read from the task that is waiting.
+    ///
+    /// The issue's own objection was that task priority "applies to the Swift task, not to the
+    /// position in the semaphore queue". It does now: this is the one place that turns the priority
+    /// the caller already carries into a position. Home's precompute passes all run at `.utility`
+    /// (`HomeViewModel.swift:448/456/464`, `+Precompute.swift:45/118`) and a tap does not, so no
+    /// call site has to be told anything.
+    private static func currentIsBackground() -> Bool {
+        Task.currentPriority <= .utility
     }
 
     private let limit: Int
@@ -36,7 +48,8 @@ nonisolated final class AsyncSemaphore: @unchecked Sendable {
                     continuation.resume()
                     return
                 }
-                waiters.append(Waiter(id: id, continuation: continuation))
+                waiters.append(Waiter(id: id, isBackground: Self.currentIsBackground(),
+                                      continuation: continuation))
                 lock.unlock()
             }
         } onCancel: {
@@ -51,14 +64,21 @@ nonisolated final class AsyncSemaphore: @unchecked Sendable {
         }
     }
 
-    /// Release a permit, waking the longest-waiting task if any.
+    /// Release a permit, waking the longest-waiting task of the highest lane present.
+    ///
+    /// Sodalite#72: interactive before background, arrival order within each. Measured on the
+    /// documented Home load (14 background requests against 6 permits), a tap used to wait almost
+    /// exactly one background request: 64 ms behind a 60 ms hold, 3136 ms behind a 3000 ms one, so
+    /// the cost tracked the HOLD rather than the queue depth. The longest hold in the app is a
+    /// single `limit: 10000` library scan whose own comment calls its runtime multi-second.
     func signal() {
         lock.lock()
         if waiters.isEmpty {
             available += 1
             lock.unlock()
         } else {
-            let waiter = waiters.removeFirst()
+            let index = waiters.firstIndex { !$0.isBackground } ?? 0
+            let waiter = waiters.remove(at: index)
             lock.unlock()
             waiter.continuation.resume()
         }
