@@ -180,6 +180,16 @@ struct AppearanceSettingsView: View {
                                set: { appearance.showCriticRating = $0 })
             )
 
+            // Sodalite#146 round 4. Next to the scores because it is the same kind of choice: a
+            // line of scraped copy on a detail page that a viewer may not want there.
+            boolRow(
+                icon: "text.quote",
+                title: "settings.appearance.tagline",
+                subtitle: "settings.appearance.tagline.subtitle",
+                value: Binding(get: { appearance.showTagline },
+                               set: { appearance.showTagline = $0 })
+            )
+
             // Sodalite#50. The two sub-rows stay visible while protection is off: this screen has
             // no conditional rows, and rows appearing under the focused one is a tvOS focus hazard.
             boolRow(

@@ -75,6 +75,7 @@ final class AppearancePreferences {
         static let showPosterProgress = "appearance.showPosterProgress"
         static let showCommunityRating = "appearance.showCommunityRating"
         static let showCriticRating = "appearance.showCriticRating"
+        static let showTagline = "appearance.showTagline"
     }
 
     /// 1.3: noticeably bigger Apple TV-style card without dropping so many cards per row that rows feel empty.
@@ -176,6 +177,14 @@ final class AppearancePreferences {
         didSet { store.set(showCriticRating, forKey: Keys.showCriticRating) }
     }
 
+    /// Sodalite#146 round 4. The marketing line a detail page sets against its metadata row. On by
+    /// default, and off for a viewer who reads it as a poster slogan on a page about a file they
+    /// already own. It joins the switches next to it rather than being argued about: the page
+    /// already lets its badges and both scores go.
+    var showTagline: Bool {
+        didSet { store.set(showTagline, forKey: Keys.showTagline) }
+    }
+
     /// Sodalite#62. Tabs the user switched off; only hideable ones ever land here, so Home and
     /// Settings cannot be stored away even by a synced payload from a future build.
     var hiddenTabs: Set<AppTab> {
@@ -252,6 +261,7 @@ final class AppearancePreferences {
         self.showPosterProgress = store.object(forKey: Keys.showPosterProgress) as? Bool ?? false
         self.showCommunityRating = store.object(forKey: Keys.showCommunityRating) as? Bool ?? true
         self.showCriticRating = store.object(forKey: Keys.showCriticRating) as? Bool ?? true
+        self.showTagline = store.object(forKey: Keys.showTagline) as? Bool ?? true
         self.navigationStyle = store.string(forKey: Keys.navigationStyle)
             .flatMap(NavigationStyle.init(rawValue:)) ?? .topBar
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []

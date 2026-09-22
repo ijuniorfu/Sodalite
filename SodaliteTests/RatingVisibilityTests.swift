@@ -87,21 +87,45 @@ struct RatingVisibilityTests {
         }
     }
 
-    /// A hidden segment must take its separator with it. Both rows place the separator between the
-    /// segments that survived, so there is no way to draw a leading or trailing dot.
-    @Test("the metadata rows separate segments instead of prefixing them")
+    /// A hidden segment must take its separator with it. The Seerr row places the separator between
+    /// the segments that survived, so there is no way to draw a leading or trailing dot.
+    @Test("the catalog metadata row separates segments instead of prefixing them")
     func separatorsSitBetweenSegments() throws {
-        for path in [
-            "Sodalite/Components/ItemMetadataRow.swift",
-            "Sodalite/Features/Catalog/SeerrMetadataRow.swift",
-        ] {
-            let source = try sourceFile(path)
-            #expect(source.contains("if index > 0 { separator }"), "\(path) can draw a leading dot")
-            let prefixed = source
-                .split(separator: "\n")
-                .filter { $0.trimmingCharacters(in: .whitespaces) == "separator" }
-            #expect(prefixed.isEmpty, "\(path) still emits a separator ahead of a segment")
-        }
+        let path = "Sodalite/Features/Catalog/SeerrMetadataRow.swift"
+        let source = try sourceFile(path)
+        #expect(source.contains("if index > 0 { separator }"), "\(path) can draw a leading dot")
+        let prefixed = source
+            .split(separator: "\n")
+            .filter { $0.trimmingCharacters(in: .whitespaces) == "separator" }
+        #expect(prefixed.isEmpty, "\(path) still emits a separator ahead of a segment")
+    }
+
+    /// The Jellyfin row's rule, which the source scan above used to stand in for. Two clauses: no
+    /// leading dot when everything ahead of a segment dropped out (Sodalite#127), and no dot beside
+    /// a segment that draws its own border, where that border is the separation already
+    /// (Sodalite#146, the format pills in round 3 and the age rating in round 4).
+    @Test("a dot stands between two words, never beside a border")
+    func theJellyfinRowPlacesItsDots() {
+        let rule = ItemMetadataRow.needsSeparator
+
+        // year · runtime · score
+        #expect(!rule(0, [false, false, false]))
+        #expect(rule(1, [false, false, false]))
+        #expect(rule(2, [false, false, false]))
+
+        // year · runtime [PG-13] score, the round-4 case
+        #expect(rule(1, [false, false, true, false]))
+        #expect(!rule(2, [false, false, true, false]))
+        #expect(!rule(3, [false, false, true, false]))
+
+        // [PG-13][4K][HDR], a run of boxes separates itself
+        #expect(!rule(1, [true, true, true]))
+        #expect(!rule(2, [true, true, true]))
+
+        // A rating switched off leaves the row one segment shorter, never a dot with nothing in
+        // front of it.
+        #expect(!rule(0, [true]))
+        #expect(!rule(0, []))
     }
 
     @Test("the critic score is not fetched when it will not be drawn")
@@ -117,6 +141,8 @@ struct RatingVisibilityTests {
         #expect(source.contains("settings.appearance.criticRating"))
         #expect(source.contains("appearance.showCommunityRating"))
         #expect(source.contains("appearance.showCriticRating"))
+        #expect(source.contains("settings.appearance.tagline"))
+        #expect(source.contains("appearance.showTagline"))
     }
 
     private func sourceFile(_ relativePath: String) throws -> String {

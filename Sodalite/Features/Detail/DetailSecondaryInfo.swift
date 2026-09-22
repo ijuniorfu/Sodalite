@@ -86,8 +86,8 @@ struct DetailActionRow<Content: View>: View {
 /// The metadata line of the detail glass panels, with the tagline set against it on the trailing
 /// edge (Sodalite#15 round 6 follow-up). Baseline-aligned so the two sit level rather than drifting
 /// as independent stacks; the left cell takes layout priority and never truncates, the tagline gets
-/// what is left and truncates first. While detail is in flight the right cell holds a skeleton bar
-/// so the panel does not grow when the tagline lands.
+/// what is left and truncates first. While detail is in flight the right cell reserves the line so
+/// the panel does not grow when the tagline lands.
 ///
 /// Genres and studios used to sit here too, on a second row (Sodalite#146 round 2). With the
 /// synopsis in the panel since round 1 they were the fourth and fifth block of text in one card,
@@ -101,6 +101,7 @@ struct DetailInfoRows<LeftPrimary: View>: View {
     @ViewBuilder let leftPrimary: () -> LeftPrimary
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @Environment(\.dependencies) private var dependencies
 
     /// Whether there is anything for the trailing cell to show.
     static func hasContent(_ item: JellyfinItem) -> Bool {
@@ -108,11 +109,12 @@ struct DetailInfoRows<LeftPrimary: View>: View {
     }
 
     var body: some View {
-        let tagline = item.taglines?.first
+        let wantsTagline = dependencies.appearancePreferences.showTagline
+        let tagline = wantsTagline ? item.taglines?.first : nil
         let hasTagline = !(tagline?.isEmpty ?? true)
-        // Skeleton only while the trailing cell can still gain content: once the detail fetch settles
-        // empty, the row collapses to its left cell.
-        let showPlaceholder = !hasFullDetail && !Self.hasContent(item)
+        // Reserved only while the trailing cell can still gain content: once the detail fetch
+        // settles empty, or the viewer switched taglines off, the row collapses to its left cell.
+        let showPlaceholder = wantsTagline && !hasFullDetail && !Self.hasContent(item)
 
         if hSizeClass == .compact {
             // Phone: the metadata alone, in a no-wrap horizontal scroll, so values never break
@@ -133,16 +135,22 @@ struct DetailInfoRows<LeftPrimary: View>: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 } else if showPlaceholder {
-                    placeholderBar(width: 220)
+                    placeholder
                 }
             }
         }
     }
 
-    private func placeholderBar(width: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.Theme.surface)
-            .frame(width: width, height: 14)
+    /// Reserved, not a skeleton, and the same answer the synopsis under it has given since round 1.
+    /// This used to be an opaque `surface` bar, which on a title with no tagline at all appeared at
+    /// the snapshot deadline and vanished when the fetch landed: a grey block that never became
+    /// anything, over a material it could not match (Sodalite#146 round 4, reported on a device).
+    /// Set in the tagline's own font so what it holds open is the line that may arrive.
+    private var placeholder: some View {
+        Text(verbatim: " ")
+            .font(.callout)
+            .italic()
+            .lineLimit(1)
     }
 }
 

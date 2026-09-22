@@ -362,6 +362,7 @@ extension DependencyContainer {
                 showPosterProgress: a.showPosterProgress,
                 showCommunityRating: a.showCommunityRating,
                 showCriticRating: a.showCriticRating,
+                showTagline: a.showTagline,
                 hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted(),
                 navigationStyle: a.navigationStyle.rawValue
             ))
@@ -484,6 +485,7 @@ extension DependencyContainer {
             store.showPosterProgress = a.showPosterProgress
             store.showCommunityRating = a.showCommunityRating
             store.showCriticRating = a.showCriticRating
+            store.showTagline = a.showTagline
             // Absent field = sender predates tab visibility, so it carries no opinion; applying an empty set would silently unhide the receiver's tabs (Sodalite#62).
             if let tabs = a.hiddenTabs {
                 store.hiddenTabs = Set(tabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
