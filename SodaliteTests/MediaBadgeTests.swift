@@ -271,7 +271,51 @@ struct MediaBadgeTests {
         let badges = MediaBadgeResolver.badges(
             width: 1920, height: 1080,
             streams: [video(width: 1920, range: "SDR"), audio(codec: "aac", channels: 2)])
-        #expect(badges.detailPills == ["1080p", "AAC"])
+        #expect(badges.detailPills == ["1080p", "AAC", "2.0"])
+    }
+
+    // MARK: - How big the sound is (Sodalite#160)
+
+    @Test("a track without a spatial format ends the row on its bed, not on the codec")
+    func theLastPillNamesTheBed() {
+        let badges = MediaBadgeResolver.badges(
+            width: 1920, height: 1080,
+            streams: [video(width: 1920, range: "SDR"), audio(codec: "eac3", channels: 6)])
+        #expect(badges.detailPills == ["1080p", "DD+", "5.1"])
+    }
+
+    @Test("an Atmos track keeps its name, the bed does not take a fifth pill")
+    func spatialOutranksTheBed() {
+        let badges = MediaBadgeResolver.badges(
+            width: 3840, height: 2160,
+            streams: [video(width: 3840, range: "DOVI", dvProfile: 5),
+                      audio(codec: "truehd", profile: "TrueHD with Dolby Atmos", channels: 8)])
+        #expect(badges.detailPills == ["4K", "DV", "TrueHD", "ATMOS"])
+        #expect(badges.channelLayout == "7.1", "the fact is resolved, the row just prefers the other one")
+    }
+
+    @Test("the counts whose layout is unambiguous are named, the rest count channels")
+    func channelLayoutVocabulary() {
+        func layout(_ channels: Int?) -> String? {
+            MediaBadgeResolver.badges(width: nil, height: nil,
+                                      streams: [audio(codec: "aac", channels: channels)]).channelLayout
+        }
+        #expect(layout(1) == "1.0")
+        #expect(layout(2) == "2.0")
+        #expect(layout(6) == "5.1")
+        #expect(layout(8) == "7.1")
+        #expect(layout(3) == "3ch", "3 channels is 2.1 as often as 3.0, so it is not named")
+        #expect(layout(10) == "10ch", "10 can be 9.1 or 7.1.2")
+        #expect(layout(0) == nil)
+        #expect(layout(nil) == nil)
+    }
+
+    @Test("the bed stays off the poster: the corner keeps its three")
+    func theCornerIsUnchangedByTheBed() {
+        let badges = MediaBadgeResolver.badges(
+            width: 1920, height: 1080,
+            streams: [video(width: 1920, range: "SDR"), audio(codec: "eac3", channels: 6)])
+        #expect(badges.pills == ["1080p"])
     }
 
     @Test("the codec pill stays off the poster: the corner keeps its three")
