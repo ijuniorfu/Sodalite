@@ -175,15 +175,11 @@ struct PlayerTouchControls: View {
         .accessibilityLabel(Text("player.lock.engage"))
     }
 
-    private var titleText: String {
-        viewModel.item.seriesName ?? viewModel.item.name
-    }
+    private var titleLines: PlayerTitleLines { PlayerTitleLines(item: viewModel.item) }
 
-    private var subtitleText: String? {
-        if viewModel.item.seriesName != nil { return viewModel.item.name }
-        if let year = viewModel.item.productionYear { return String(year) }
-        return nil
-    }
+    private var titleText: String { titleLines.header }
+
+    private var subtitleText: String? { titleLines.subtitle }
 
     // MARK: - Bottom block
 

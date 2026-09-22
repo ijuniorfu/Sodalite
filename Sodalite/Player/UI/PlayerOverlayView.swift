@@ -34,10 +34,11 @@ struct PlayerOverlayView: View {
             // nothing to show but what is running and where. Below the spinner and the error screen,
             // which both still speak for the session, and below the transport, which still drives it.
             if let destination = viewModel.externalPlaybackDestination {
+                let lines = PlayerTitleLines(item: viewModel.item)
                 ExternalPlaybackBackdrop(
                     destination: destination,
-                    title: viewModel.item.seriesName ?? viewModel.item.name,
-                    subtitle: viewModel.item.seriesName != nil ? viewModel.item.name : nil,
+                    title: lines.header,
+                    subtitle: lines.subtitle,
                     artworkURL: remoteViewArtworkURL,
                     backdropURL: remoteViewBackdropURL,
                     tintColor: tintColor

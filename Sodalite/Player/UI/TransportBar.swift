@@ -755,44 +755,23 @@ struct PlayerTitleOverlay: View {
     let item: JellyfinItem
 
     var body: some View {
+        let lines = PlayerTitleLines(item: item)
         VStack(alignment: .leading, spacing: 4) {
-            if let seriesName = item.seriesName {
-                Text(seriesName)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+            Text(lines.header)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .lineLimit(1)
 
-                let episodeLabel = episodeDescription
-                if !episodeLabel.isEmpty {
-                    Text(episodeLabel)
-                        .font(.body)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .lineLimit(1)
-                }
-            } else {
-                Text(item.name)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+            if let subtitle = lines.subtitle {
+                Text(subtitle)
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.7))
                     .lineLimit(1)
-
-                if let year = item.productionYear {
-                    Text(String(year))
-                        .font(.body)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
             }
         }
         .padding(.horizontal, 80)
         .padding(.top, 60)
-    }
-
-    private var episodeDescription: String {
-        EpisodeMetadataFormatter.episodeLine(under: item.seriesName,
-                                             season: item.parentIndexNumber,
-                                             episode: item.indexNumber,
-                                             title: item.name)
     }
 }
 
