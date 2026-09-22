@@ -25,6 +25,18 @@ struct SeasonTab: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(tabBackground)
                 )
+                // A resting edge on the selected tab, so the bar says which season is showing even
+                // where its fill is too quiet to draw its own shape (Sodalite#146 round 4). The
+                // QUIET edge, not the pills' `hairline`: those float over whatever the scraper
+                // found, this sits below the fold on a ground the app draws itself. The fill stays
+                // `restFill` for the same reason it always was, the focus lift here goes to white
+                // rather than to the tint.
+                .overlay {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(Color.Theme.panelEdge, lineWidth: 1)
+                    }
+                }
         }
         .buttonStyle(SeasonTabButtonStyle())
         .focused(focusedID, equals: id)
