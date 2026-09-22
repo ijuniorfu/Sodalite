@@ -104,7 +104,7 @@ final class LogTap: ObservableObject {
     ///       --user mobile --source Library/Caches/sodalite-log.txt --destination pulled.txt
     private nonisolated static let fileQueue =
         DispatchQueue(label: "de.superuser404.sodalite.logfile")
-    private nonisolated static let fileCapBytes = 32 * 1024 * 1024
+    nonisolated static let fileCapBytes = 32 * 1024 * 1024
 
     /// Read once per line on the emitting thread, so it is a cached flag rather than a defaults
     /// read: `note(_:)` runs several times a second on a live session. Written at launch and when
@@ -132,11 +132,25 @@ final class LogTap: ObservableObject {
 
     /// One marker per launch, so a file with nothing in it after it says "no lines were emitted"
     /// rather than "the sink is broken".
+    ///
+    /// Arming **appends**, it does not start a fresh file. The sink exists for transitions the
+    /// memory ring rolls out, and those repros span an hour of sleep plus a look at other apps
+    /// afterwards, in which tvOS may evict the app: truncating here would make the relaunch that
+    /// follows the thing that destroys the evidence. Only a file already at its cap is discarded,
+    /// since nothing more can be written to it anyway.
     nonisolated static func startFileSink() {
         guard let url = fileSinkURL else { return }
         fileQueue.async {
-            try? FileManager.default.removeItem(at: url)
-            FileManager.default.createFile(atPath: url.path, contents: nil)
+            let manager = FileManager.default
+            let size = (try? manager.attributesOfItem(atPath: url.path))?[.size] as? Int
+            guard let size else {
+                manager.createFile(atPath: url.path, contents: nil)
+                return
+            }
+            if size >= fileCapBytes {
+                try? manager.removeItem(at: url)
+                manager.createFile(atPath: url.path, contents: nil)
+            }
         }
         LogTap.shared.note("[LogTap] file sink armed at \(url.path)")
     }
