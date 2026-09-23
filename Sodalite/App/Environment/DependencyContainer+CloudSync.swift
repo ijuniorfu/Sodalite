@@ -412,9 +412,11 @@ extension DependencyContainer {
         defer { isApplyingCloudChanges = false }
         switch payload {
         case .playback(let p):
-            // Legacy records only feed the legacy keys (the migration and seed source) and, through the
-            // pass-throughs, the device values. Never a profile: two devices on different profiles
-            // would overwrite each other through this record.
+            // Legacy records only feed the legacy keys (the migration and seed source). Never a profile:
+            // two devices on different profiles would overwrite each other through this record. Never
+            // the device values either, although the record carries them for older builds: they
+            // describe the sender's box, and applied here two Apple TVs kept switching each other's
+            // Top Shelf, buffers and Dolby Vision override through any unrelated edit.
             let store = profileSettings.legacy.playback
             store.autoplayNextEpisode = p.autoplayNextEpisode
             store.autoSkipIntro = p.autoSkipIntro
@@ -434,29 +436,15 @@ extension DependencyContainer {
             store.subtitleFont = PlaybackPreferences.SubtitleFont(rawValue: p.subtitleFont) ?? store.subtitleFont
             store.subtitleWeight = PlaybackPreferences.SubtitleWeight(rawValue: p.subtitleWeight) ?? store.subtitleWeight
             store.pictureMode = PlaybackPreferences.PictureMode(rawValue: p.pictureMode) ?? store.pictureMode
-            store.showStatsForNerds = p.showStatsForNerds
-            store.showEngineDiagnostics = p.showEngineDiagnostics
-            store.preferLosslessAudioBridge = p.preferLosslessAudioBridge
             store.showScrubPreview = p.showScrubPreview
             store.preferServerTrickplay = p.preferServerTrickplay
             // Absent on payloads from builds before these fields existed; leave the local
             // value alone rather than resetting it to a default.
-            if let rotationLocked = p.playerRotationLocked { store.playerRotationLocked = rotationLocked }
-            if let depth = p.networkBufferDepth {
-                store.networkBufferDepth = PlaybackPreferences.NetworkBufferDepth(rawValue: depth) ?? store.networkBufferDepth
-            }
             if let remember = p.rememberTrackSelections { store.rememberTrackSelections = remember }
             if let forced = p.autoForcedSubtitles { store.autoForcedSubtitles = forced }
             if let autoSkipRecap = p.autoSkipRecap { store.autoSkipRecap = autoSkipRecap }
             if let skipBackSubs = p.subtitlesOnSkipBack { store.subtitlesOnSkipBack = skipBackSubs }
-            if let bufferDepth = p.liveBufferDepth {
-                store.liveBufferDepth = PlaybackPreferences.LiveBufferDepth(rawValue: bufferDepth) ?? store.liveBufferDepth
-            }
-            if let teletextPage = p.liveTeletextPage {
-                store.liveTeletextPage = PlaybackPreferences.LiveTeletextPage(rawValue: teletextPage) ?? store.liveTeletextPage
-            }
             if let countdown = p.autoplayCountdown { store.autoplayCountdown = countdown }
-            if let forceDV = p.forceDolbyVisionOnNonDVDisplay { store.forceDolbyVisionOnNonDVDisplay = forceDV }
             if let touchpadScrub = p.touchpadScrubbing { store.touchpadScrubbing = touchpadScrub }
             if let anchor = p.nextEpisodeCountdownAnchor {
                 store.nextEpisodeCountdownAnchor =
@@ -472,9 +460,6 @@ extension DependencyContainer {
             }
             store.showContentLogos = a.showContentLogos
             store.continueWatchingImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.continueWatchingImage) ?? store.continueWatchingImage
-            if let raw = a.topShelfImage, let image = AppearancePreferences.ContinueWatchingImage(rawValue: raw) {
-                store.topShelfImage = image
-            }
             store.largeCards = a.largeCards
             store.nowPlayingUsesSeriesPoster = a.nowPlayingUsesSeriesPoster
             store.spoilerProtectionEnabled = a.spoilerProtectionEnabled
@@ -482,7 +467,6 @@ extension DependencyContainer {
             store.spoilerHideMovies = a.spoilerHideMovies
             store.showPosterBadges = a.showPosterBadges
             store.showDetailBadges = a.showDetailBadges
-            if let showTopShelfRow = a.showTopShelfRow { store.showTopShelfRow = showTopShelfRow }
             store.showLibraryNames = a.showLibraryNames
             store.showPosterProgress = a.showPosterProgress
             store.showCommunityRating = a.showCommunityRating

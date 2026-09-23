@@ -43,7 +43,27 @@ struct ProfileSettingsContainerTests {
 
         #expect(container.appearancePreferences.largeCards == false)
         #expect(container.profileSettings.legacy.appearance.largeCards == true)
-        #expect(container.devicePreferences.showTopShelfRow == false)
+        // The sender's box, not this one: a record from another Apple TV must not switch this row.
+        #expect(container.devicePreferences.showTopShelfRow == true)
+    }
+
+    @Test func aLegacyPlaybackRecordLeavesThisBoxsValuesAlone() throws {
+        let server = "c-\(UUID().uuidString)"
+        let container = try signedIn(scratch("deviceValues"), as: "alice", server: server)
+        container.devicePreferences.forceDolbyVisionOnNonDVDisplay = false
+        container.devicePreferences.preferLosslessAudioBridge = false
+        guard case .playback(var payload) = container.collectSettingsPayload(.playback, stamp: .now) else {
+            Issue.record("wrong case"); return
+        }
+        payload.forceDolbyVisionOnNonDVDisplay = true
+        payload.preferLosslessAudioBridge = true
+        payload.autoSkipIntro = !payload.autoSkipIntro
+
+        container.applySettingsPayload(.playback(payload))
+
+        #expect(container.devicePreferences.forceDolbyVisionOnNonDVDisplay == false)
+        #expect(container.devicePreferences.preferLosslessAudioBridge == false)
+        #expect(container.profileSettings.legacy.playback.autoSkipIntro == payload.autoSkipIntro)
     }
 
     /// An appearance record from a build that predates the Top Shelf values makes no statement about
