@@ -34,7 +34,7 @@ struct ProfilePINSyncTests {
         let data = try JSONEncoder().encode(legacy)
 
         let payload = try JSONDecoder().decode(SecuritySyncPayload.self, from: data)
-        #expect(payload.profilePINs.isEmpty)
+        #expect(payload.profilePINs == nil, "a record from before own PINs says nothing about them")
         #expect(payload.pinBlob == blob)
         #expect(payload.schemaVersion == 1)
     }
@@ -88,6 +88,24 @@ struct ProfilePINSyncTests {
         try container.saveOwnPIN("2222", for: ProfileRef(serverID: "A", userID: "dad"))
 
         let payload = try #require(container.collectSecurityPayload(stamp: Date()))
-        #expect(payload.profilePINs.map(\.userID) == ["dad", "family"])
+        #expect(payload.profilePINs?.map(\.userID) == ["dad", "family"])
+    }
+
+    /// The failure this guards: an older build changing the household PIN wrote a record without the
+    /// list, which read as an empty one and deleted every profile's own PIN on every current device.
+    @Test("Applying a record from before own PINs leaves them alone")
+    func oldRecordKeepsOwnPINs() throws {
+        let container = try makeHousehold(["dad"])
+        let dad = ProfileRef(serverID: "A", userID: "dad")
+        try container.saveGuardianPIN("9999")
+        try container.saveOwnPIN("2222", for: dad)
+
+        let legacy = LegacySecurityPayload(updatedAt: Date(), pinBlob: GuardianPINCrypto.makeBlob(pin: "8888"))
+        let payload = try JSONDecoder().decode(SecuritySyncPayload.self, from: JSONEncoder().encode(legacy))
+        container.applySecurityPayload(payload)
+
+        #expect(container.verifyPIN("8888", for: .guardian) == .success)
+        #expect(container.hasOwnPIN(dad))
+        #expect(container.verifyPIN("2222", for: .profile(dad)) == .success)
     }
 }

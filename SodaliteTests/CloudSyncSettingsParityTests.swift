@@ -39,14 +39,15 @@ struct CloudSyncSettingsParityTests {
     /// the profile values of the store plus the device values passed through it. Nothing may sit in
     /// both, and every device value has to land in exactly one of the two legacy records.
     ///
-    /// One named exemption: `skipIntervalSeconds` is the pre-split single interval (Sodalite#144),
-    /// still written so a build without the two direction fields keeps syncing its jumps, and no
-    /// longer a setting this build stores.
+    /// Named exemptions, all still written for older decoders and no longer settings this build
+    /// stores: `skipIntervalSeconds` is the pre-split single interval (Sodalite#144), the two
+    /// overlay flags are required by 1.0.0's synthesized decoder.
     @Test func everyPlaybackSettingIsInThePayload() {
         let defaults = scratchDefaults("playback")
         let device = storedSettingNames(of: DevicePreferences(store: defaults))
         let profile = storedSettingNames(of: PlaybackPreferences(store: defaults))
-        let payload = payloadFieldNames(.playback).subtracting(["skipIntervalSeconds"])
+        let payload = payloadFieldNames(.playback)
+            .subtracting(["skipIntervalSeconds", "showDiagnosticOverlay", "focusDiagnosticOverlayOnDV"])
         #expect(profile.isDisjoint(with: device))
         #expect(profile.union(device.intersection(payload)) == payload)
     }

@@ -46,6 +46,43 @@ struct ProfileSettingsContainerTests {
         #expect(container.devicePreferences.showTopShelfRow == false)
     }
 
+    /// An appearance record from a build that predates the Top Shelf values makes no statement about
+    /// this box. Defaulting them switched the row back on for an Apple TV that had turned it off.
+    @Test func aRecordWithoutTopShelfValuesLeavesThemAlone() throws {
+        let server = "c-\(UUID().uuidString)"
+        let container = try signedIn(scratch("noTopShelf"), as: "alice", server: server)
+        container.devicePreferences.showTopShelfRow = false
+        guard case .appearance(var payload) = container.collectSettingsPayload(.appearance, stamp: .now) else {
+            Issue.record("wrong case"); return
+        }
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(payload)) as? [String: Any])
+        object["showTopShelfRow"] = nil
+        object["topShelfImage"] = nil
+        payload = try JSONDecoder().decode(
+            AppearanceSettingsPayload.self, from: JSONSerialization.data(withJSONObject: object)
+        )
+        #expect(payload.showTopShelfRow == nil)
+
+        container.applySettingsPayload(.appearance(payload))
+
+        #expect(container.devicePreferences.showTopShelfRow == false)
+    }
+
+    /// Same shape for the parental record: one from before entry locks (#105) must not unlock them.
+    @Test func aRecordWithoutEntryLocksKeepsThem() throws {
+        let server = "c-\(UUID().uuidString)"
+        let container = try signedIn(scratch("noEntryLocks"), as: "alice", server: server)
+        container.parentalControlsPreferences.entryLockedProfileIDs = ["\(server):alice"]
+        defer { container.parentalControlsPreferences.entryLockedProfileIDs = [] }
+
+        container.applySettingsPayload(.parentalControls(ParentalControlsSettingsPayload(
+            updatedAt: .now, protectedProfileIDs: ["\(server):kid"], entryLockedProfileIDs: nil
+        )))
+
+        #expect(container.parentalControlsPreferences.entryLockedProfileIDs == ["\(server):alice"])
+        #expect(container.parentalControlsPreferences.protectedProfileIDs.contains("\(server):kid"))
+    }
+
     @Test func theLegacyRecordMirrorsTheProfileItWasCapturedFor() throws {
         let server = "c-\(UUID().uuidString)"
         let container = try signedIn(scratch("mirror"), as: "alice", server: server)

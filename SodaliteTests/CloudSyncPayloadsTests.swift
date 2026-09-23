@@ -137,6 +137,6 @@ struct CloudSyncPayloadsTests {
         )
         let decoded = try JSONDecoder().decode(ParentalControlsSettingsPayload.self, from: data)
         #expect(decoded.protectedProfileIDs == ["s1:kid"])
-        #expect(decoded.entryLockedProfileIDs.isEmpty)
+        #expect(decoded.entryLockedProfileIDs == nil, "a record without entry locks has no opinion about them")
     }
 }

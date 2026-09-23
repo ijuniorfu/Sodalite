@@ -472,7 +472,9 @@ extension DependencyContainer {
             }
             store.showContentLogos = a.showContentLogos
             store.continueWatchingImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.continueWatchingImage) ?? store.continueWatchingImage
-            store.topShelfImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.topShelfImage) ?? store.topShelfImage
+            if let raw = a.topShelfImage, let image = AppearancePreferences.ContinueWatchingImage(rawValue: raw) {
+                store.topShelfImage = image
+            }
             store.largeCards = a.largeCards
             store.nowPlayingUsesSeriesPoster = a.nowPlayingUsesSeriesPoster
             store.spoilerProtectionEnabled = a.spoilerProtectionEnabled
@@ -480,7 +482,7 @@ extension DependencyContainer {
             store.spoilerHideMovies = a.spoilerHideMovies
             store.showPosterBadges = a.showPosterBadges
             store.showDetailBadges = a.showDetailBadges
-            store.showTopShelfRow = a.showTopShelfRow
+            if let showTopShelfRow = a.showTopShelfRow { store.showTopShelfRow = showTopShelfRow }
             store.showLibraryNames = a.showLibraryNames
             store.showPosterProgress = a.showPosterProgress
             store.showCommunityRating = a.showCommunityRating
@@ -516,7 +518,9 @@ extension DependencyContainer {
             seerrNotificationPreferences.notifyPendingRequests = s.notifyPendingRequests
         case .parentalControls(let p):
             parentalControlsPreferences.protectedProfileIDs = Set(p.protectedProfileIDs)
-            parentalControlsPreferences.entryLockedProfileIDs = Set(p.entryLockedProfileIDs)
+            if let locks = p.entryLockedProfileIDs {
+                parentalControlsPreferences.entryLockedProfileIDs = Set(locks)
+            }
         case .trackMemory(let t):
             trackSelectionMemory.replaceAll(t.entries)
         case .spoilerReveals(let s):
@@ -556,13 +560,15 @@ extension DependencyContainer {
 
         // Whole list, last writer wins, the same way the parental-controls record treats its id
         // sets. A blob for a profile this device has not heard of yet is written and lies dormant
-        // until that profile arrives, which is what makes both orders of arrival converge.
-        let named = Set(payload.profilePINs.map { ProfileRef(serverID: $0.serverID, userID: $0.userID) })
+        // until that profile arrives, which is what makes both orders of arrival converge. Only a
+        // record that carries the list may prune: one from before own PINs says nothing about them.
+        guard let profilePINs = payload.profilePINs else { return }
+        let named = Set(profilePINs.map { ProfileRef(serverID: $0.serverID, userID: $0.userID) })
         for ref in profilesWithOwnPIN() where !named.contains(ref) {
             try? keychainService.delete(for: KeychainKeys.profilePINBlob(serverID: ref.serverID, userID: ref.userID))
             try? keychainService.delete(for: KeychainKeys.profilePINThrottle(serverID: ref.serverID, userID: ref.userID))
         }
-        for entry in payload.profilePINs {
+        for entry in profilePINs {
             if let data = try? JSONEncoder().encode(entry.blob) {
                 try? keychainService.save(
                     data,

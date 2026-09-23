@@ -175,6 +175,12 @@ struct PlaybackSettingsPayload: Codable, Equatable {
     /// older build is making a statement about both jumps, not staying silent about them.
     var skipForwardSeconds: Int?
     var skipBackwardSeconds: Int?
+    /// Retired with the in-player log overlay (41cf02e5), and still written, always false: 1.0.0
+    /// decodes this payload synthesized and requires both keys, so a record created without them
+    /// (after a zone reset, an account change, a first upload) failed to decode there as a whole.
+    /// Optional so a record from a build that already dropped them still decodes here. Never read.
+    var showDiagnosticOverlay: Bool? = false
+    var focusDiagnosticOverlayOnDV: Bool? = false
 }
 
 /// Sodalite#46. Unlike the other settings payloads this one is NOT last-writer-wins:
@@ -225,10 +231,12 @@ struct AppearanceSettingsPayload: Codable, Equatable {
     var showDetailBadges: Bool
     /// nil from a build without the Top Shelf switch. Defaults to TRUE, not false: absent means
     /// "that build had no opinion", and the row was on for everyone before the switch existed.
-    var showTopShelfRow: Bool
+    /// Box values, optional since a sender that predates them makes no statement about this box:
+    /// defaulting them turned the row back on for an Apple TV that had switched it off.
+    var showTopShelfRow: Bool?
     /// nil from a build without the Top Shelf artwork choice. Defaults to the same value a fresh
     /// install picks, so an older record cannot quietly move a receiver off the current default.
-    var topShelfImage: String
+    var topShelfImage: String?
     /// nil from a build without the library name switch (Sodalite#84); false is what those builds
     /// drew, so a plain default matches what the sender was actually showing.
     var showLibraryNames: Bool
@@ -263,8 +271,8 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerHideMovies: Bool = false,
         showPosterBadges: Bool = false,
         showDetailBadges: Bool = true,
-        showTopShelfRow: Bool = true,
-        topShelfImage: String = "thumb",
+        showTopShelfRow: Bool? = true,
+        topShelfImage: String? = "thumb",
         showLibraryNames: Bool = false,
         showPosterProgress: Bool = false,
         showCommunityRating: Bool = true,
@@ -341,8 +349,8 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         spoilerHideMovies = try values.decodeIfPresent(Bool.self, forKey: .spoilerHideMovies) ?? false
         showPosterBadges = try values.decodeIfPresent(Bool.self, forKey: .showPosterBadges) ?? false
         showDetailBadges = try values.decodeIfPresent(Bool.self, forKey: .showDetailBadges) ?? true
-        showTopShelfRow = try values.decodeIfPresent(Bool.self, forKey: .showTopShelfRow) ?? true
-        topShelfImage = try values.decodeIfPresent(String.self, forKey: .topShelfImage) ?? "thumb"
+        showTopShelfRow = try values.decodeIfPresent(Bool.self, forKey: .showTopShelfRow)
+        topShelfImage = try values.decodeIfPresent(String.self, forKey: .topShelfImage)
         showLibraryNames = try values.decodeIfPresent(Bool.self, forKey: .showLibraryNames) ?? false
         showPosterProgress = try values.decodeIfPresent(Bool.self, forKey: .showPosterProgress) ?? false
         showCommunityRating = try values.decodeIfPresent(Bool.self, forKey: .showCommunityRating) ?? true
@@ -367,8 +375,8 @@ struct AppearanceSettingsPayload: Codable, Equatable {
         try values.encode(spoilerHideMovies, forKey: .spoilerHideMovies)
         try values.encode(showPosterBadges, forKey: .showPosterBadges)
         try values.encode(showDetailBadges, forKey: .showDetailBadges)
-        try values.encode(showTopShelfRow, forKey: .showTopShelfRow)
-        try values.encode(topShelfImage, forKey: .topShelfImage)
+        try values.encodeIfPresent(showTopShelfRow, forKey: .showTopShelfRow)
+        try values.encodeIfPresent(topShelfImage, forKey: .topShelfImage)
         try values.encode(showLibraryNames, forKey: .showLibraryNames)
         try values.encode(showPosterProgress, forKey: .showPosterProgress)
         try values.encode(showCommunityRating, forKey: .showCommunityRating)
@@ -406,7 +414,9 @@ struct ParentalControlsSettingsPayload: Codable, Equatable {
     var schemaVersion: Int = 1
     var updatedAt: Date
     var protectedProfileIDs: [String]
-    var entryLockedProfileIDs: [String] = []
+    /// nil when the sender predates entry locks (#105): it has no opinion about them. Read as an
+    /// empty list, such a record unlocked every profile on every current device.
+    var entryLockedProfileIDs: [String]?
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion
@@ -415,7 +425,7 @@ struct ParentalControlsSettingsPayload: Codable, Equatable {
         case entryLockedProfileIDs
     }
 
-    init(updatedAt: Date, protectedProfileIDs: [String], entryLockedProfileIDs: [String] = []) {
+    init(updatedAt: Date, protectedProfileIDs: [String], entryLockedProfileIDs: [String]? = []) {
         self.updatedAt = updatedAt
         self.protectedProfileIDs = protectedProfileIDs
         self.entryLockedProfileIDs = entryLockedProfileIDs
@@ -429,7 +439,7 @@ struct ParentalControlsSettingsPayload: Codable, Equatable {
         schemaVersion = try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
         updatedAt = try values.decode(Date.self, forKey: .updatedAt)
         protectedProfileIDs = try values.decode([String].self, forKey: .protectedProfileIDs)
-        entryLockedProfileIDs = try values.decodeIfPresent([String].self, forKey: .entryLockedProfileIDs) ?? []
+        entryLockedProfileIDs = try values.decodeIfPresent([String].self, forKey: .entryLockedProfileIDs)
     }
 }
 
@@ -446,11 +456,13 @@ struct SecuritySyncPayload: Codable, Equatable {
     var schemaVersion: Int = 1
     var updatedAt: Date
     var pinBlob: GuardianPINCrypto.Blob
-    var profilePINs: [ProfilePINEntry] = []
+    /// nil when the sender predates own PINs: it says nothing about them. Read as an empty list, the
+    /// apply deleted every profile's own PIN on every current device.
+    var profilePINs: [ProfilePINEntry]?
 
     init(updatedAt: Date,
          pinBlob: GuardianPINCrypto.Blob,
-         profilePINs: [ProfilePINEntry] = []) {
+         profilePINs: [ProfilePINEntry]? = []) {
         self.updatedAt = updatedAt
         self.pinBlob = pinBlob
         self.profilePINs = profilePINs
@@ -464,7 +476,7 @@ struct SecuritySyncPayload: Codable, Equatable {
         schemaVersion = try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
         updatedAt = try values.decode(Date.self, forKey: .updatedAt)
         pinBlob = try values.decode(GuardianPINCrypto.Blob.self, forKey: .pinBlob)
-        profilePINs = try values.decodeIfPresent([ProfilePINEntry].self, forKey: .profilePINs) ?? []
+        profilePINs = try values.decodeIfPresent([ProfilePINEntry].self, forKey: .profilePINs)
     }
 }
 
