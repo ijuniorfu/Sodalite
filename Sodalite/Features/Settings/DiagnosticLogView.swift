@@ -173,64 +173,87 @@ struct DiagnosticLogView: View {
         .padding(.bottom, 24)
     }
 
+    /// One row where it fits (iPad, and always on tvOS). On a phone four labels do not, and an HStack
+    /// that cannot fit squeezes every label to a column one letter wide, so there they stack at one
+    /// shared width instead. Measured on the iPhone 17e simulator, the narrowest current phone.
+    @ViewBuilder
     private var actions: some View {
-        HStack(spacing: 16) {
+        #if os(tvOS)
+        HStack(spacing: 16) { actionButtons(fillsWidth: false) }
+        #else
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 16) { actionButtons(fillsWidth: false) }
+            VStack(spacing: 12) { actionButtons(fillsWidth: true) }
+                .fixedSize(horizontal: true, vertical: false)
+        }
+        #endif
+    }
+
+    @ViewBuilder
+    private func actionButtons(fillsWidth: Bool) -> some View {
+        #if os(iOS)
+        LogActionButton(
+            titleKey: "settings.log.copy",
+            systemImage: "doc.on.doc",
+            isEnabled: !tap.lines.isEmpty,
+            fillsWidth: fillsWidth
+        ) {
+            UIPasteboard.general.string = ([LogTap.environmentLine] + tap.lines).joined(separator: "\n")
+        }
+
+        // AE#597: the buffer is this launch only, the file reaches back across restarts. Copy
+        // cannot carry 32 MB, a share sheet can (Mail, Files, AirDrop to a Mac).
+        if hasPersistedLog {
+            ShareLink(
+                item: PersistedLogShare(),
+                preview: SharePreview(LogExportSession.persistedLogName)
+            ) {
+                LogActionLabel(
+                    titleKey: "settings.log.share",
+                    systemImage: "square.and.arrow.up",
+                    isFocused: false,
+                    fillsWidth: fillsWidth
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        #endif
+
+        #if os(tvOS)
+        // Sodalite#148. An Apple TV has no clipboard and no keyboard worth the name, so the way off
+        // it is a page a phone can open. iOS keeps Copy above and needs none of this.
+        LogActionButton(
+            titleKey: "settings.log.export",
+            systemImage: "qrcode",
+            isEnabled: !tap.lines.isEmpty
+        ) {
+            exportedLines = LogSnapshot(lines: [LogTap.environmentLine] + tap.lines)
+        }
+        #endif
+
+        LogActionButton(
+            titleKey: "settings.log.clear",
+            systemImage: "trash",
+            isEnabled: !tap.lines.isEmpty,
+            fillsWidth: fillsWidth
+        ) {
+            tap.clear()
+        }
+
+        // AE#597: the buffer above is this launch only, which is the wrong shape for anything
+        // with an hour between its cause and its symptom. Always enabled: it is most worth
+        // turning on when there is nothing on screen yet.
+        LogActionButton(
+            titleKey: "settings.log.persist",
+            systemImage: persistsLog ? "externaldrive.fill.badge.checkmark" : "externaldrive",
+            isEnabled: true,
+            fillsWidth: fillsWidth
+        ) {
+            persistsLog.toggle()
+            LogTap.setFileSinkEnabled(persistsLog)
             #if os(iOS)
-            LogActionButton(
-                titleKey: "settings.log.copy",
-                systemImage: "doc.on.doc",
-                isEnabled: !tap.lines.isEmpty
-            ) {
-                UIPasteboard.general.string = ([LogTap.environmentLine] + tap.lines).joined(separator: "\n")
-            }
-
-            // AE#597: the buffer is this launch only, the file reaches back across restarts. Copy
-            // cannot carry 32 MB, a share sheet can (Mail, Files, AirDrop to a Mac).
-            if hasPersistedLog {
-                ShareLink(
-                    item: PersistedLogShare(),
-                    preview: SharePreview(LogExportSession.persistedLogName)
-                ) {
-                    LogActionLabel(titleKey: "settings.log.share", systemImage: "square.and.arrow.up", isFocused: false)
-                }
-                .buttonStyle(.plain)
-            }
+            hasPersistedLog = PersistedLogShare.isAvailable
             #endif
-
-            #if os(tvOS)
-            // Sodalite#148. An Apple TV has no clipboard and no keyboard worth the name, so the way off
-            // it is a page a phone can open. iOS keeps Copy above and needs none of this.
-            LogActionButton(
-                titleKey: "settings.log.export",
-                systemImage: "qrcode",
-                isEnabled: !tap.lines.isEmpty
-            ) {
-                exportedLines = LogSnapshot(lines: [LogTap.environmentLine] + tap.lines)
-            }
-            #endif
-
-            LogActionButton(
-                titleKey: "settings.log.clear",
-                systemImage: "trash",
-                isEnabled: !tap.lines.isEmpty
-            ) {
-                tap.clear()
-            }
-
-            // AE#597: the buffer above is this launch only, which is the wrong shape for anything
-            // with an hour between its cause and its symptom. Always enabled: it is most worth
-            // turning on when there is nothing on screen yet.
-            LogActionButton(
-                titleKey: "settings.log.persist",
-                systemImage: persistsLog ? "externaldrive.fill.badge.checkmark" : "externaldrive",
-                isEnabled: true
-            ) {
-                persistsLog.toggle()
-                LogTap.setFileSinkEnabled(persistsLog)
-                #if os(iOS)
-                hasPersistedLog = PersistedLogShare.isAvailable
-                #endif
-            }
         }
     }
 
@@ -251,12 +274,13 @@ struct LogActionButton: View {
     let titleKey: LocalizedStringKey
     let systemImage: String
     let isEnabled: Bool
+    var fillsWidth = false
     let action: () -> Void
 
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        LogActionLabel(titleKey: titleKey, systemImage: systemImage, isFocused: isFocused)
+        LogActionLabel(titleKey: titleKey, systemImage: systemImage, isFocused: isFocused, fillsWidth: fillsWidth)
             .focusStroke(cornerRadius: 14, isFocused: isFocused)
             .focusResponse(.tile.flat, isFocused: isFocused)
             .opacity(isEnabled ? 1 : 0.4)
@@ -275,11 +299,15 @@ struct LogActionLabel: View {
     let titleKey: LocalizedStringKey
     let systemImage: String
     let isFocused: Bool
+    var fillsWidth = false
 
     var body: some View {
         Label(titleKey, systemImage: systemImage)
             .font(.callout)
             .fontWeight(.medium)
+            // One line, always: a label that may wrap is one a tight row turns into a column of letters.
+            .lineLimit(1)
+            .frame(maxWidth: fillsWidth ? .infinity : nil)
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
             .background(
