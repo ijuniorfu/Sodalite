@@ -23,7 +23,10 @@ enum ProfileHomeStore {
         }
         HomeRowConfig.setMergeContinueWatchingNextUp(payload.mergeCWNextUp, scope: scope)
         HomeRowConfig.setEnableRewatchingNextUp(payload.rewatchNextUp, scope: scope)
-        HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: payload.collectionGrouping), scope: scope)
+        // An unknown mode is a newer build's, not "follow the server": the local one stays.
+        if let grouping = CollectionGrouping(rawValue: payload.collectionGrouping) {
+            HomeRowConfig.setCollectionGrouping(grouping, scope: scope)
+        }
         LibrarySortStore.applySorts(payload.librarySorts, scope: scope)
     }
 

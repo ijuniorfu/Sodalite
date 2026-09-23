@@ -53,6 +53,15 @@ struct CloudSyncMergeTests {
         #expect(merged.map(\.id) == ["a", "b", "c"]) // sorted by addedAt descending
     }
 
+    @Test("remembered users: a tie keeps the local copy, so a refreshed name is not reverted")
+    func rememberedUserTieKeepsLocal() {
+        let added = Date(timeIntervalSince1970: 10)
+        let healed = RememberedUser(id: "a", serverID: "s1", name: "Vince", imageTag: nil, token: "t", addedAt: added)
+        let stale = RememberedUser(id: "a", serverID: "s1", name: "old name", imageTag: nil, token: "t", addedAt: added)
+        let merged = CloudSyncMerge.unionRememberedUsers(local: [healed], cloud: [stale])
+        #expect(merged.first?.name == "Vince")
+    }
+
     @Test("adoption: cloud wins server fields, users union, local-only extras survive")
     func adoption() {
         let local = serverPayload(users: [user("onlyLocal", addedAt: 30)], password: "localPW", passwordUserID: "onlyLocal",

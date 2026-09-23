@@ -56,7 +56,11 @@ struct ProfilePlaybackPayload: Codable, Equatable {
     var preferServerTrickplay: Bool
     var rememberTrackSelections: Bool
     var subtitlesOnSkipBack: Bool
-    var touchpadScrubbing: Bool
+    /// Optional because it arrived hours after this payload shipped (e1ef97bc after aca3e7a7), and a
+    /// record written in between has no such key. Non-optional, that record failed to decode on every
+    /// later build and the profile's playback settings never reached another device. nil keeps the
+    /// local value.
+    var touchpadScrubbing: Bool?
 }
 
 extension ProfilePlaybackPayload {
@@ -123,7 +127,7 @@ extension ProfilePlaybackPayload {
         p.preferServerTrickplay = preferServerTrickplay
         p.rememberTrackSelections = rememberTrackSelections
         p.subtitlesOnSkipBack = subtitlesOnSkipBack
-        p.touchpadScrubbing = touchpadScrubbing
+        if let touchpadScrubbing { p.touchpadScrubbing = touchpadScrubbing }
     }
 }
 
@@ -170,7 +174,7 @@ extension ProfileAppearancePayload {
             spoilerProtectionEnabled: a.spoilerProtectionEnabled,
             spoilerHideEpisodes: a.spoilerHideEpisodes,
             spoilerHideMovies: a.spoilerHideMovies,
-            hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted(),
+            hiddenTabs: a.syncedHiddenTabs,
             navigationStyle: a.navigationStyle.rawValue,
             showPosterBadges: a.showPosterBadges,
             showDetailBadges: a.showDetailBadges,
@@ -193,7 +197,7 @@ extension ProfileAppearancePayload {
         a.spoilerProtectionEnabled = spoilerProtectionEnabled
         a.spoilerHideEpisodes = spoilerHideEpisodes
         a.spoilerHideMovies = spoilerHideMovies
-        a.hiddenTabs = Set(hiddenTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+        a.applySyncedHiddenTabs(hiddenTabs)
         a.navigationStyle = AppearancePreferences.NavigationStyle(rawValue: navigationStyle) ?? a.navigationStyle
         a.showPosterBadges = showPosterBadges
         a.showDetailBadges = showDetailBadges

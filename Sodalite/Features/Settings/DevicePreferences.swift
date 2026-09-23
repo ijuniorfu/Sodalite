@@ -2,8 +2,9 @@ import Foundation
 import Observation
 
 /// Values that describe this box, its display, its remote or its network, not the person watching.
-/// Shared by every profile on the device, stored under the keys they always had, and synced inside
-/// the legacy `settings-playback` / `settings-appearance` records as before. `PlaybackPreferences`
+/// Shared by every profile on the device and stored under the keys they always had. Written into the
+/// legacy `settings-playback` / `settings-appearance` records for builds that still read them there,
+/// never applied from those records: another device's box says nothing about this one. `PlaybackPreferences`
 /// and `AppearancePreferences` pass them through, so call sites read them where they always did.
 @Observable
 @MainActor

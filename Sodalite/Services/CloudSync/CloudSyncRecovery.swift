@@ -16,8 +16,11 @@ enum CloudSyncRecovery {
         /// We hold an identity for a record the server no longer has. Forget it so the re-queued
         /// save goes out as a fresh insert.
         case reinsert
-        /// The zone is gone. Recreate it and re-queue.
+        /// The zone is gone and nothing says who removed it. Before adoption that is simply a zone not
+        /// created yet; after it, the service first fetches to learn whether it was a deletion.
         case recreateZone
+        /// Removed from the iCloud storage settings on purpose. Recreating it undid that.
+        case zoneDeletedByUser
         /// Transient. Re-queue unchanged.
         case retry
         /// Out of iCloud storage. Surfacing it is all we can do.
@@ -57,9 +60,14 @@ enum CloudSyncRecovery {
             error.serverRecord == nil ? .resyncZone : .adoptServerRecord
         case .unknownItem:
             .reinsert
-        case .zoneNotFound, .userDeletedZone:
+        case .zoneNotFound:
             .recreateZone
-        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+        case .userDeletedZone:
+            .zoneDeletedByUser
+        // batchRequestFailed: this record was fine, another one in the same batch failed and took the
+        // batch down. That one gets its own error and its own recovery; this one simply goes again.
+        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy,
+             .serverResponseLost, .batchRequestFailed:
             .retry
         case .quotaExceeded:
             .surfaceQuota
@@ -74,7 +82,8 @@ enum CloudSyncRecovery {
         switch error.code {
         case .unknownItem, .zoneNotFound, .userDeletedZone:
             .alreadyGone
-        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy,
+             .serverResponseLost, .batchRequestFailed:
             .retry
         default:
             .report
@@ -109,6 +118,16 @@ enum CloudSyncRecovery {
         guard let ckError = error as? CKError else { return ErrorText.user(for: error) }
         guard let first = partialSaveErrors(in: error).values.first else { return ErrorText.user(for: ckError) }
         return "\(ErrorText.user(for: ckError)) (\(ErrorText.user(for: first)))"
+    }
+}
+
+extension CloudSyncRecovery.SaveAction {
+    /// Nothing will send this record again in this session.
+    var isTerminal: Bool {
+        switch self {
+        case .report, .surfaceQuota, .surfaceRejection: true
+        default: false
+        }
     }
 }
 

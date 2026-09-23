@@ -98,3 +98,54 @@ struct CloudSyncPreferencesTests {
         #expect(drained.saves.isEmpty && drained.deletes.isEmpty)
     }
 }
+
+@Suite("CloudSync outbox keeps what has not landed")
+struct CloudSyncOutboxTests {
+    private func prefs() -> CloudSyncPreferences {
+        CloudSyncPreferences(store: UserDefaults(suiteName: "outbox.\(UUID().uuidString)")!)
+    }
+
+    @Test func aDeleteStaysUntilConfirmed() {
+        let p = prefs()
+        p.stashPendingDelete("security")
+        #expect(p.drainPendingChanges().deletes == ["security"])
+
+        p.stashPendingDelete("security")
+        p.unstashPendingDelete("security")
+        #expect(p.drainPendingChanges().deletes.isEmpty)
+    }
+
+    /// An edit that lands after its record was built for a send must go again once that send lands.
+    @Test func anEditAfterTheBuildIsSentAgain() {
+        let built = Date(timeIntervalSince1970: 100)
+        #expect(CloudSyncService.editedWhileInFlight(sent: built, local: built.addingTimeInterval(1)))
+        #expect(!CloudSyncService.editedWhileInFlight(sent: built, local: built))
+        #expect(!CloudSyncService.editedWhileInFlight(sent: nil, local: built))
+    }
+}
+
+@Suite("CloudSync gives up on a record it can never read")
+struct CloudSyncSkippedRetryTests {
+    @Test func aRecordIsRetriedAFewStartsThenDropped() {
+        let p = CloudSyncPreferences(store: UserDefaults(suiteName: "skipped.\(UUID().uuidString)")!)
+        p.noteSkippedRecord("profile-x")
+
+        for _ in 1 ..< CloudSyncPreferences.maxSkippedRetries {
+            #expect(!p.noteSkippedRetryFailed("profile-x"))
+            #expect(p.skippedRecords == ["profile-x"])
+        }
+        #expect(p.noteSkippedRetryFailed("profile-x"))
+        #expect(p.skippedRecords.isEmpty)
+    }
+
+    @Test func readingItOnceResetsTheCount() {
+        let p = CloudSyncPreferences(store: UserDefaults(suiteName: "skipped.\(UUID().uuidString)")!)
+        p.noteSkippedRecord("r")
+        _ = p.noteSkippedRetryFailed("r")
+        p.clearSkippedRecord("r")
+        p.noteSkippedRecord("r")
+        for _ in 1 ..< CloudSyncPreferences.maxSkippedRetries {
+            #expect(!p.noteSkippedRetryFailed("r"))
+        }
+    }
+}

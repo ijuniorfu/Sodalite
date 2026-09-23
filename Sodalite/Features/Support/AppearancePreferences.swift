@@ -68,6 +68,7 @@ final class AppearancePreferences {
         static let spoilerHideEpisodes = "appearance.spoilerHideEpisodes"
         static let spoilerHideMovies = "appearance.spoilerHideMovies"
         static let hiddenTabs = "appearance.hiddenTabs"
+        static let hiddenTabsFromNewerBuilds = "appearance.hiddenTabs.newerBuilds"
         static let navigationStyle = "appearance.navigationStyle"
         static let showPosterBadges = "appearance.showPosterBadges"
         static let showDetailBadges = "appearance.showDetailBadges"
@@ -216,6 +217,25 @@ final class AppearancePreferences {
         setHiddenTabs(next)
     }
 
+    /// Hidden tabs a synced record named that this build does not have. Kept and written back with
+    /// the known ones, or this device's next upload would unhide them on every newer device. Computed
+    /// over the keyspace rather than stored, because it is not a setting this build can change.
+    var hiddenTabsFromNewerBuilds: [String] {
+        get { (store.array(forKey: Keys.hiddenTabsFromNewerBuilds) as? [String]) ?? [] }
+        set { store.set(newValue.isEmpty ? nil : newValue.sorted(), forKey: Keys.hiddenTabsFromNewerBuilds) }
+    }
+
+    /// The synced form: every hidden tab this build knows, plus the ones only a newer build knows.
+    var syncedHiddenTabs: [String] {
+        Set(hiddenTabs.map(\.rawValue) + hiddenTabsFromNewerBuilds).sorted()
+    }
+
+    /// The inverse of `syncedHiddenTabs`. A name this build knows but cannot hide is dropped.
+    func applySyncedHiddenTabs(_ names: [String]) {
+        setHiddenTabs(Set(names.compactMap(AppTab.init(rawValue:))))
+        hiddenTabsFromNewerBuilds = names.filter { AppTab(rawValue: $0) == nil }
+    }
+
     /// One assignment for a whole set, so the settings screen's deferred commit rebuilds the tab
     /// bar once instead of once per row.
     func setHiddenTabs(_ tabs: Set<AppTab>) {
@@ -265,7 +285,16 @@ final class AppearancePreferences {
         self.navigationStyle = store.string(forKey: Keys.navigationStyle)
             .flatMap(NavigationStyle.init(rawValue:)) ?? .topBar
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
-        self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+        // A tab a newer build hid that this build has since learned: it joins the known ones, or it
+        // would show here while still being published as hidden. Written straight to the defaults,
+        // past `onWrite`: the synced form is the same before and after, so this is no edit.
+        let fromNewer = store.array(forKey: Keys.hiddenTabsFromNewerBuilds) as? [String] ?? []
+        self.hiddenTabs = Set((storedTabs + fromNewer).compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+        if fromNewer.contains(where: { AppTab(rawValue: $0) != nil }) {
+            let unknown = fromNewer.filter { AppTab(rawValue: $0) == nil }.sorted()
+            store.defaults.set(unknown.isEmpty ? nil : unknown, forKey: store.fullKey(Keys.hiddenTabsFromNewerBuilds))
+            store.defaults.set(hiddenTabs.map(\.rawValue).sorted(), forKey: store.fullKey(Keys.hiddenTabs))
+        }
     }
 
     /// `scope` nil is the unprefixed legacy space. Without a `device`, one is built over the same

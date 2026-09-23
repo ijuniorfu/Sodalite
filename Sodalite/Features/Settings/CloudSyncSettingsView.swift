@@ -6,10 +6,14 @@ import SwiftUI
 struct CloudSyncSettingsView: View {
     @Environment(\.dependencies) private var dependencies
 
-    @State private var isEnabled = true
     @State private var isPulling = false
     @State private var confirmPush = false
     @State private var confirmDelete = false
+
+    /// Read from the service, not copied on appear: sync can switch itself off while this screen is up
+    /// (another device deleted the iCloud data, an account change), and a copy kept showing "On" over
+    /// a service that was off, so turning it back on meant leaving the screen first.
+    private var isEnabled: Bool { dependencies.cloudSync?.isEnabled ?? true }
 
     var body: some View {
         ScrollView {
@@ -26,7 +30,6 @@ struct CloudSyncSettingsView: View {
                     selection: Binding(
                         get: { isEnabled },
                         set: { newValue in
-                            isEnabled = newValue
                             dependencies.cloudSync?.setEnabled(newValue)
                         }
                     ),
@@ -71,7 +74,6 @@ struct CloudSyncSettingsView: View {
             .screenContentInset()
         }
         .hidesNavigationBarChrome()
-        .onAppear { isEnabled = dependencies.cloudSync?.isEnabled ?? true }
         .alert(
             Text("settings.cloudSync.push.confirm.title", bundle: .main),
             isPresented: $confirmPush
@@ -90,7 +92,6 @@ struct CloudSyncSettingsView: View {
             Button("settings.cloudSync.delete.confirm.action", role: .destructive) {
                 Task {
                     await dependencies.cloudSync?.deleteCloudDataAndDisable()
-                    isEnabled = false
                 }
             }
             Button("common.cancel", role: .cancel) {}

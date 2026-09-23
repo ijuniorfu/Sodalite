@@ -20,6 +20,7 @@ final class CloudSyncPreferences {
         static let pendingDeletes = "cloudSync.pendingDeletes"
         static let carriedFields = "cloudSync.carriedFields"
         static let skippedRecords = "cloudSync.skippedRecords"
+        static let skippedRetries = "cloudSync.skippedRetries"
     }
 
     private let store: UserDefaults
@@ -58,6 +59,10 @@ final class CloudSyncPreferences {
     /// Records a fetch delivered but this device could not read. The change token has moved past
     /// them, so they are asked for by name on the next start.
     private(set) var skippedRecords: [String]
+    private var skippedRetries: [String: Int]
+    /// Starts a record may stay unreadable before it is given up on. A new version of it still comes
+    /// in through the delta fetch, so giving up costs nothing but the retry of the same bytes.
+    static let maxSkippedRetries = 5
 
     init(store: UserDefaults = .standard) {
         self.store = store
@@ -74,6 +79,7 @@ final class CloudSyncPreferences {
         self.pendingDeleteNames = store.stringArray(forKey: Keys.pendingDeletes) ?? []
         self.carriedFieldsByRecord = (store.dictionary(forKey: Keys.carriedFields) as? [String: Data]) ?? [:]
         self.skippedRecords = store.stringArray(forKey: Keys.skippedRecords) ?? []
+        self.skippedRetries = (store.dictionary(forKey: Keys.skippedRetries) as? [String: Int]) ?? [:]
     }
 
     // MARK: Stamps
@@ -176,6 +182,13 @@ final class CloudSyncPreferences {
         store.set(pendingSaveNames, forKey: Keys.pendingSaves)
     }
 
+    /// A delete CloudKit confirmed, or one for a record that is already gone.
+    func unstashPendingDelete(_ recordName: String) {
+        guard pendingDeleteNames.contains(recordName) else { return }
+        pendingDeleteNames.removeAll { $0 == recordName }
+        store.set(pendingDeleteNames, forKey: Keys.pendingDeletes)
+    }
+
     func drainPendingChanges() -> (saves: [String], deletes: [String]) {
         let result = (saves: pendingSaveNames, deletes: pendingDeleteNames)
         pendingSaveNames = []
@@ -194,9 +207,25 @@ final class CloudSyncPreferences {
     }
 
     func clearSkippedRecord(_ recordName: String) {
+        if skippedRetries.removeValue(forKey: recordName) != nil {
+            store.set(skippedRetries, forKey: Keys.skippedRetries)
+        }
         guard skippedRecords.contains(recordName) else { return }
         skippedRecords.removeAll { $0 == recordName }
         store.set(skippedRecords, forKey: Keys.skippedRecords)
+    }
+
+    /// One more start on which the record could still not be read. Returns true when that was the
+    /// last allowed one, and the record has been dropped from the retry list.
+    func noteSkippedRetryFailed(_ recordName: String) -> Bool {
+        let attempts = (skippedRetries[recordName] ?? 0) + 1
+        guard attempts < Self.maxSkippedRetries else {
+            clearSkippedRecord(recordName)
+            return true
+        }
+        skippedRetries[recordName] = attempts
+        store.set(skippedRetries, forKey: Keys.skippedRetries)
+        return false
     }
 
     // MARK: Resets
@@ -214,7 +243,9 @@ final class CloudSyncPreferences {
         pendingSaveNames = []
         pendingDeleteNames = []
         skippedRecords = []
+        skippedRetries = [:]
         store.removeObject(forKey: Keys.skippedRecords)
+        store.removeObject(forKey: Keys.skippedRetries)
         store.removeObject(forKey: Keys.localStamps)
         store.removeObject(forKey: Keys.systemFields)
         store.removeObject(forKey: Keys.carriedFields)

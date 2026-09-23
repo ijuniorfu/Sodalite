@@ -207,8 +207,8 @@ extension DependencyContainer {
             HomeRowConfig.setMergeContinueWatchingNextUp(homeRows.mergeCWNextUp, scope: serverID)
             HomeRowConfig.setEnableRewatchingNextUp(homeRows.rewatchNextUp, scope: serverID)
             // Absent on payloads from builds before Sodalite#44; leave the local mode alone rather than resetting it to the server default.
-            if let grouping = homeRows.collectionGrouping {
-                HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: grouping), scope: serverID)
+            if let raw = homeRows.collectionGrouping, let grouping = CollectionGrouping(rawValue: raw) {
+                HomeRowConfig.setCollectionGrouping(grouping, scope: serverID)
             }
             // Absent on payloads from builds before Sodalite#78, and per scope: a tile this payload
             // says nothing about keeps whatever this device chose for it.
@@ -363,7 +363,7 @@ extension DependencyContainer {
                 showCommunityRating: a.showCommunityRating,
                 showCriticRating: a.showCriticRating,
                 showTagline: a.showTagline,
-                hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted(),
+                hiddenTabs: a.syncedHiddenTabs,
                 navigationStyle: a.navigationStyle.rawValue
             ))
         case .auth:
@@ -412,9 +412,11 @@ extension DependencyContainer {
         defer { isApplyingCloudChanges = false }
         switch payload {
         case .playback(let p):
-            // Legacy records only feed the legacy keys (the migration and seed source) and, through the
-            // pass-throughs, the device values. Never a profile: two devices on different profiles
-            // would overwrite each other through this record.
+            // Legacy records only feed the legacy keys (the migration and seed source). Never a profile:
+            // two devices on different profiles would overwrite each other through this record. Never
+            // the device values either, although the record carries them for older builds: they
+            // describe the sender's box, and applied here two Apple TVs kept switching each other's
+            // Top Shelf, buffers and Dolby Vision override through any unrelated edit.
             let store = profileSettings.legacy.playback
             store.autoplayNextEpisode = p.autoplayNextEpisode
             store.autoSkipIntro = p.autoSkipIntro
@@ -434,29 +436,15 @@ extension DependencyContainer {
             store.subtitleFont = PlaybackPreferences.SubtitleFont(rawValue: p.subtitleFont) ?? store.subtitleFont
             store.subtitleWeight = PlaybackPreferences.SubtitleWeight(rawValue: p.subtitleWeight) ?? store.subtitleWeight
             store.pictureMode = PlaybackPreferences.PictureMode(rawValue: p.pictureMode) ?? store.pictureMode
-            store.showStatsForNerds = p.showStatsForNerds
-            store.showEngineDiagnostics = p.showEngineDiagnostics
-            store.preferLosslessAudioBridge = p.preferLosslessAudioBridge
             store.showScrubPreview = p.showScrubPreview
             store.preferServerTrickplay = p.preferServerTrickplay
             // Absent on payloads from builds before these fields existed; leave the local
             // value alone rather than resetting it to a default.
-            if let rotationLocked = p.playerRotationLocked { store.playerRotationLocked = rotationLocked }
-            if let depth = p.networkBufferDepth {
-                store.networkBufferDepth = PlaybackPreferences.NetworkBufferDepth(rawValue: depth) ?? store.networkBufferDepth
-            }
             if let remember = p.rememberTrackSelections { store.rememberTrackSelections = remember }
             if let forced = p.autoForcedSubtitles { store.autoForcedSubtitles = forced }
             if let autoSkipRecap = p.autoSkipRecap { store.autoSkipRecap = autoSkipRecap }
             if let skipBackSubs = p.subtitlesOnSkipBack { store.subtitlesOnSkipBack = skipBackSubs }
-            if let bufferDepth = p.liveBufferDepth {
-                store.liveBufferDepth = PlaybackPreferences.LiveBufferDepth(rawValue: bufferDepth) ?? store.liveBufferDepth
-            }
-            if let teletextPage = p.liveTeletextPage {
-                store.liveTeletextPage = PlaybackPreferences.LiveTeletextPage(rawValue: teletextPage) ?? store.liveTeletextPage
-            }
             if let countdown = p.autoplayCountdown { store.autoplayCountdown = countdown }
-            if let forceDV = p.forceDolbyVisionOnNonDVDisplay { store.forceDolbyVisionOnNonDVDisplay = forceDV }
             if let touchpadScrub = p.touchpadScrubbing { store.touchpadScrubbing = touchpadScrub }
             if let anchor = p.nextEpisodeCountdownAnchor {
                 store.nextEpisodeCountdownAnchor =
@@ -472,7 +460,6 @@ extension DependencyContainer {
             }
             store.showContentLogos = a.showContentLogos
             store.continueWatchingImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.continueWatchingImage) ?? store.continueWatchingImage
-            store.topShelfImage = AppearancePreferences.ContinueWatchingImage(rawValue: a.topShelfImage) ?? store.topShelfImage
             store.largeCards = a.largeCards
             store.nowPlayingUsesSeriesPoster = a.nowPlayingUsesSeriesPoster
             store.spoilerProtectionEnabled = a.spoilerProtectionEnabled
@@ -480,7 +467,6 @@ extension DependencyContainer {
             store.spoilerHideMovies = a.spoilerHideMovies
             store.showPosterBadges = a.showPosterBadges
             store.showDetailBadges = a.showDetailBadges
-            store.showTopShelfRow = a.showTopShelfRow
             store.showLibraryNames = a.showLibraryNames
             store.showPosterProgress = a.showPosterProgress
             store.showCommunityRating = a.showCommunityRating
@@ -488,7 +474,7 @@ extension DependencyContainer {
             store.showTagline = a.showTagline
             // Absent field = sender predates tab visibility, so it carries no opinion; applying an empty set would silently unhide the receiver's tabs (Sodalite#62).
             if let tabs = a.hiddenTabs {
-                store.hiddenTabs = Set(tabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+                store.applySyncedHiddenTabs(tabs)
             }
             // Same shape (Sodalite#140): absent means the sender has no navigation style to offer,
             // and a default applied here would move the receiver's whole shell out from under it.
@@ -516,7 +502,9 @@ extension DependencyContainer {
             seerrNotificationPreferences.notifyPendingRequests = s.notifyPendingRequests
         case .parentalControls(let p):
             parentalControlsPreferences.protectedProfileIDs = Set(p.protectedProfileIDs)
-            parentalControlsPreferences.entryLockedProfileIDs = Set(p.entryLockedProfileIDs)
+            if let locks = p.entryLockedProfileIDs {
+                parentalControlsPreferences.entryLockedProfileIDs = Set(locks)
+            }
         case .trackMemory(let t):
             trackSelectionMemory.replaceAll(t.entries)
         case .spoilerReveals(let s):
@@ -556,13 +544,15 @@ extension DependencyContainer {
 
         // Whole list, last writer wins, the same way the parental-controls record treats its id
         // sets. A blob for a profile this device has not heard of yet is written and lies dormant
-        // until that profile arrives, which is what makes both orders of arrival converge.
-        let named = Set(payload.profilePINs.map { ProfileRef(serverID: $0.serverID, userID: $0.userID) })
+        // until that profile arrives, which is what makes both orders of arrival converge. Only a
+        // record that carries the list may prune: one from before own PINs says nothing about them.
+        guard let profilePINs = payload.profilePINs else { return }
+        let named = Set(profilePINs.map { ProfileRef(serverID: $0.serverID, userID: $0.userID) })
         for ref in profilesWithOwnPIN() where !named.contains(ref) {
             try? keychainService.delete(for: KeychainKeys.profilePINBlob(serverID: ref.serverID, userID: ref.userID))
             try? keychainService.delete(for: KeychainKeys.profilePINThrottle(serverID: ref.serverID, userID: ref.userID))
         }
-        for entry in payload.profilePINs {
+        for entry in profilePINs {
             if let data = try? JSONEncoder().encode(entry.blob) {
                 try? keychainService.save(
                     data,
