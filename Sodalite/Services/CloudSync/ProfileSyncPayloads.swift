@@ -56,7 +56,11 @@ struct ProfilePlaybackPayload: Codable, Equatable {
     var preferServerTrickplay: Bool
     var rememberTrackSelections: Bool
     var subtitlesOnSkipBack: Bool
-    var touchpadScrubbing: Bool
+    /// Optional because it arrived hours after this payload shipped (e1ef97bc after aca3e7a7), and a
+    /// record written in between has no such key. Non-optional, that record failed to decode on every
+    /// later build and the profile's playback settings never reached another device. nil keeps the
+    /// local value.
+    var touchpadScrubbing: Bool?
 }
 
 extension ProfilePlaybackPayload {
@@ -123,7 +127,7 @@ extension ProfilePlaybackPayload {
         p.preferServerTrickplay = preferServerTrickplay
         p.rememberTrackSelections = rememberTrackSelections
         p.subtitlesOnSkipBack = subtitlesOnSkipBack
-        p.touchpadScrubbing = touchpadScrubbing
+        if let touchpadScrubbing { p.touchpadScrubbing = touchpadScrubbing }
     }
 }
 

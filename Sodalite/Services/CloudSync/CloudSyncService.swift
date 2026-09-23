@@ -824,8 +824,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         let cloudWins = adopting || forcingCloudWins
 
         if let serverID = CloudSyncRecordName.serverID(fromRecordName: name) {
-            guard let cloud = try? JSONDecoder().decode(ServerSyncPayload.self, from: data) else {
-                return noteSkipped(name, reason: "server payload did not decode")
+            guard let cloud = decodeOrSkip(name, "server", { try JSONDecoder().decode(ServerSyncPayload.self, from: data) }) else {
+                return
             }
             preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
@@ -848,8 +848,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 }
             }
         } else if case let (kind, profile)? = CloudSyncRecordName.profileRecord(fromRecordName: name) {
-            guard let cloud = try? ProfileSyncPayload.decode(data, kind: kind) else {
-                return noteSkipped(name, reason: "profile payload did not decode")
+            guard let cloud = decodeOrSkip(name, "profile", { try ProfileSyncPayload.decode(data, kind: kind) }) else {
+                return
             }
             preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
@@ -864,8 +864,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 addPendingSave(recordName: name)
             }
         } else if let key = CloudSyncRecordName.storeKey(fromRecordName: name) {
-            guard let cloud = try? SettingsSyncPayload.decode(data, key: key) else {
-                return noteSkipped(name, reason: "settings payload did not decode")
+            guard let cloud = decodeOrSkip(name, "settings", { try SettingsSyncPayload.decode(data, key: key) }) else {
+                return
             }
             preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
@@ -927,8 +927,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 addPendingSave(recordName: name)
             }
         } else if name == CloudSyncRecordName.securitySingleton {
-            guard let cloud = try? JSONDecoder().decode(SecuritySyncPayload.self, from: data) else {
-                return noteSkipped(name, reason: "security payload did not decode")
+            guard let cloud = decodeOrSkip(name, "security", { try JSONDecoder().decode(SecuritySyncPayload.self, from: data) }) else {
+                return
             }
             preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
@@ -1085,6 +1085,33 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             LogTap.shared.note("[CloudSync] migration seeds: \(claimed) uploaded, \(adopted) taken from iCloud, \(candidates.count - claimed - adopted) left for later")
         } catch {
             LogTap.shared.note("[CloudSync] migration seed check failed: \(error)")
+        }
+    }
+
+    /// The skip line names the key that failed, which a bare `try?` threw away: "did not decode" was
+    /// all a device log said about a record that a late non-optional field had locked out for good.
+    private func decodeOrSkip<T>(_ name: String, _ kind: String, _ decode: () throws -> T) -> T? {
+        do {
+            return try decode()
+        } catch {
+            noteSkipped(name, reason: "\(kind) payload did not decode (\(Self.decodeFailure(error)))")
+            return nil
+        }
+    }
+
+    /// Key paths only, never values: the payloads carry tokens and passwords.
+    nonisolated static func decodeFailure(_ error: Error) -> String {
+        guard let error = error as? DecodingError else { return "\(type(of: error))" }
+        func path(_ context: DecodingError.Context, _ last: CodingKey? = nil) -> String {
+            let keys = context.codingPath + (last.map { [$0] } ?? [])
+            return keys.isEmpty ? "root" : keys.map(\.stringValue).joined(separator: ".")
+        }
+        switch error {
+        case let .keyNotFound(key, context): return "missing \(path(context, key))"
+        case let .typeMismatch(_, context): return "wrong type at \(path(context))"
+        case let .valueNotFound(_, context): return "null at \(path(context))"
+        case let .dataCorrupted(context): return "corrupt at \(path(context))"
+        @unknown default: return "undecodable"
         }
     }
 

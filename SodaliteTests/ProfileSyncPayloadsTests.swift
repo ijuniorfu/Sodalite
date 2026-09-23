@@ -63,6 +63,94 @@ struct ProfileSyncPayloadsTests {
         #expect(targetLook.navigationStyle == .sidebar)
     }
 
+    /// The keys each profile record carried when it first shipped (aca3e7a7, 2026-09-17). A record
+    /// from that build must decode on every later one, so a field added since has to be Optional:
+    /// `touchpadScrubbing` was not, and one profile's playback record was skipped on every device
+    /// from then on. Never add a key here; a new field is exactly what this list must NOT contain.
+    private static let firstShippedKeys: [ProfileRecordKind: Set<String>] = [
+        .playback: [
+            "schemaVersion", "updatedAt", "autoplayNextEpisode", "autoplayCountdown", "autoSkipIntro",
+            "autoSkipRecap", "autoSkipOutro", "nextEpisodeCountdownSeconds", "nextEpisodeCountdownAnchor",
+            "skipForwardSeconds", "skipBackwardSeconds", "preferredAudioLanguage", "preferredSubtitleLanguage",
+            "autoSubtitleForForeignAudio", "autoForcedSubtitles", "styledASSSubtitles", "subtitleFontSize",
+            "subtitleColor", "subtitleBackground", "subtitleDelaySeconds", "subtitleVerticalPosition",
+            "subtitleFont", "subtitleWeight", "pictureMode", "showScrubPreview", "preferServerTrickplay",
+            "rememberTrackSelections", "subtitlesOnSkipBack",
+        ],
+        .appearance: [
+            "schemaVersion", "updatedAt", "accentChoice", "backgroundStyle", "showContentLogos",
+            "continueWatchingImage", "largeCards", "nowPlayingUsesSeriesPoster", "spoilerProtectionEnabled",
+            "spoilerHideEpisodes", "spoilerHideMovies", "hiddenTabs", "navigationStyle", "showPosterBadges",
+            "showDetailBadges", "showLibraryNames", "showPosterProgress", "showCommunityRating",
+            "showCriticRating",
+        ],
+        .home: [
+            "schemaVersion", "updatedAt", "configsJSON", "mergeCWNextUp", "rewatchNextUp",
+            "collectionGrouping", "librarySorts",
+        ],
+    ]
+
+    private func currentPayload(_ kind: ProfileRecordKind) -> ProfileSyncPayload {
+        let defaults = scratch("firstShipped-\(kind.rawValue)")
+        switch kind {
+        case .playback:
+            // The Optionals set, so no key is missing from the encoding for being nil.
+            let store = PlaybackPreferences(store: defaults)
+            store.preferredAudioLanguage = "ger"
+            store.preferredSubtitleLanguage = "eng"
+            return .playback(ProfilePlaybackPayload(collecting: store, stamp: .now))
+        case .appearance:
+            return .appearance(ProfileAppearancePayload(collecting: AppearancePreferences(store: defaults), stamp: .now))
+        case .home:
+            return .home(ProfileHomePayload(
+                updatedAt: .now, configsJSON: Data("[]".utf8), mergeCWNextUp: true, rewatchNextUp: false,
+                collectionGrouping: "auto", librarySorts: ["lib": "name"]
+            ))
+        }
+    }
+
+    @Test("a record from the first shipped build still decodes", arguments: ProfileRecordKind.allCases)
+    func firstShippedRecordDecodes(kind: ProfileRecordKind) throws {
+        let current = try #require(
+            JSONSerialization.jsonObject(with: currentPayload(kind).encoded()) as? [String: Any]
+        )
+        let firstShipped = try #require(Self.firstShippedKeys[kind])
+        #expect(firstShipped.isSubset(of: Set(current.keys)), "a first-shipped key was renamed or dropped")
+
+        let old = try JSONSerialization.data(withJSONObject: current.filter { firstShipped.contains($0.key) })
+
+        do {
+            _ = try ProfileSyncPayload.decode(old, kind: kind)
+        } catch {
+            Issue.record("\(kind.rawValue): \(CloudSyncService.decodeFailure(error)); a field added later must be Optional")
+        }
+    }
+
+    @Test func aRecordWithoutTouchpadScrubbingKeepsTheLocalValue() throws {
+        let store = PlaybackPreferences(store: scratch("noTouchpad"))
+        store.touchpadScrubbing = false
+        var payload = ProfilePlaybackPayload(collecting: store, stamp: .now)
+        payload.touchpadScrubbing = nil
+        payload.skipForwardSeconds = 45
+
+        payload.apply(to: store)
+
+        #expect(!store.touchpadScrubbing)
+        #expect(store.skipForwardSeconds == 45)
+    }
+
+    @Test func aDecodeFailureNamesTheKeyAndNoValue() {
+        let data = Data(#"{"schemaVersion":1,"secret":"hunter2"}"#.utf8)
+        do {
+            _ = try JSONDecoder().decode(ProfileHomePayload.self, from: data)
+            Issue.record("decoded without its required keys")
+        } catch {
+            let text = CloudSyncService.decodeFailure(error)
+            #expect(text.hasPrefix("missing "))
+            #expect(!text.contains("hunter2"))
+        }
+    }
+
     @Test func anUnknownRawValueKeepsTheCurrentValue() {
         let store = PlaybackPreferences(store: scratch("unknown"))
         store.subtitleColor = .yellow
