@@ -249,6 +249,7 @@ final class DependencyContainer {
         profileSettings.activeKey = { [weak self] in self?.appState?.profileKey }
         profileSettings.isApplyingCloudChanges = { [weak self] in self?.isApplyingCloudChanges ?? false }
         profileSettings.migrateIfNeeded(profiles: profileKeysOnThisDevice())
+        profileSettings.markEarlierMigrationSeedsIfNeeded()
     }
 
     /// Trims the filter cache to its identity limit off the main actor (synchronous directory IO),
@@ -687,6 +688,7 @@ final class DependencyContainer {
         try? keychainService.delete(for: KeychainKeys.forgottenUsers(serverID: serverID))
         // Every profile on the box, not just the active one: the whole server is going.
         FilterCache.shared.evict(serverID: serverID)
+        profileSettings.forgetProfiles(onServer: serverID)
 
         let servers = listKnownServers().filter { $0.id != serverID }
         let data = try JSONEncoder().encode(servers)

@@ -19,6 +19,7 @@ final class CloudSyncPreferences {
         static let pendingSaves = "cloudSync.pendingSaves"
         static let pendingDeletes = "cloudSync.pendingDeletes"
         static let carriedFields = "cloudSync.carriedFields"
+        static let skippedRecords = "cloudSync.skippedRecords"
     }
 
     private let store: UserDefaults
@@ -54,6 +55,9 @@ final class CloudSyncPreferences {
     private var pendingSaveNames: [String]
     private var pendingDeleteNames: [String]
     private var carriedFieldsByRecord: [String: Data]
+    /// Records a fetch delivered but this device could not read. The change token has moved past
+    /// them, so they are asked for by name on the next start.
+    private(set) var skippedRecords: [String]
 
     init(store: UserDefaults = .standard) {
         self.store = store
@@ -69,6 +73,7 @@ final class CloudSyncPreferences {
         self.pendingSaveNames = store.stringArray(forKey: Keys.pendingSaves) ?? []
         self.pendingDeleteNames = store.stringArray(forKey: Keys.pendingDeletes) ?? []
         self.carriedFieldsByRecord = (store.dictionary(forKey: Keys.carriedFields) as? [String: Data]) ?? [:]
+        self.skippedRecords = store.stringArray(forKey: Keys.skippedRecords) ?? []
     }
 
     // MARK: Stamps
@@ -164,6 +169,13 @@ final class CloudSyncPreferences {
         store.set(pendingDeleteNames, forKey: Keys.pendingDeletes)
     }
 
+    /// A save CloudKit confirmed, or one that has nothing left to send.
+    func unstashPendingSave(_ recordName: String) {
+        guard pendingSaveNames.contains(recordName) else { return }
+        pendingSaveNames.removeAll { $0 == recordName }
+        store.set(pendingSaveNames, forKey: Keys.pendingSaves)
+    }
+
     func drainPendingChanges() -> (saves: [String], deletes: [String]) {
         let result = (saves: pendingSaveNames, deletes: pendingDeleteNames)
         pendingSaveNames = []
@@ -171,6 +183,20 @@ final class CloudSyncPreferences {
         store.removeObject(forKey: Keys.pendingSaves)
         store.removeObject(forKey: Keys.pendingDeletes)
         return result
+    }
+
+    // MARK: Records this device could not read
+
+    func noteSkippedRecord(_ recordName: String) {
+        guard !skippedRecords.contains(recordName) else { return }
+        skippedRecords.append(recordName)
+        store.set(skippedRecords, forKey: Keys.skippedRecords)
+    }
+
+    func clearSkippedRecord(_ recordName: String) {
+        guard skippedRecords.contains(recordName) else { return }
+        skippedRecords.removeAll { $0 == recordName }
+        store.set(skippedRecords, forKey: Keys.skippedRecords)
     }
 
     // MARK: Resets
@@ -187,6 +213,8 @@ final class CloudSyncPreferences {
         carriedFieldsByRecord = [:]
         pendingSaveNames = []
         pendingDeleteNames = []
+        skippedRecords = []
+        store.removeObject(forKey: Keys.skippedRecords)
         store.removeObject(forKey: Keys.localStamps)
         store.removeObject(forKey: Keys.systemFields)
         store.removeObject(forKey: Keys.carriedFields)

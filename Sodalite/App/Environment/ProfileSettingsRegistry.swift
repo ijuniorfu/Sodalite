@@ -22,8 +22,12 @@ final class ProfileSettingsRegistry {
         static let migrated = "profileSettings.migrated"
         static let lastActive = "profileSettings.lastActive"
         static let known = "profileSettings.knownProfiles"
+        static let migrationSeedsMarked = "profileSettings.migrationSeedsMarked"
         static func provisional(_ key: ProfileKey, _ kind: ProfileRecordKind) -> String {
             "\(key.storageScope)/profileSettings.provisional.\(kind.rawValue)"
+        }
+        static func migrationSeed(_ key: ProfileKey, _ kind: ProfileRecordKind) -> String {
+            "\(key.storageScope)/profileSettings.migrationSeed.\(kind.rawValue)"
         }
     }
 
@@ -126,11 +130,37 @@ final class ProfileSettingsRegistry {
         guard !defaults.bool(forKey: Keys.migrated) else { return }
         var seeded = 0
         for key in profiles where !hasValues(key) {
-            seed(key, into: instance(for: key), from: legacySource(for: key))
+            seed(key, into: instance(for: key), from: legacySource(for: key), migration: true)
             seeded += 1
         }
         defaults.set(true, forKey: Keys.migrated)
+        defaults.set(true, forKey: Keys.migrationSeedsMarked)
         LogTap.shared.note("[ProfileSettings] migration: \(seeded) profile(s) seeded from the device values")
+    }
+
+    /// Installs that migrated before seeds were told apart: every copy they still hold dates from
+    /// the days right after the migration, so it is read as one. Runs once.
+    func markEarlierMigrationSeedsIfNeeded() {
+        guard defaults.bool(forKey: Keys.migrated), !defaults.bool(forKey: Keys.migrationSeedsMarked) else { return }
+        var marked = 0
+        for key in knownProfiles {
+            for kind in ProfileRecordKind.allCases where isProvisional(key, kind) {
+                defaults.set(true, forKey: Keys.migrationSeed(key, kind))
+                marked += 1
+            }
+        }
+        defaults.set(true, forKey: Keys.migrationSeedsMarked)
+        LogTap.shared.note("[ProfileSettings] \(marked) earlier migration seed(s) marked for upload")
+    }
+
+    /// Kinds still holding the value the migration gave them, untouched here and never answered
+    /// by a cloud record.
+    func unclaimedMigrationSeeds() -> [(key: ProfileKey, kind: ProfileRecordKind)] {
+        knownProfiles.flatMap { key in
+            ProfileRecordKind.allCases
+                .filter { isProvisional(key, $0) && defaults.bool(forKey: Keys.migrationSeed(key, $0)) }
+                .map { (key: key, kind: $0) }
+        }
     }
 
     // MARK: Provisional copies
@@ -141,6 +171,26 @@ final class ProfileSettingsRegistry {
 
     func noteCloudApplied(_ key: ProfileKey, _ kind: ProfileRecordKind) {
         defaults.set(false, forKey: Keys.provisional(key, kind))
+        defaults.removeObject(forKey: Keys.migrationSeed(key, kind))
+    }
+
+    /// A copy that is published from now on: the viewer pushed it, or it is a migration seed iCloud
+    /// has nothing for.
+    func claim(_ key: ProfileKey, _ kind: ProfileRecordKind) {
+        guard isProvisional(key, kind) else { return }
+        defaults.set(false, forKey: Keys.provisional(key, kind))
+        defaults.removeObject(forKey: Keys.migrationSeed(key, kind))
+        LogTap.shared.note("[ProfileSettings] \(key.fingerprint) \(kind.rawValue) claimed, syncs from now on")
+    }
+
+    /// A removed server's profiles leave the registry, so a push or an adoption stops republishing
+    /// them. Their values stay on disk; the server coming back seeds them afresh.
+    func forgetProfiles(onServer serverID: String) {
+        let gone = knownProfiles.filter { $0.serverID == serverID }
+        guard !gone.isEmpty else { return }
+        let scopes = Set(gone.map(\.storageScope))
+        defaults.set(knownScopes.filter { !scopes.contains($0) }, forKey: Keys.known)
+        for key in gone { cache[key] = nil }
     }
 
     // MARK: Reset
@@ -196,7 +246,7 @@ final class ProfileSettingsRegistry {
         )
     }
 
-    private func seed(_ key: ProfileKey, into target: Settings, from source: SeedSource) {
+    private func seed(_ key: ProfileKey, into target: Settings, from source: SeedSource, migration: Bool = false) {
         seeding = true
         defer { seeding = false }
         ProfilePlaybackPayload(collecting: source.settings.playback, stamp: .distantPast).apply(to: target.playback)
@@ -204,6 +254,7 @@ final class ProfileSettingsRegistry {
         ProfileHomeStore.copy(fromScope: source.homeScope, toScope: key.storageScope)
         for kind in ProfileRecordKind.allCases {
             defaults.set(true, forKey: Keys.provisional(key, kind))
+            if migration { defaults.set(true, forKey: Keys.migrationSeed(key, kind)) }
         }
         addKnown(key)
         LogTap.shared.note("[ProfileSettings] seeded \(key.fingerprint) from \(source.label)")
@@ -213,6 +264,7 @@ final class ProfileSettingsRegistry {
         guard !seeding, !isApplyingCloudChanges() else { return }
         if isProvisional(key, kind) {
             defaults.set(false, forKey: Keys.provisional(key, kind))
+            defaults.removeObject(forKey: Keys.migrationSeed(key, kind))
             LogTap.shared.note("[ProfileSettings] \(key.fingerprint) \(kind.rawValue) edited, syncs from now on")
         }
         onLocalEdit?(key, kind)

@@ -244,7 +244,11 @@ struct ServerDiscoveryView: View {
             // out, and an actually empty zone are three different answers. If data
             // arrived, AppRouter's .cloudSyncDidApplyChanges restore flips the screen.
             switch await cloudSync.loadFromCloud() {
-            case .loaded: cloudLoadState = .idle
+            case .loaded:
+                cloudLoadState = .idle
+                // The servers are there, but a fetch that brought nothing new posts no event, so
+                // the restore that turns them into the profile picker is asked for here.
+                NotificationCenter.default.post(name: .cloudSyncDidApplyChanges, object: nil)
             case .empty: cloudLoadState = .nothingFound
             case .noAccount: cloudLoadState = .noAccount
             case .failed(let message): cloudLoadState = .failed(message)

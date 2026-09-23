@@ -9,6 +9,9 @@ struct AppRouter: View {
 
     /// Guards the initial restore + splash against SwiftUI re-firing `.task` on AppRouter disappear (e.g. player modal on screen), which would otherwise re-show the splash.
     @State private var hasRestored = false
+    /// Cloud data that landed while a restore was running. That restore may already have read an
+    /// empty keychain, so it runs once more when it is done instead of the arrival being dropped.
+    @State private var cloudDataArrivedDuringRestore = false
     /// Same `.task` re-fire guard for the server-switch handler: records the last serverDidSwitch value handled so a player dismissal doesn't re-run the probe + Seerr restore.
     @State private var lastHandledServerSwitch = 0
 
@@ -166,7 +169,11 @@ struct AppRouter: View {
             // routes to discovery before the first cloud-sync fetch lands. Re-run
             // the restore when synced data arrives so the profile picker appears
             // without an app relaunch.
-            guard !appState.isAuthenticated, !appState.isLoading else { return }
+            guard !appState.isAuthenticated else { return }
+            guard !appState.isLoading else {
+                cloudDataArrivedDuringRestore = true
+                return
+            }
             Task { await restoreSession() }
         }
         #if os(iOS)
@@ -522,6 +529,13 @@ struct AppRouter: View {
             try? await Task.sleep(for: .seconds(remaining))
         }
         appState.isLoading = false
+
+        if cloudDataArrivedDuringRestore {
+            cloudDataArrivedDuringRestore = false
+            if !appState.isAuthenticated, !dependencies.listKnownServers().isEmpty {
+                await restoreSession()
+            }
+        }
     }
 
     /// Close live streams an earlier run left open on the server (#147). Cheap when there is nothing

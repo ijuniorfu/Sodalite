@@ -22,13 +22,16 @@ enum CloudSyncLoadOutcome: Equatable {
     /// got far enough to produce one (sync still disabled).
     case failed(String?)
 
-    static func resolve(status: CloudSyncStatus, hasServers: Bool) -> CloudSyncLoadOutcome {
+    /// "Empty" is a claim about the whole zone, so it needs a completed adoption fetch behind it. A
+    /// healthy status alone only says nothing has failed YET: the engine reports active before its
+    /// first fetch has run, and a tap in that window used to read an unfetched zone as an empty one.
+    static func resolve(status: CloudSyncStatus, hasServers: Bool, adoptionCompleted: Bool) -> CloudSyncLoadOutcome {
         if hasServers { return .loaded }
         switch status {
         case .noAccount: return .noAccount
         case .error(let message): return .failed(message)
         case .disabled, .accountChanged: return .failed(nil)
-        case .active, .syncing: return .empty
+        case .active, .syncing: return adoptionCompleted ? .empty : .failed(nil)
         }
     }
 }
@@ -47,6 +50,7 @@ protocol CloudSyncServiceProtocol: AnyObject {
     func markSecurityDirty()
     func markSecurityDeleted()
     func pushLocalSettingsToAllDevices()
+    func pullSettingsFromCloud() async
     func deleteCloudDataAndDisable() async
     func handleFullLogout()
 }
@@ -66,6 +70,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private unowned let dependencies: DependencyContainer
     let preferences: CloudSyncPreferences
     private var engine: CKSyncEngine?
+    /// The database the engine runs on, for the direct reads a delta fetch cannot answer: a pull
+    /// of records this device already has, and whether a record exists at all.
+    private var database: CKDatabase?
+    /// Set for the length of a manual pull: settings and profile records apply cloud-wins.
+    private var forcingCloudWins = false
     private var startInFlight = false
     /// The in-flight (or last) engine start, so callers that need a live engine can
     /// await it instead of no-opping while it is still coming up.
@@ -73,9 +82,6 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private var debounceTasks: [CloudSyncStoreKey: Task<Void, Never>] = [:]
     /// Last snapshot uploaded or applied per store, to skip observation echoes.
     private var lastSettingsSnapshot: [CloudSyncStoreKey: SettingsSyncPayload] = [:]
-    /// Debounced profile uploads, keyed by record name so an edit in one profile cannot cancel
-    /// another profile's pending upload.
-    private var profileDebounceTasks: [String: Task<Void, Never>] = [:]
     /// Last profile payload uploaded or applied per record name, to skip unchanged re-uploads.
     private var lastProfileSnapshot: [String: ProfileSyncPayload] = [:]
     private var observers: [NSObjectProtocol] = []
@@ -102,7 +108,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         // anything, and cloud applies and seeding are suppressed inside the registry.
         dependencies.profileSettings.onLocalEdit = { [weak self] key, kind in
             guard let self else { return }
-            self.scheduleProfileUpload(kind, key)
+            // Not debounced: the stamp and the queued save are written with the edit, so an app
+            // killed a second later still uploads it on the next launch. A debounce here lost the
+            // edit for good, and left the kind unstamped for the next incoming record to overwrite.
+            self.uploadProfileIfChanged(kind, key)
             if let legacy = kind.legacyStoreKey {
                 self.scheduleSettingsUpload(legacy, profile: key)
             }
@@ -127,7 +136,16 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         observeAccountChanges()
         observeSettingsStores()
         observeHomeConfigChanges()
+        // In flight, not off: the fresh-install gate reads `.disabled` as final, and a status that
+        // stayed there through the two CloudKit round trips below sent every new device straight
+        // to discovery while its data was still on the way.
+        if !isHealthy { status = .syncing }
         startTask = Task { await startEngine() }
+    }
+
+    private var isHealthy: Bool {
+        if case .active = status { return true }
+        return false
     }
 
     /// Every settled "healthy" status goes through here so a latched upload failure survives it.
@@ -184,11 +202,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         startTask?.cancel()
         startTask = nil
         engine = nil
+        database = nil
         startInFlight = false
         for task in debounceTasks.values { task.cancel() }
         debounceTasks = [:]
-        for task in profileDebounceTasks.values { task.cancel() }
-        profileDebounceTasks = [:]
         // A delete queued under one account must not block adoption of the same
         // record name under the next account.
         recentLocalDeletes = []
@@ -239,8 +256,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             config.automaticallySync = true
             let engine = CKSyncEngine(config)
             self.engine = engine
+            self.database = container.privateCloudDatabase
             engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
-            settleActive()
+            // Healthy only once there is something to be healthy about: before the adoption fetch
+            // this device has not seen the zone, and "Active" there reads as "nothing in iCloud".
+            if preferences.adoptionCompleted { settleActive() }
 
             // Replay anything queued while the engine was unavailable (signed out,
             // failed start, or before this start() completed) so it isn't lost.
@@ -250,13 +270,15 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
             }
             for name in stash.saves {
-                engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(name))])
+                addPendingSave(recordName: name)
             }
 
             if !preferences.adoptionCompleted {
                 try await engine.fetchChanges()
                 completeAdoption()
+                settleActive()
             }
+            await afterEngineStart(engine)
         } catch {
             status = .error(CloudSyncRecovery.describe(error))
             LogTap.shared.note("[CloudSync] start failed: \(error)")
@@ -306,22 +328,31 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// state makes waiting pointless, or the timeout expires. Used to gate the
     /// fresh-install launch so synced servers surface before the discovery screen.
     func waitForInitialSync(timeout: TimeInterval) async {
-        let deadline = Date().addingTimeInterval(timeout)
+        let started = Date()
+        let deadline = started.addingTimeInterval(timeout)
+        func exit(_ reason: String) {
+            let waited = String(format: "%.1f", Date().timeIntervalSince(started))
+            LogTap.shared.note("[CloudSync] initial sync wait ended after \(waited) s: \(reason)")
+        }
         while Date() < deadline {
             // Cancelled callers must exit immediately: a cancelled Task.sleep throws
             // right away (swallowed by try?), so continuing would busy-spin the
             // MainActor until the deadline.
             if Task.isCancelled { return }
-            if preferences.adoptionCompleted { return }
+            if preferences.adoptionCompleted { return exit("adoption complete") }
             switch status {
-            case .noAccount, .disabled, .accountChanged, .error: return
+            case .noAccount, .disabled, .accountChanged, .error: return exit("status \(status)")
             case .active, .syncing: break
             }
             try? await Task.sleep(for: .milliseconds(200))
         }
+        exit("timeout, adoption still pending")
     }
 
     func fetchNow() async {
+        // A start still in flight owns the adoption fetch. Fetching beside it on the engine it has
+        // already installed ran a second fetch against a zone this device had not adopted yet.
+        if engine != nil, startInFlight { await startTask?.value }
         if engine == nil {
             // A failed or skipped start (offline launch, signed-out account) must be
             // retryable in-session; foregrounding is the natural retry point.
@@ -338,19 +369,27 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard let engine else { return }
         do {
             try await engine.fetchChanges()
+            // A fetch that changed nothing posts no event, so an earlier fetch failure would
+            // otherwise stay on the status row. A latched upload rejection survives this.
+            if case .error = status { settleActive() }
         } catch {
             LogTap.shared.note("[CloudSync] fetch failed: \(error)")
             handleFetchFailure(error)
         }
     }
 
+    /// A failure that is not recovered here has to reach the status: a manual load reads its
+    /// outcome from there, and a silent failure used to come back as "nothing in iCloud".
     private func handleFetchFailure(_ error: Error) {
-        guard let ckError = error as? CKError else { return }
+        guard let ckError = error as? CKError else {
+            status = .error(CloudSyncRecovery.describe(error))
+            return
+        }
         switch CloudSyncRecovery.fetchAction(for: ckError) {
         case .resyncZone:
             resyncZoneFromScratch(reason: "change token expired")
         case .report:
-            break
+            status = .error(CloudSyncRecovery.describe(error))
         }
     }
 
@@ -418,11 +457,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         await fetchNow()
         // A fetch that changed nothing never posts .fetchedRecordZoneChanges, so settle
         // the transient state here instead of leaving it stuck on "Syncing…".
-        if case .syncing = status { settleActive() }
-        return CloudSyncLoadOutcome.resolve(
+        if case .syncing = status, preferences.adoptionCompleted { settleActive() }
+        let outcome = CloudSyncLoadOutcome.resolve(
             status: status,
-            hasServers: !dependencies.listKnownServers().isEmpty
+            hasServers: !dependencies.listKnownServers().isEmpty,
+            adoptionCompleted: preferences.adoptionCompleted
         )
+        LogTap.shared.note("[CloudSync] load from iCloud: \(outcome), status \(status), adoption \(preferences.adoptionCompleted ? "complete" : "pending")")
+        return outcome
     }
 
     // MARK: Dirty marking (called from DependencyContainer mutation hooks)
@@ -490,14 +532,24 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             markSettingsDirty(key)
         }
         let registry = dependencies.profileSettings
+        // The active profile's copies are the settings the viewer is looking at and asked to push; a
+        // device that migrated and was never edited since has nothing else. Other profiles' copies
+        // were never seen here and stay local.
+        if let active = registry.activeKey() {
+            for kind in ProfileRecordKind.allCases { registry.claim(active, kind) }
+        }
+        var queued = 0
+        var provisional = 0
         for key in registry.knownProfiles {
-            for kind in ProfileRecordKind.allCases where !registry.isProvisional(key, kind) {
+            for kind in ProfileRecordKind.allCases {
+                guard !registry.isProvisional(key, kind) else { provisional += 1; continue }
                 lastProfileSnapshot[CloudSyncRecordName.profile(kind, key)] =
                     dependencies.collectProfilePayload(kind, key: key, stamp: .distantPast)
                 markProfileDirty(kind, key)
+                queued += 1
             }
         }
-        LogTap.shared.note("[CloudSync] manual settings push queued")
+        LogTap.shared.note("[CloudSync] manual settings push queued: \(CloudSyncStoreKey.allCases.count) settings, \(queued) profile record(s), \(provisional) left local as copies")
         guard let engine else { return }
         // Force the upload now instead of waiting for the automatic scheduler, so a
         // manual push lands immediately and the status timestamp reflects it promptly.
@@ -522,14 +574,26 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     func deleteCloudDataAndDisable() async {
+        if engine == nil, preferences.isEnabled {
+            if !startInFlight { start() }
+            await startTask?.value
+        }
+        guard let engine else {
+            // Nothing reached iCloud, so nothing may be wiped here either: the zone is still there,
+            // and reporting success is how its data came back on the next enable. The status the
+            // failed start left (no account, or CloudKit's error) says why.
+            preferences.isEnabled = false
+            teardownEngine()
+            if case .active = status { status = .disabled }
+            LogTap.shared.note("[CloudSync] cloud data delete not sent, no engine (status \(status))")
+            return
+        }
         var failure: Error?
-        if let engine {
+        do {
             engine.state.add(pendingDatabaseChanges: [.deleteZone(Self.zoneID)])
-            do {
-                try await engine.sendChanges()
-            } catch {
-                failure = error
-            }
+            try await engine.sendChanges()
+        } catch {
+            failure = error
         }
         preferences.isEnabled = false
         if let failure {
@@ -638,21 +702,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         markSettingsDirty(key)
     }
 
-    private func scheduleProfileUpload(_ kind: ProfileRecordKind, _ key: ProfileKey) {
-        let name = CloudSyncRecordName.profile(kind, key)
-        profileDebounceTasks[name]?.cancel()
-        profileDebounceTasks[name] = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(2))
-            guard !Task.isCancelled else { return }
-            self?.uploadProfileIfChanged(kind, key)
-        }
-    }
-
-    /// Internal for tests. Takes the profile it was scheduled for, never the active one.
+    /// Internal for tests. Takes the profile the edit was made in, never the active one.
     func uploadProfileIfChanged(_ kind: ProfileRecordKind, _ key: ProfileKey) {
-        guard preferences.isEnabled, !dependencies.isApplyingCloudChanges,
-              !dependencies.profileSettings.isProvisional(key, kind),
-              let snapshot = dependencies.collectProfilePayload(kind, key: key, stamp: .distantPast)
+        guard preferences.isEnabled, !dependencies.isApplyingCloudChanges else { return }
+        guard !dependencies.profileSettings.isProvisional(key, kind) else {
+            LogTap.shared.note("[CloudSync] \(key.fingerprint) \(kind.rawValue) is a local copy, not uploaded")
+            return
+        }
+        guard let snapshot = dependencies.collectProfilePayload(kind, key: key, stamp: .distantPast)
         else { return }
         let name = CloudSyncRecordName.profile(kind, key)
         if lastProfileSnapshot[name] == snapshot { return }
@@ -670,12 +727,12 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         CloudSyncRecordName.recordType(forRecordName: name)
     }
 
+    /// Every save is also written to the persistent outbox and leaves it only once CloudKit confirms
+    /// it: the engine persists its own queue through a later state event, and an app killed before
+    /// that event lost the save for good.
     private func addPendingSave(recordName: String) {
-        guard let engine else {
-            preferences.stashPendingSave(recordName)
-            return
-        }
-        engine.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(recordName))])
+        preferences.stashPendingSave(recordName)
+        engine?.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(recordName))])
     }
 
     private func collectPayloadData(recordName: String) -> Data? {
@@ -731,6 +788,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         guard let payloadData = collectPayloadData(recordName: recordName) else {
             // Nothing local anymore (e.g. server removed while queued): drop the save.
             engine?.state.remove(pendingRecordZoneChanges: [.saveRecord(recordID(recordName))])
+            preferences.unstashPendingSave(recordName)
             return nil
         }
         let record: CKRecord
@@ -753,7 +811,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             // Reachable when CloudKit cannot decrypt the field for this device (no
             // iCloud Keychain, so no zone key). Silence here looks exactly like an
             // empty zone from the outside, so say it.
-            LogTap.shared.note("[CloudSync] no readable payload on \(name), record skipped")
+            noteSkipped(name, reason: "no readable payload")
             return
         }
         preferences.setSystemFields(Self.encodeSystemFields(record), for: name)
@@ -762,9 +820,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         // that. The union branches return early, so this cannot be a straight-line call.
         defer { noteCarriedFields(remote: data, recordName: name) }
         let adopting = !preferences.adoptionCompleted
+        // Settings, profile and security records: first adoption and a manual pull take the cloud.
+        let cloudWins = adopting || forcingCloudWins
 
         if let serverID = CloudSyncRecordName.serverID(fromRecordName: name) {
-            guard let cloud = try? JSONDecoder().decode(ServerSyncPayload.self, from: data) else { return }
+            guard let cloud = try? JSONDecoder().decode(ServerSyncPayload.self, from: data) else {
+                return noteSkipped(name, reason: "server payload did not decode")
+            }
+            preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
             if adopting, let local = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast) {
                 let merged = CloudSyncMerge.adoptServerPayload(local: local, cloud: cloud, stamp: preferences.nextStamp())
@@ -780,25 +843,31 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                     // local edit two seconds later and uploads it back.
                     lastSettingsSnapshot[.auth] = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
                     preferences.setLocalStamp(cloud.updatedAt, for: name)
-                } else {
+                } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                     addPendingSave(recordName: name)
                 }
             }
         } else if case let (kind, profile)? = CloudSyncRecordName.profileRecord(fromRecordName: name) {
-            guard let cloud = try? ProfileSyncPayload.decode(data, kind: kind) else { return }
+            guard let cloud = try? ProfileSyncPayload.decode(data, kind: kind) else {
+                return noteSkipped(name, reason: "profile payload did not decode")
+            }
+            preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
             // An unstamped local profile is a provisional copy or was never uploaded, and loses to
             // any record, which is exactly the rule a seeded copy needs.
-            if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
+            if cloudWins || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applyProfilePayload(cloud, key: profile)
                 lastProfileSnapshot[name] = dependencies.collectProfilePayload(kind, key: profile, stamp: .distantPast)
                 preferences.setLocalStamp(cloud.updatedAt, for: name)
-            } else {
+            } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                 addPendingSave(recordName: name)
             }
         } else if let key = CloudSyncRecordName.storeKey(fromRecordName: name) {
-            guard let cloud = try? SettingsSyncPayload.decode(data, key: key) else { return }
+            guard let cloud = try? SettingsSyncPayload.decode(data, key: key) else {
+                return noteSkipped(name, reason: "settings payload did not decode")
+            }
+            preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
             // Sodalite#46: track memory is per entry, not one blob. Last-writer-wins would
             // drop every title the other device recorded, so union instead, adoption
@@ -850,21 +919,24 @@ final class CloudSyncService: CloudSyncServiceProtocol {
                 lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
             }
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
-            if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
+            if cloudWins || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applySettingsPayload(cloud)
                 lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
                 preferences.setLocalStamp(cloud.updatedAt, for: name)
-            } else {
+            } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                 addPendingSave(recordName: name)
             }
         } else if name == CloudSyncRecordName.securitySingleton {
-            guard let cloud = try? JSONDecoder().decode(SecuritySyncPayload.self, from: data) else { return }
+            guard let cloud = try? JSONDecoder().decode(SecuritySyncPayload.self, from: data) else {
+                return noteSkipped(name, reason: "security payload did not decode")
+            }
+            preferences.clearSkippedRecord(name)
             preferences.noteRemoteStamp(cloud.updatedAt)
             let localStamp = preferences.localStamp(for: name) ?? .distantPast
             if adopting || CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) {
                 dependencies.applySecurityPayload(cloud)
                 preferences.setLocalStamp(cloud.updatedAt, for: name)
-            } else {
+            } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                 addPendingSave(recordName: name)
             }
         }
@@ -900,6 +972,153 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         return try? JSONDecoder().decode(CKSyncEngine.State.Serialization.self, from: data)
     }
 
+    // MARK: Direct reads
+
+    /// Manual pull: the settings and profile records as iCloud holds them now, applied cloud-wins.
+    /// A delta fetch cannot do this, it only delivers what changed since this device last asked, so
+    /// a record it already had (and lost to a local stamp) never came again. Server records keep
+    /// their merge, they carry credentials a pull must not roll back.
+    func pullSettingsFromCloud() async {
+        await fetchNow()
+        guard let database, engine != nil else {
+            LogTap.shared.note("[CloudSync] pull skipped, no engine (status \(status))")
+            return
+        }
+        status = .syncing
+        do {
+            let records = try await Self.fetchWholeZone(database)
+                .filter { CloudSyncRecordName.serverID(fromRecordName: $0.recordID.recordName) == nil }
+                .filter { $0.recordID.recordName != CloudSyncRecordName.securitySingleton }
+                .sorted { Self.applyOrder($0.recordID.recordName) < Self.applyOrder($1.recordID.recordName) }
+            forcingCloudWins = true
+            for record in records { applyRemoteRecord(record) }
+            forcingCloudWins = false
+            LogTap.shared.note("[CloudSync] pull applied \(records.count) record(s): \(Self.summary(records.map(\.recordID.recordName)))")
+            preferences.lastSyncAt = Date()
+            settleActive()
+            NotificationCenter.default.post(name: .cloudSyncDidApplyChanges, object: nil)
+        } catch let error as CKError where error.code == .zoneNotFound {
+            LogTap.shared.note("[CloudSync] pull found no Sodalite data in iCloud")
+            settleActive()
+        } catch {
+            forcingCloudWins = false
+            LogTap.shared.note("[CloudSync] pull failed: \(error)")
+            status = .error(CloudSyncRecovery.describe(error))
+        }
+    }
+
+    private static func fetchWholeZone(_ database: CKDatabase) async throws -> [CKRecord] {
+        var records: [CKRecord] = []
+        var token: CKServerChangeToken?
+        var moreComing = true
+        while moreComing {
+            let batch = try await database.recordZoneChanges(inZoneWith: zoneID, since: token)
+            for result in batch.modificationResultsByID.values {
+                if case .success(let modification) = result { records.append(modification.record) }
+            }
+            token = batch.changeToken
+            moreComing = batch.moreComing
+        }
+        return records
+    }
+
+    /// Work that needs a live engine and an adopted zone, once per start.
+    private func afterEngineStart(_ engine: CKSyncEngine) async {
+        await refetchSkippedRecords()
+        await claimUnclaimedMigrationSeeds()
+    }
+
+    /// A record this device could not read was lost for good: the change token moves past it and
+    /// no delta fetch delivers it again. Asking for it by name on the next start is the retry.
+    private func refetchSkippedRecords() async {
+        let names = preferences.skippedRecords
+        guard !names.isEmpty, let database else { return }
+        do {
+            let results = try await database.records(for: names.map(recordID))
+            var recovered = 0
+            for (id, result) in results {
+                switch result {
+                case .success(let record):
+                    applyRemoteRecord(record)
+                    if !preferences.skippedRecords.contains(id.recordName) { recovered += 1 }
+                case .failure(let error as CKError) where error.code == .unknownItem:
+                    preferences.clearSkippedRecord(id.recordName)
+                case .failure:
+                    break
+                }
+            }
+            LogTap.shared.note("[CloudSync] retried \(names.count) skipped record(s), \(recovered) now readable")
+        } catch {
+            LogTap.shared.note("[CloudSync] skipped-record retry failed: \(error)")
+        }
+    }
+
+    /// The one-time migration to per-profile settings seeded every profile from the values this
+    /// device had until then, and a seed only ever went up after an edit. A device nobody touched
+    /// since therefore never published the settings its profiles really had, and a new device
+    /// found nothing. A migration seed is those real settings, so it goes up as soon as iCloud is
+    /// confirmed to hold nothing for it; a record that is there wins instead, as it always did.
+    /// Copies of another profile (a new profile on this device) stay local.
+    private func claimUnclaimedMigrationSeeds() async {
+        let registry = dependencies.profileSettings
+        let candidates = registry.unclaimedMigrationSeeds()
+        guard !candidates.isEmpty, let database else { return }
+        let ids = candidates.map { recordID(CloudSyncRecordName.profile($0.kind, $0.key)) }
+        do {
+            let results = try await database.records(for: ids)
+            var claimed = 0
+            var adopted = 0
+            for candidate in candidates {
+                let id = recordID(CloudSyncRecordName.profile(candidate.kind, candidate.key))
+                switch results[id] {
+                case .success(let record)?:
+                    applyRemoteRecord(record)
+                    adopted += 1
+                case .failure(let error as CKError)? where error.code == .unknownItem:
+                    registry.claim(candidate.key, candidate.kind)
+                    uploadProfileIfChanged(candidate.kind, candidate.key)
+                    claimed += 1
+                default:
+                    break
+                }
+            }
+            LogTap.shared.note("[CloudSync] migration seeds: \(claimed) uploaded, \(adopted) taken from iCloud, \(candidates.count - claimed - adopted) left for later")
+        } catch {
+            LogTap.shared.note("[CloudSync] migration seed check failed: \(error)")
+        }
+    }
+
+    private func noteSkipped(_ name: String, reason: String) {
+        preferences.noteSkippedRecord(name)
+        LogTap.shared.note("[CloudSync] \(reason) on \(name), record skipped, retried on the next start")
+    }
+
+    static func applyOrder(_ recordName: String) -> Int {
+        if CloudSyncRecordName.storeKey(fromRecordName: recordName) != nil { return 0 }
+        if CloudSyncRecordName.serverID(fromRecordName: recordName) != nil { return 1 }
+        if CloudSyncRecordName.profileRecord(fromRecordName: recordName) != nil { return 2 }
+        return 3
+    }
+
+    /// Record names for the log with the per-profile and per-server part cut to its kind, so a line
+    /// says what moved without listing identifiers.
+    static func summary(_ names: [String]) -> String {
+        guard !names.isEmpty else { return "none" }
+        var counts: [String: Int] = [:]
+        for name in names {
+            let kind: String
+            if case let (profileKind, _)? = CloudSyncRecordName.profileRecord(fromRecordName: name) {
+                kind = "profile-\(profileKind.rawValue)"
+            } else if CloudSyncRecordName.serverID(fromRecordName: name) != nil {
+                kind = "server"
+            } else {
+                kind = name
+            }
+            counts[kind, default: 0] += 1
+        }
+        return counts.sorted { $0.key < $1.key }.map { "\($0.key)×\($0.value)" }.joined(separator: ", ")
+    }
+
     #if DEBUG
     /// Test-only seam: lets unit tests drive waitForInitialSync's polling branch
     /// without spinning up a real CKSyncEngine (start() touches CloudKit).
@@ -928,21 +1147,44 @@ extension CloudSyncService: CKSyncEngineDelegate {
 
         case .fetchedDatabaseChanges(let changes):
             for deletion in changes.deletions where deletion.zoneID.zoneName == Self.zoneName {
-                // Zone deleted externally (user cleared iCloud data in Settings):
-                // recreate and re-upload the local state.
-                LogTap.shared.note("[CloudSync] zone deleted remotely, re-uploading")
-                preferences.resetForZoneRecreation()
-                preferences.isEnabled = true
-                syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
-                completeAdoption()
+                switch deletion.reason {
+                case .encryptedDataReset:
+                    // The user reset their encrypted iCloud data: the records are gone but nobody
+                    // asked for the data to go, so this device puts its state back.
+                    LogTap.shared.note("[CloudSync] zone reset by an encrypted-data reset, re-uploading")
+                    preferences.resetForZoneRecreation()
+                    syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+                    completeAdoption()
+                default:
+                    // Deleted on purpose, from another device's "Delete iCloud Data" or from the
+                    // iCloud storage settings. Re-uploading here undid that the moment any other
+                    // device came to the foreground, so this one stops and keeps its local data,
+                    // which is what the deletion's confirmation promises.
+                    LogTap.shared.note("[CloudSync] zone deleted remotely, sync turned off here, local data kept")
+                    preferences.resetForCloudDataDeletion()
+                    preferences.isEnabled = false
+                    teardownEngine()
+                    statusLatch.clear()
+                    status = .disabled
+                }
             }
 
         case .fetchedRecordZoneChanges(let changes):
-            for modification in changes.modifications {
-                applyRemoteRecord(modification.record)
+            // Settings first, then servers, then profiles: a profile record for a profile this
+            // device has never seen seeds the kinds it does not carry from the legacy settings and
+            // the server's rows, so those have to be in place before it lands.
+            let ordered = changes.modifications.map(\.record)
+                .sorted { Self.applyOrder($0.recordID.recordName) < Self.applyOrder($1.recordID.recordName) }
+            for record in ordered {
+                applyRemoteRecord(record)
             }
             for deletion in changes.deletions {
                 applyRemoteDeletion(recordName: deletion.recordID.recordName)
+            }
+            if !ordered.isEmpty || !changes.deletions.isEmpty {
+                LogTap.shared.note(
+                    "[CloudSync] fetched \(ordered.count) record(s), \(changes.deletions.count) deletion(s): \(Self.summary(ordered.map(\.recordID.recordName)))"
+                )
             }
             preferences.lastSyncAt = Date()
             settleActive()
@@ -951,6 +1193,12 @@ extension CloudSyncService: CKSyncEngineDelegate {
         case .sentRecordZoneChanges(let sent):
             for saved in sent.savedRecords {
                 preferences.setSystemFields(Self.encodeSystemFields(saved), for: saved.recordID.recordName)
+                preferences.unstashPendingSave(saved.recordID.recordName)
+            }
+            if !sent.savedRecords.isEmpty || !sent.failedRecordSaves.isEmpty {
+                LogTap.shared.note(
+                    "[CloudSync] sent \(sent.savedRecords.count) record(s), \(sent.failedRecordSaves.count) failed: \(Self.summary(sent.savedRecords.map(\.recordID.recordName)))"
+                )
             }
             // An upload that lands is the only evidence that clears a latched rejection, and it
             // has to clear before this batch's own failures are handled: a batch that saved some
@@ -1029,6 +1277,9 @@ extension CloudSyncService: CKSyncEngineDelegate {
     }
 
     private func handleSaveFailure(recordName: String, error: CKError, syncEngine: CKSyncEngine) {
+        // Off the outbox unless a branch below queues it again: a save the server keeps refusing
+        // would otherwise be replayed on every launch.
+        preferences.unstashPendingSave(recordName)
         switch CloudSyncRecovery.saveAction(for: error) {
         case .adoptServerRecord:
             guard let serverRecord = error.serverRecord else { return }

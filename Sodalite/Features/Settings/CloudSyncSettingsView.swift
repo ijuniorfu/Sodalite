@@ -56,7 +56,7 @@ struct CloudSyncSettingsView: View {
                 ) {
                     isPulling = true
                     Task {
-                        _ = await dependencies.cloudSync?.loadFromCloud()
+                        await dependencies.cloudSync?.pullSettingsFromCloud()
                         isPulling = false
                     }
                 }
