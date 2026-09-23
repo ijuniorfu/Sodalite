@@ -227,7 +227,7 @@ final class AppearancePreferences {
 
     /// The synced form: every hidden tab this build knows, plus the ones only a newer build knows.
     var syncedHiddenTabs: [String] {
-        (hiddenTabs.map(\.rawValue) + hiddenTabsFromNewerBuilds).sorted()
+        Set(hiddenTabs.map(\.rawValue) + hiddenTabsFromNewerBuilds).sorted()
     }
 
     /// The inverse of `syncedHiddenTabs`. A name this build knows but cannot hide is dropped.
@@ -285,7 +285,16 @@ final class AppearancePreferences {
         self.navigationStyle = store.string(forKey: Keys.navigationStyle)
             .flatMap(NavigationStyle.init(rawValue:)) ?? .topBar
         let storedTabs = store.array(forKey: Keys.hiddenTabs) as? [String] ?? []
-        self.hiddenTabs = Set(storedTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+        // A tab a newer build hid that this build has since learned: it joins the known ones, or it
+        // would show here while still being published as hidden. Written straight to the defaults,
+        // past `onWrite`: the synced form is the same before and after, so this is no edit.
+        let fromNewer = store.array(forKey: Keys.hiddenTabsFromNewerBuilds) as? [String] ?? []
+        self.hiddenTabs = Set((storedTabs + fromNewer).compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+        if fromNewer.contains(where: { AppTab(rawValue: $0) != nil }) {
+            let unknown = fromNewer.filter { AppTab(rawValue: $0) == nil }.sorted()
+            store.defaults.set(unknown.isEmpty ? nil : unknown, forKey: store.fullKey(Keys.hiddenTabsFromNewerBuilds))
+            store.defaults.set(hiddenTabs.map(\.rawValue).sorted(), forKey: store.fullKey(Keys.hiddenTabs))
+        }
     }
 
     /// `scope` nil is the unprefixed legacy space. Without a `device`, one is built over the same

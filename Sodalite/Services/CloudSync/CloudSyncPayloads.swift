@@ -213,8 +213,9 @@ struct SpoilerSeriesRulesPayload: Codable, Equatable {
 /// One map entry that failed to decode is dropped on its own instead of failing the record. The two
 /// per-entry records carry enums (`RememberedSubtitle`, `SpoilerSeriesRule`), and one case added by a
 /// newer build would otherwise make every older build skip the whole record, which the top-level
-/// field carrying in `CloudSyncForwardCompat` cannot help with. Dropping is safe for both: they merge
-/// per entry, so an entry missing here deletes nothing anywhere else.
+/// field carrying in `CloudSyncForwardCompat` cannot help with. Dropping costs little: both merge per
+/// entry, so a newer device keeps its own copy and puts it back on its next upload. Until then the
+/// record this build uploads lacks it, which is still far better than this build skipping the record.
 private struct LossyEntry<Value: Decodable>: Decodable {
     let value: Value?
     init(from decoder: Decoder) throws {

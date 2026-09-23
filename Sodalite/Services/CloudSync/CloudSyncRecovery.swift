@@ -118,6 +118,16 @@ enum CloudSyncRecovery {
     }
 }
 
+extension CloudSyncRecovery.SaveAction {
+    /// Nothing will send this record again in this session.
+    var isTerminal: Bool {
+        switch self {
+        case .report, .surfaceQuota, .surfaceRejection: true
+        default: false
+        }
+    }
+}
+
 /// Keeps a permanently failing upload visible until an upload actually lands.
 ///
 /// Downloading and uploading fail independently, but only one status row reports both, and a fetch

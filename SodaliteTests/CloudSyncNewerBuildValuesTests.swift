@@ -57,3 +57,22 @@ struct CloudSyncNewerBuildValuesTests {
         #expect(decoded == payload)
     }
 }
+
+extension CloudSyncNewerBuildValuesTests {
+    /// After an update that teaches this build the tab, it must count as hidden here too, and unhiding
+    /// it must stick across a relaunch.
+    @Test func aTabThisBuildLearnsJoinsTheKnownOnes() {
+        let suite = "newerValues.learned.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        let hideable = AppTab.allCases.first(where: \.isHideable)!
+        defaults.set([hideable.rawValue, "podcasts"], forKey: "appearance.hiddenTabs.newerBuilds")
+
+        let store = AppearancePreferences(store: defaults)
+        #expect(store.hiddenTabs.contains(hideable))
+        #expect(store.hiddenTabsFromNewerBuilds == ["podcasts"])
+        #expect(store.syncedHiddenTabs.filter { $0 == hideable.rawValue }.count == 1)
+
+        store.setTab(hideable, hidden: false)
+        #expect(!AppearancePreferences(store: defaults).hiddenTabs.contains(hideable))
+    }
+}

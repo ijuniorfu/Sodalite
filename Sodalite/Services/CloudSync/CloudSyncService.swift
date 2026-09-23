@@ -288,8 +288,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             // failed start, or before this start() completed) so it isn't lost.
             stash = preferences.drainPendingChanges()
             recentLocalDeletes.formUnion(stash.deletes)
+            // Back into the outbox as they go to the engine: the drain emptied it, and a delete that
+            // lived in engine memory only was lost to a kill before the next state event.
             for name in stash.deletes {
-                engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
+                addPendingDelete(recordName: name)
             }
             for name in stash.saves {
                 addPendingSave(recordName: name)
@@ -297,11 +299,25 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
             if !preferences.adoptionCompleted {
                 try await engine.fetchChanges()
+                // A teardown during the fetch (an account notification, a sign-out) means its events
+                // were dropped as a stale engine's. Adopting anyway stamped and uploaded this device's
+                // untouched defaults over every other device, parental controls included.
+                guard observationGeneration == generation, self.engine === engine else {
+                    LogTap.shared.note("[CloudSync] start superseded during the adoption fetch, not adopting")
+                    return
+                }
                 completeAdoption()
                 settleActive()
             }
             await afterEngineStart(engine)
         } catch {
+            // A start that was superseded while it waited must not overwrite the newer one's status
+            // or drop its engine.
+            guard observationGeneration == generation else {
+                stash.saves.forEach(preferences.stashPendingSave)
+                stash.deletes.forEach(preferences.stashPendingDelete)
+                return
+            }
             status = .error(CloudSyncRecovery.describe(error))
             LogTap.shared.note("[CloudSync] start failed: \(error)")
             handleFetchFailure(error)
@@ -424,13 +440,18 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// and `applyRemoteRecord` re-queues everything that is locally newer, with the identities it
     /// just learned. A manual push therefore still wins against the cloud copy it was meant to
     /// overwrite instead of being silently reverted by its own recovery.
-    private func resyncZoneFromScratch(reason: String) {
+    private func resyncZoneFromScratch(reason: String, afterRejectedSave: Bool = false) {
         guard preferences.isEnabled, resyncTask == nil else { return }
         guard resyncCount < Self.maxResyncsPerSession else {
             // Said to leave "the error" up, but nothing had set one: the row read healthy while the
-            // record was never going to land.
-            latchFailure(Self.rejectedMessage)
-            LogTap.shared.note("[CloudSync] resync limit reached, sync error latched: \(reason)")
+            // record was never going to land. Latched only for a save the server keeps refusing; an
+            // expired change token is a download problem, and the next good fetch may clear it.
+            if afterRejectedSave {
+                latchFailure(Self.rejectedMessage)
+            } else {
+                status = .error(CloudSyncRecovery.describe(CKError(.changeTokenExpired)))
+            }
+            LogTap.shared.note("[CloudSync] resync limit reached, sync error shown: \(reason)")
             return
         }
         resyncCount += 1
@@ -875,15 +896,13 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             preferences.noteRemoteStamp(cloud.updatedAt)
             if adopting, let local = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast) {
                 let merged = CloudSyncMerge.adoptServerPayload(local: local, cloud: cloud, stamp: preferences.nextStamp())
-                dependencies.applyServerPayload(merged)
-                rebaselineAuth()
+                preservingPendingAuthEdit { dependencies.applyServerPayload(merged) }
                 preferences.setLocalStamp(merged.updatedAt, for: name)
                 if merged != cloud { addPendingSave(recordName: name) }
             } else {
                 let localStamp = preferences.localStamp(for: name) ?? .distantPast
                 if CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) || adopting {
-                    dependencies.applyServerPayload(cloud)
-                    rebaselineAuth()
+                    preservingPendingAuthEdit { dependencies.applyServerPayload(cloud) }
                     preferences.setLocalStamp(cloud.updatedAt, for: name)
                 } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                     addPendingSave(recordName: name)
@@ -984,18 +1003,23 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
     }
 
-    /// A server record can move the default-server pin, which lives in the auth store, so re-baseline
-    /// that snapshot or the debounced observer reads the apply as a local edit two seconds later and
-    /// uploads it back. Every path that applies or removes a server goes through here.
-    private func rebaselineAuth() {
-        lastSettingsSnapshot[.auth] = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
+    /// A server record can move the default-server pin, which lives in the auth store, so the auth
+    /// snapshot is re-baselined or the debounced observer reads the apply as a local edit two seconds
+    /// later and uploads it back. Only when nothing was pending, though: an auth edit still inside
+    /// its debounce is already in the store, and re-baselining over it meant it never went up.
+    private func preservingPendingAuthEdit(_ apply: () -> Void) {
+        let before = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
+        let nothingPending = lastSettingsSnapshot[.auth] == before
+        apply()
+        if nothingPending {
+            lastSettingsSnapshot[.auth] = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
+        }
     }
 
     private func applyRemoteDeletion(recordName: String) {
         preferences.removeRecordCaches(for: recordName)
         if let serverID = CloudSyncRecordName.serverID(fromRecordName: recordName) {
-            dependencies.applyRemoteServerDeletion(serverID: serverID)
-            rebaselineAuth()
+            preservingPendingAuthEdit { dependencies.applyRemoteServerDeletion(serverID: serverID) }
         } else if recordName == CloudSyncRecordName.securitySingleton {
             dependencies.applyRemoteSecurityDeletion()
         }
@@ -1240,7 +1264,9 @@ extension CloudSyncService: CKSyncEngineDelegate {
                     syncEngine.state.add(pendingDatabaseChanges: [.saveZone(failed.zone)])
                 }
             }
-            if let error = sent.failedZoneDeletes[Self.zoneID] {
+            // A zone that is already gone (another device deleted it first) is the outcome asked for.
+            if let error = sent.failedZoneDeletes[Self.zoneID],
+               error.code != .zoneNotFound, error.code != .userDeletedZone {
                 zoneDeleteFailure = error
                 LogTap.shared.note("[CloudSync] zone delete failed: \(error.code.rawValue)")
             }
@@ -1297,8 +1323,13 @@ extension CloudSyncService: CKSyncEngineDelegate {
             for deleted in sent.deletedRecordIDs { preferences.unstashPendingDelete(deleted.recordName) }
             // A manual push or a resync waits in `.syncing`; one whose every save failed must not
             // settle to "Active" afterwards as if it had landed.
-            if sent.savedRecords.isEmpty, let first = sent.failedRecordSaves.first, case .syncing = status {
-                status = .error(CloudSyncRecovery.describe(first.error))
+            // Only failures nothing will retry count: a conflict or a transient error is re-queued and
+            // lands in the next batch, and a resync started above owns the status itself.
+            if sent.savedRecords.isEmpty, resyncTask == nil, case .syncing = status,
+               let terminal = sent.failedRecordSaves.first(where: {
+                   CloudSyncRecovery.saveAction(for: $0.error).isTerminal
+               }) {
+                status = .error(CloudSyncRecovery.describe(terminal.error))
             }
             if !sent.savedRecords.isEmpty {
                 preferences.lastSyncAt = Date()
@@ -1360,11 +1391,17 @@ extension CloudSyncService: CKSyncEngineDelegate {
     /// turns sync off, and only if the engine is still running afterwards is the zone recreated.
     private func checkZoneBeforeRecreating(_ syncEngine: CKSyncEngine) {
         guard zoneCheckTask == nil else { return }
+        let generation = observationGeneration
         zoneCheckTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            defer { self.zoneCheckTask = nil }
+            // Only its own slot: after a teardown and restart the slot may belong to a newer check.
+            defer { if self.observationGeneration == generation { self.zoneCheckTask = nil } }
             do {
                 try await syncEngine.fetchChanges()
+            } catch let error as CKError where error.code == .zoneNotFound {
+                // The fetch itself found no zone and reported no deletion: nothing says it was
+                // removed on purpose, so it is recreated below rather than left missing forever.
+                LogTap.shared.note("[CloudSync] zone check fetch found no zone")
             } catch {
                 LogTap.shared.note("[CloudSync] zone check fetch failed, saves kept for the next start: \(error)")
                 return
@@ -1455,7 +1492,10 @@ extension CloudSyncService: CKSyncEngineDelegate {
         case .resyncZone:
             // The engine no longer holds this save, so the resync's stash would miss it.
             preferences.stashPendingSave(recordName)
-            resyncZoneFromScratch(reason: "save rejected as an insert of an existing record (\(recordName))")
+            resyncZoneFromScratch(
+                reason: "save rejected as an insert of an existing record (\(recordName))",
+                afterRejectedSave: true
+            )
         case .reinsert:
             preferences.removeSystemFields(for: recordName)
             addPendingSave(recordName: recordName)
