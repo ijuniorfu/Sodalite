@@ -134,6 +134,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         removeObservers()
         observationGeneration += 1
         observeAccountChanges()
+        seedSettingsSnapshots()
         observeSettingsStores()
         observeHomeConfigChanges()
         // In flight, not off: the fresh-install gate reads `.disabled` as final, and a status that
@@ -664,6 +665,16 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         observers.append(observer)
     }
 
+    /// The observers fire on more than edits: collecting goes through the active profile, so a
+    /// session restore fires every one of them. Against an empty snapshot each read as a change and
+    /// went up with a fresh stamp on every launch, which let a device's stale copy outrank an edit
+    /// another device had made while it was closed. Internal for tests.
+    func seedSettingsSnapshots() {
+        for key in CloudSyncStoreKey.allCases where !key.isProfileBacked {
+            lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
+        }
+    }
+
     private func observeSettingsStores() {
         // The two profile-backed records are uploaded from the registry's write hooks (see init).
         for key in CloudSyncStoreKey.allCases where !key.isProfileBacked { armObservation(for: key) }
@@ -692,7 +703,8 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
     }
 
-    private func uploadSettingsIfChanged(_ key: CloudSyncStoreKey, profile: ProfileKey? = nil) {
+    /// Internal for tests.
+    func uploadSettingsIfChanged(_ key: CloudSyncStoreKey, profile: ProfileKey? = nil) {
         guard preferences.isEnabled, !dependencies.isApplyingCloudChanges else { return }
         let snapshot = key.isProfileBacked
             ? dependencies.collectSettingsPayload(key, stamp: .distantPast, profile: profile)
@@ -832,16 +844,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             if adopting, let local = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast) {
                 let merged = CloudSyncMerge.adoptServerPayload(local: local, cloud: cloud, stamp: preferences.nextStamp())
                 dependencies.applyServerPayload(merged)
+                rebaselineAuth()
                 preferences.setLocalStamp(merged.updatedAt, for: name)
                 if merged != cloud { addPendingSave(recordName: name) }
             } else {
                 let localStamp = preferences.localStamp(for: name) ?? .distantPast
                 if CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) || adopting {
                     dependencies.applyServerPayload(cloud)
-                    // A server record can move the default-server pin, which lives in the auth store,
-                    // so re-baseline that snapshot or the debounced observer reads its own apply as a
-                    // local edit two seconds later and uploads it back.
-                    lastSettingsSnapshot[.auth] = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
+                    rebaselineAuth()
                     preferences.setLocalStamp(cloud.updatedAt, for: name)
                 } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                     addPendingSave(recordName: name)
@@ -942,10 +952,18 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         }
     }
 
+    /// A server record can move the default-server pin, which lives in the auth store, so re-baseline
+    /// that snapshot or the debounced observer reads the apply as a local edit two seconds later and
+    /// uploads it back. Every path that applies or removes a server goes through here.
+    private func rebaselineAuth() {
+        lastSettingsSnapshot[.auth] = dependencies.collectSettingsPayload(.auth, stamp: .distantPast)
+    }
+
     private func applyRemoteDeletion(recordName: String) {
         preferences.removeRecordCaches(for: recordName)
         if let serverID = CloudSyncRecordName.serverID(fromRecordName: recordName) {
             dependencies.applyRemoteServerDeletion(serverID: serverID)
+            rebaselineAuth()
         } else if recordName == CloudSyncRecordName.securitySingleton {
             dependencies.applyRemoteSecurityDeletion()
         }
@@ -1157,20 +1175,16 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
 extension CloudSyncService: CKSyncEngineDelegate {
     func handleEvent(_ event: CKSyncEngine.Event, syncEngine: CKSyncEngine) async {
+        // An engine this service already let go of (a resync, a teardown, a failed adoption) can still
+        // deliver the tail of its cycle. Its state update wrote a stale change token back over the
+        // fresh engine's, and its account change tore down the start that replaced it.
+        guard syncEngine === engine else { return }
         switch event {
         case .stateUpdate(let update):
             preferences.engineState = try? JSONEncoder().encode(update.stateSerialization)
 
         case .accountChange(let change):
-            switch change.changeType {
-            case .signOut, .switchAccounts:
-                preferences.resetForAccountChange()
-                teardownEngine()
-                statusLatch.clear()
-                status = .noAccount
-            default:
-                break
-            }
+            applyAccountChange(change.changeType)
 
         case .fetchedDatabaseChanges(let changes):
             for deletion in changes.deletions where deletion.zoneID.zoneName == Self.zoneName {
@@ -1253,6 +1267,7 @@ extension CloudSyncService: CKSyncEngineDelegate {
         _ context: CKSyncEngine.SendChangesContext,
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.RecordZoneChangeBatch? {
+        guard syncEngine === engine else { return nil }
         let scope = context.options.scope
         let pending = syncEngine.state.pendingRecordZoneChanges.filter { scope.contains($0) }
         // Materialize records on the MainActor up front: the recordProvider closure
@@ -1265,6 +1280,26 @@ extension CloudSyncService: CKSyncEngineDelegate {
         }
         return await CKSyncEngine.RecordZoneChangeBatch(pendingChanges: pending) { recordID in
             built[recordID]
+        }
+    }
+
+    /// A sign-out keeps everything tied to the account: the account id is what lets the next start
+    /// tell "the same person signed back in" from "someone else did". Wiping it here made the next
+    /// start a first adoption, which uploads every server with its tokens, passwords and Seerr
+    /// sessions into whichever account is signed in by then. A switch goes straight to the lockout
+    /// the start path uses for the same situation. Internal for tests.
+    func applyAccountChange(_ change: CKSyncEngine.Event.AccountChange.ChangeType) {
+        switch change {
+        case .signOut:
+            teardownEngine()
+            statusLatch.clear()
+            status = .noAccount
+            LogTap.shared.note("[CloudSync] signed out of iCloud, sync paused, local state kept for that account")
+        case .switchAccounts:
+            teardownEngine()
+            lockOutForAccountChange()
+        default:
+            break
         }
     }
 
