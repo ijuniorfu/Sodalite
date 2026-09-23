@@ -251,6 +251,7 @@
 		3184A43C5D900CEC7F5AA80C /* JellyfinLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C70AF39F350B8FBC30EDFF0 /* JellyfinLibrary.swift */; };
 		319C6ED5F173D015385C283F /* DetailAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A418395A8E18A184F41871 /* DetailAction.swift */; };
 		31AB6A905C425FD79222B6FD /* PlayerTouchControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197C056F3F41EFB53CDD2345 /* PlayerTouchControls.swift */; };
+		31C2F026C8559FE4B596C514 /* LogFileSinkRotationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949BBF9340C29374F2550606 /* LogFileSinkRotationTests.swift */; };
 		31F521511C61A50E406ACB43 /* SeerrSeasonStatusResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FB40C07FFEE9A5267F2892 /* SeerrSeasonStatusResolver.swift */; };
 		32157D9499F50E40ACD9324F /* PlaybackPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DC6498B2FB8855EAD8A759 /* PlaybackPreferences.swift */; };
 		32D4792FE49F480428CF582C /* SeerrServiceConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090B5210D3ACA84E2E25E318 /* SeerrServiceConfig.swift */; };
@@ -1714,6 +1715,7 @@
 		944DE62C372A3B42D66DB53E /* VideoFormatBadgeLifetimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFormatBadgeLifetimeTests.swift; sourceTree = "<group>"; };
 		9480C4C30FE6F51D808B1109 /* LogExportServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExportServer.swift; sourceTree = "<group>"; };
 		949228FF4210420390D3B76D /* HomeRowData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRowData.swift; sourceTree = "<group>"; };
+		949BBF9340C29374F2550606 /* LogFileSinkRotationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileSinkRotationTests.swift; sourceTree = "<group>"; };
 		94E01603BBC5E3C43B2FE1F0 /* JellyfinItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinItem.swift; sourceTree = "<group>"; };
 		95598449270B79CB528DC564 /* ResumeBarFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeBarFile.swift; sourceTree = "<group>"; };
 		9561D73506338642A36EEF89 /* LiveTunerGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTunerGateTests.swift; sourceTree = "<group>"; };
@@ -2380,6 +2382,7 @@
 				F73CB98C3726270398EB008C /* LogExportPanelBudgetTests.swift */,
 				5D6FB14078544984DC2BB89B /* LogExportServerTests.swift */,
 				243BA5C3ED93C1EEB0FBDE8F /* LogExportSessionTests.swift */,
+				949BBF9340C29374F2550606 /* LogFileSinkRotationTests.swift */,
 				568AB47AB949B007E2E4CB20 /* LogFileSinkSurvivesRelaunchTests.swift */,
 				FFAE3B655913EB61353F5186 /* LogRedactionTests.swift */,
 				6F4E0F9206D8B25B7535B9E5 /* LogTimestampTests.swift */,
@@ -4052,6 +4055,7 @@
 				F17BFA0FD5F900AC1F880AB1 /* LogExportPanelBudgetTests.swift in Sources */,
 				B165E41379689993F2CACDCE /* LogExportServerTests.swift in Sources */,
 				051F809869E162FE71B1DED7 /* LogExportSessionTests.swift in Sources */,
+				31C2F026C8559FE4B596C514 /* LogFileSinkRotationTests.swift in Sources */,
 				5925A8EC1107F83EF9025ED9 /* LogFileSinkSurvivesRelaunchTests.swift in Sources */,
 				AEDEC96B40D69A7E0CDC968C /* LogRedactionTests.swift in Sources */,
 				85E71D2586A81DEAB5DCF405 /* LogTimestampTests.swift in Sources */,

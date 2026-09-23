@@ -63,9 +63,9 @@ nonisolated final class LogExportServer: @unchecked Sendable {
     // MARK: - Lifetime
 
     /// Binds an ephemeral port, arms the deadline and returns the address to put under the QR code.
-    /// `persistedLog` is the file sink's path; it is frozen here, with the lines, and offered as a
-    /// download when it holds anything.
-    func start(lines: [String], persistedLog: URL? = nil, lifetime: TimeInterval = 300) throws -> Endpoint {
+    /// `persistedLog` is the file sink's files, oldest first; they are frozen here, with the lines, and
+    /// offered as one download when they hold anything.
+    func start(lines: [String], persistedLog: [URL] = [], lifetime: TimeInterval = 300) throws -> Endpoint {
         stop()
 
         guard let address = Self.localAddress() else { throw StartError.noNetwork }
@@ -73,7 +73,7 @@ nonisolated final class LogExportServer: @unchecked Sendable {
         let session = LogExportSession(
             lines: lines,
             lifetime: lifetime,
-            persistedLog: persistedLog.flatMap(PersistedLogFile.init(url:))
+            persistedLog: PersistedLogFile(urls: persistedLog)
         )
         let fd = socket(AF_INET, SOCK_STREAM, 0)
         guard fd >= 0 else { throw StartError.socket(errno: errno) }

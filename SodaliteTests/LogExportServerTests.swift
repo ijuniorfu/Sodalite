@@ -127,7 +127,7 @@ struct LogExportServerTests {
 
         let server = LogExportServer()
         defer { server.stop() }
-        let endpoint = try server.start(lines: Self.lines, persistedLog: url)
+        let endpoint = try server.start(lines: Self.lines, persistedLog: [url])
 
         let response = try Self.fetch(
             port: try Self.port(of: endpoint),

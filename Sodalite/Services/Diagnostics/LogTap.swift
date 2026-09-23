@@ -95,7 +95,10 @@ final class LogTap: ObservableObject {
     /// aftermath and nothing of the transition. It is now a switch anybody can turn on, off by
     /// default, and every line has already been through `LogRedaction` by the time it gets here.
     ///
-    /// Capped so a long session cannot fill the container. `Library/Caches` because tvOS forbids app
+    /// Capped so a long session cannot fill the container, as two halves: when the live file reaches
+    /// `fileSegmentBytes` it becomes `sodalite-log.1.txt` (replacing the previous one) and a fresh file
+    /// starts. A single capped file had to stop writing when full, which dropped the NEWEST lines, the
+    /// ones next to the symptom; rotating drops the oldest instead. `Library/Caches` because tvOS forbids app
     /// writes to `Documents` and the failure there is a swallowed throw, which reads exactly like
     /// "the app produced no logs". Pull it with:
     ///
@@ -105,6 +108,7 @@ final class LogTap: ObservableObject {
     private nonisolated static let fileQueue =
         DispatchQueue(label: "de.superuser404.sodalite.logfile")
     nonisolated static let fileCapBytes = 32 * 1024 * 1024
+    nonisolated static let fileSegmentBytes = fileCapBytes / 2
 
     /// Read once per line on the emitting thread, so it is a cached flag rather than a defaults
     /// read: `note(_:)` runs several times a second on a live session. Written at launch and when
@@ -130,40 +134,62 @@ final class LogTap: ObservableObject {
             .appendingPathComponent("sodalite-log.txt")
     }
 
+    nonisolated static var rotatedFileSinkURL: URL? {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("sodalite-log.1.txt")
+    }
+
+    /// Oldest first, the order an export concatenates them in.
+    nonisolated static var persistedLogURLs: [URL] {
+        [rotatedFileSinkURL, fileSinkURL].compactMap { $0 }
+    }
+
     /// One marker per launch, so a file with nothing in it after it says "no lines were emitted"
     /// rather than "the sink is broken".
     ///
     /// Arming **appends**, it does not start a fresh file. The sink exists for transitions the
     /// memory ring rolls out, and those repros span an hour of sleep plus a look at other apps
     /// afterwards, in which tvOS may evict the app: truncating here would make the relaunch that
-    /// follows the thing that destroys the evidence. Only a file already at its cap is discarded,
-    /// since nothing more can be written to it anyway.
+    /// follows the thing that destroys the evidence. A full file rotates on the next line instead.
     nonisolated static func startFileSink() {
         guard let url = fileSinkURL else { return }
         fileQueue.async {
-            let manager = FileManager.default
-            let size = (try? manager.attributesOfItem(atPath: url.path))?[.size] as? Int
-            guard let size else {
-                manager.createFile(atPath: url.path, contents: nil)
-                return
-            }
-            if size >= fileCapBytes {
-                try? manager.removeItem(at: url)
-                manager.createFile(atPath: url.path, contents: nil)
+            if !FileManager.default.fileExists(atPath: url.path) {
+                FileManager.default.createFile(atPath: url.path, contents: nil)
             }
         }
         LogTap.shared.note("[LogTap] file sink armed at \(url.path)")
     }
 
     nonisolated private func appendToFile(_ line: String) {
-        guard let url = Self.fileSinkURL else { return }
+        guard let url = Self.fileSinkURL, let rotated = Self.rotatedFileSinkURL else { return }
         Self.fileQueue.async {
-            guard let handle = try? FileHandle(forWritingTo: url) else { return }
-            defer { try? handle.close() }
-            let end = (try? handle.seekToEnd()) ?? 0
-            guard end < UInt64(Self.fileCapBytes) else { return }
-            try? handle.write(contentsOf: Data((line + "\n").utf8))
+            Self.append(line, to: url, rotatingTo: rotated, segmentBytes: Self.fileSegmentBytes)
         }
+    }
+
+    /// Synchronous and static so the rotation can be tested against a small segment. Only ever called
+    /// on `fileQueue`, which is what makes the check-then-rename below race free.
+    ///
+    /// The marker is written straight to the new file rather than through `note(_:)`, which would come
+    /// back here on the queue this is already running on.
+    nonisolated static func append(_ line: String, to url: URL, rotatingTo rotated: URL, segmentBytes: Int) {
+        guard var handle = try? FileHandle(forWritingTo: url) else { return }
+        defer { try? handle.close() }
+        var text = line + "\n"
+        let end = (try? handle.seekToEnd()) ?? 0
+        if end >= UInt64(segmentBytes) {
+            try? handle.close()
+            let manager = FileManager.default
+            try? manager.removeItem(at: rotated)
+            guard (try? manager.moveItem(at: url, to: rotated)) != nil else { return }
+            manager.createFile(atPath: url.path, contents: nil)
+            guard let fresh = try? FileHandle(forWritingTo: url) else { return }
+            handle = fresh
+            text = "\(LogTimestamp.stamp())  [LogTap] file sink rotated, earlier lines are in "
+                + "\(rotated.lastPathComponent)\n" + text
+        }
+        try? handle.write(contentsOf: Data(text.utf8))
     }
 
     /// Moves what the Top Shelf extension logged in its own process into the buffer (see `ShelfLog`).

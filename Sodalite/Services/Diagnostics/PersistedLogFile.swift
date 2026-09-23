@@ -1,47 +1,67 @@
 import Foundation
 
-/// The file sink's file (AE#597), frozen at the moment someone asked to take it off the device.
+/// The file sink's files (AE#597), frozen at the moment someone asked to take them off the device, and
+/// handed over as one: the rotated half first, then the live one, which is the order they were written.
 ///
-/// Holds an open descriptor and the length it had then, not a path. The sink keeps appending while a
-/// reporter downloads, and arming it on a full file deletes and recreates it; a descriptor keeps the
-/// bytes that were there readable through both, and the length keeps what is handed over from moving,
-/// the same rule `LogExportSession` applies to the buffer.
+/// Holds open descriptors and the lengths they had then, not paths. The sink keeps appending while a
+/// reporter downloads, and a rotation renames the live file and deletes the older half; a descriptor
+/// keeps the bytes that were there readable through all of it, and the lengths keep what is handed
+/// over from moving, the same rule `LogExportSession` applies to the buffer.
 ///
 /// Read with `pread`, so concurrent requests for it never share a file offset.
 nonisolated final class PersistedLogFile: Sendable {
-    let length: Int
-    private let fd: Int32
+    private struct Segment {
+        let fd: Int32
+        let length: Int
+    }
 
-    /// Nil when there is nothing worth offering: no file, or one the sink never wrote a line to.
-    init?(url: URL) {
-        let fd = open(url.path, O_RDONLY)
-        guard fd >= 0 else { return nil }
-        var info = stat()
-        guard fstat(fd, &info) == 0, info.st_size > 0 else {
-            close(fd)
-            return nil
+    let length: Int
+    private let segments: [Segment]
+
+    /// Nil when there is nothing worth offering: no file, or only ones the sink never wrote a line to.
+    /// Missing and empty files among `urls` are skipped.
+    init?(urls: [URL]) {
+        var segments: [Segment] = []
+        for url in urls {
+            let fd = open(url.path, O_RDONLY)
+            guard fd >= 0 else { continue }
+            var info = stat()
+            guard fstat(fd, &info) == 0, info.st_size > 0 else {
+                close(fd)
+                continue
+            }
+            segments.append(Segment(fd: fd, length: Int(info.st_size)))
         }
-        self.fd = fd
-        self.length = Int(info.st_size)
+        guard !segments.isEmpty else { return nil }
+        self.segments = segments
+        self.length = segments.reduce(0) { $0 + $1.length }
+    }
+
+    convenience init?(url: URL) {
+        self.init(urls: [url])
     }
 
     deinit {
-        close(fd)
+        for segment in segments {
+            close(segment.fd)
+        }
     }
 
-    /// Hands the frozen bytes to `sink` in bounded chunks, so a 32 MB file never sits in memory whole.
+    /// Hands the frozen bytes to `sink` in bounded chunks, so 32 MB never sit in memory whole.
     /// Stops early when `sink` returns false (the peer went away). Returns whether every byte went out.
     @discardableResult
     func stream(chunkSize: Int = 64 * 1024, into sink: (UnsafeRawBufferPointer) -> Bool) -> Bool {
         var buffer = [UInt8](repeating: 0, count: chunkSize)
-        var offset = 0
-        while offset < length {
-            let wanted = min(chunkSize, length - offset)
-            let read = buffer.withUnsafeMutableBytes { pread(fd, $0.baseAddress, wanted, off_t(offset)) }
-            guard read > 0 else { return false }
-            let delivered = buffer.withUnsafeBytes { sink(UnsafeRawBufferPointer(rebasing: $0[0 ..< read])) }
-            guard delivered else { return false }
-            offset += read
+        for segment in segments {
+            var offset = 0
+            while offset < segment.length {
+                let wanted = min(chunkSize, segment.length - offset)
+                let read = buffer.withUnsafeMutableBytes { pread(segment.fd, $0.baseAddress, wanted, off_t(offset)) }
+                guard read > 0 else { return false }
+                let delivered = buffer.withUnsafeBytes { sink(UnsafeRawBufferPointer(rebasing: $0[0 ..< read])) }
+                guard delivered else { return false }
+                offset += read
+            }
         }
         return true
     }

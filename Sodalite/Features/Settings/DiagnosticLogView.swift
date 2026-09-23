@@ -295,7 +295,7 @@ struct LogActionLabel: View {
 /// file that lands in Mail says which build wrote it and does not keep growing while it is sent.
 nonisolated struct PersistedLogShare: Transferable {
     static var isAvailable: Bool {
-        LogTap.fileSinkURL.flatMap(PersistedLogFile.init(url:)) != nil
+        PersistedLogFile(urls: LogTap.persistedLogURLs) != nil
     }
 
     static var transferRepresentation: some TransferRepresentation {
@@ -306,7 +306,7 @@ nonisolated struct PersistedLogShare: Transferable {
 
     /// One fixed folder, emptied first, so repeated shares do not pile copies up in tmp.
     static func snapshot() throws -> URL {
-        guard let source = LogTap.fileSinkURL, let file = PersistedLogFile(url: source) else {
+        guard let file = PersistedLogFile(urls: LogTap.persistedLogURLs) else {
             throw CocoaError(.fileNoSuchFile)
         }
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("log-share", isDirectory: true)
