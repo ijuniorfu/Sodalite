@@ -82,6 +82,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private var debounceTasks: [CloudSyncStoreKey: Task<Void, Never>] = [:]
     /// Last snapshot uploaded or applied per store, to skip observation echoes.
     private var lastSettingsSnapshot: [CloudSyncStoreKey: SettingsSyncPayload] = [:]
+    /// Last server payload queued or applied per server id. A session restore re-saves the server and
+    /// its profile on every launch, and each save marked the record, so every launch uploaded it again.
+    private var lastServerSnapshot: [String: ServerSyncPayload] = [:]
     /// Last profile payload uploaded or applied per record name, to skip unchanged re-uploads.
     private var lastProfileSnapshot: [String: ProfileSyncPayload] = [:]
     private var observers: [NSObjectProtocol] = []
@@ -336,7 +339,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// then latches the adoption flag. Internal for tests.
     func completeAdoption() {
         for server in dependencies.listKnownServers() {
-            markServerDirty(serverID: server.id)
+            stampServer(serverID: server.id)
         }
         for key in CloudSyncStoreKey.allCases {
             // Only upload stores the cloud did not already win at adoption.
@@ -515,7 +518,17 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     // MARK: Dirty marking (called from DependencyContainer mutation hooks)
 
+    /// From the container's mutation hooks: queued only when the record's content actually changed.
     func markServerDirty(serverID: String) {
+        guard preferences.isEnabled else { return }
+        let snapshot = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast)
+        guard snapshot == nil || snapshot != lastServerSnapshot[serverID] else { return }
+        lastServerSnapshot[serverID] = snapshot
+        stampServer(serverID: serverID)
+    }
+
+    /// Unconditional: adoption has to publish every server whatever it held before.
+    private func stampServer(serverID: String) {
         guard preferences.isEnabled else { return }
         let name = CloudSyncRecordName.server(id: serverID)
         preferences.setLocalStamp(preferences.nextStamp(), for: name)
@@ -565,6 +578,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// everywhere until the next change on any device. Settings only, never
     /// server records (those would clobber newer remote credential changes).
     func pushLocalSettingsToAllDevices() {
+        guard preferences.isEnabled else {
+            LogTap.shared.note("[CloudSync] manual settings push skipped, sync is off")
+            return
+        }
         for key in CloudSyncStoreKey.allCases {
             lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
             markSettingsDirty(key)
@@ -717,6 +734,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     func seedSettingsSnapshots() {
         for key in CloudSyncStoreKey.allCases where !key.isProfileBacked {
             lastSettingsSnapshot[key] = dependencies.collectSettingsPayload(key, stamp: .distantPast)
+        }
+        for server in dependencies.listKnownServers() {
+            lastServerSnapshot[server.id] = dependencies.collectServerPayload(serverID: server.id, stamp: .distantPast)
         }
     }
 
@@ -897,12 +917,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             if adopting, let local = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast) {
                 let merged = CloudSyncMerge.adoptServerPayload(local: local, cloud: cloud, stamp: preferences.nextStamp())
                 preservingPendingAuthEdit { dependencies.applyServerPayload(merged) }
+                lastServerSnapshot[serverID] = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast)
                 preferences.setLocalStamp(merged.updatedAt, for: name)
                 if merged != cloud { addPendingSave(recordName: name) }
             } else {
                 let localStamp = preferences.localStamp(for: name) ?? .distantPast
                 if CloudSyncMerge.remoteWins(localUpdatedAt: localStamp, remoteUpdatedAt: cloud.updatedAt) || adopting {
                     preservingPendingAuthEdit { dependencies.applyServerPayload(cloud) }
+                    lastServerSnapshot[serverID] = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast)
                     preferences.setLocalStamp(cloud.updatedAt, for: name)
                 } else if CloudSyncMerge.remoteWins(localUpdatedAt: cloud.updatedAt, remoteUpdatedAt: localStamp) {
                     addPendingSave(recordName: name)
@@ -1258,6 +1280,15 @@ extension CloudSyncService: CKSyncEngineDelegate {
                     syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
                     completeAdoption()
                 default:
+                    // Only a device that had adopted the zone has local data to protect from it. One
+                    // that is adopting right now (just enabled, or re-enabled after deleting its iCloud
+                    // data) reads the zone's history from scratch and meets the deletion it is
+                    // recovering from; the switch it just flipped is the consent to create it again.
+                    guard preferences.adoptionCompleted else {
+                        LogTap.shared.note("[CloudSync] zone deletion from before this device adopted, recreating the zone")
+                        syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+                        continue
+                    }
                     turnOffForDeletedZone(reason: "zone deleted remotely")
                 }
             }

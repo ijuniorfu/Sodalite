@@ -74,4 +74,25 @@ struct CloudSyncAccountChangeTests {
 
         #expect(prefs.drainPendingChanges().saves == [CloudSyncRecordName.settings(.seerrNotifications)])
     }
+
+    /// The log after the settings fix still showed one server record going up on every launch: the
+    /// restore re-saves the server and its profile, and every save marked the record.
+    @Test func aRestoreThatChangesNothingDoesNotUploadTheServer() throws {
+        let (container, service, prefs) = setUp("serverRestore")
+        let server = JellyfinServer(id: "srv", name: "Main", url: URL(string: "https://jf.example")!, version: "10.10")
+        try container.addServer(server)
+        let user = RememberedUser(id: "u", serverID: "srv", name: "Vince", imageTag: nil, token: "t")
+        try container.rememberUser(user)
+        _ = prefs.drainPendingChanges()
+        service.seedSettingsSnapshots()
+        container.cloudSync = service
+        defer { container.cloudSync = nil }
+
+        try container.addServer(server)
+        try container.rememberUser(user)
+        #expect(prefs.drainPendingChanges().saves.isEmpty)
+
+        try container.rememberUser(RememberedUser(id: "u", serverID: "srv", name: "Vincent", imageTag: nil, token: "t", addedAt: user.addedAt))
+        #expect(prefs.drainPendingChanges().saves == [CloudSyncRecordName.server(id: "srv")])
+    }
 }
