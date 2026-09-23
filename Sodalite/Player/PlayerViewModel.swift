@@ -900,10 +900,9 @@ final class PlayerViewModel {
                 enabled: preferences.showScrubPreview
             )
         } else {
-            // Cache-first: resident loopback segments decode with no second connection;
-            // the extractor is the fallback for non-resident positions. supportsCacheBackedStills
-            // is false on the software-decode path (no HLSVideoEngine) so it degrades to the
-            // extractor. Disc titles keep the extractor: scrubThumbnail wants playlist/output
+            // Cache-first: resident loopback segments (native) or the packet spool (software)
+            // decode with no second connection; the extractor is the fallback for non-resident
+            // positions and for sources with no spool (local files). Disc titles keep the extractor: scrubThumbnail wants playlist/output
             // seconds while our value is the display axis, and a disc shift would return a wrong
             // (not nil) frame; the extractor is correct by construction there.
             let engine = player
