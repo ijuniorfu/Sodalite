@@ -63,12 +63,18 @@ nonisolated final class LogExportServer: @unchecked Sendable {
     // MARK: - Lifetime
 
     /// Binds an ephemeral port, arms the deadline and returns the address to put under the QR code.
-    func start(lines: [String], lifetime: TimeInterval = 300) throws -> Endpoint {
+    /// `persistedLog` is the file sink's path; it is frozen here, with the lines, and offered as a
+    /// download when it holds anything.
+    func start(lines: [String], persistedLog: URL? = nil, lifetime: TimeInterval = 300) throws -> Endpoint {
         stop()
 
         guard let address = Self.localAddress() else { throw StartError.noNetwork }
 
-        let session = LogExportSession(lines: lines, lifetime: lifetime)
+        let session = LogExportSession(
+            lines: lines,
+            lifetime: lifetime,
+            persistedLog: persistedLog.flatMap(PersistedLogFile.init(url:))
+        )
         let fd = socket(AF_INET, SOCK_STREAM, 0)
         guard fd >= 0 else { throw StartError.socket(errno: errno) }
 
@@ -135,7 +141,10 @@ nonisolated final class LogExportServer: @unchecked Sendable {
         }
 
         armExpiry(at: session.expiresAt)
-        LogTap.shared.note("[LogExport] serving \(session.token.prefix(4))… on \(address):\(port) for \(Int(lifetime))s")
+        LogTap.shared.note(
+            "[LogExport] serving \(session.token.prefix(4))… on \(address):\(port) for \(Int(lifetime))s,"
+                + " persistent log \(session.persistedLog.map { "\($0.length) bytes" } ?? "none")"
+        )
 
         return Endpoint(url: url, expiresAt: session.expiresAt)
     }
@@ -246,15 +255,19 @@ nonisolated final class LogExportServer: @unchecked Sendable {
         lock.unlock()
         guard let session, let request = Self.readRequest(fd) else { return }
 
-        let response = session.response(to: request).serialized
-        response.withUnsafeBytes { buffer in
-            var sent = 0
-            while sent < buffer.count {
-                let written = send(fd, buffer.baseAddress! + sent, buffer.count - sent, 0)
-                if written <= 0 { return }
-                sent += written
-            }
+        let response = session.response(to: request)
+        guard response.serialized.withUnsafeBytes({ Self.sendAll(fd, $0) }) else { return }
+        response.file?.stream { Self.sendAll(fd, $0) }
+    }
+
+    private static func sendAll(_ fd: Int32, _ buffer: UnsafeRawBufferPointer) -> Bool {
+        var sent = 0
+        while sent < buffer.count {
+            let written = send(fd, buffer.baseAddress! + sent, buffer.count - sent, 0)
+            if written <= 0 { return false }
+            sent += written
         }
+        return true
     }
 
     /// Reads until the blank line that ends the request head, and no further: this server answers two

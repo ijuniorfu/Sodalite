@@ -9,13 +9,22 @@ nonisolated struct LogExportResponse: Sendable {
     let reason: String
     let contentType: String
     let body: Data
+    /// Sent after `body` by the server, straight from the descriptor, rather than copied into it: the
+    /// persisted log runs to 32 MB and would otherwise sit in memory twice per request.
+    var file: PersistedLogFile? = nil
+    /// Set, the browser saves the response under this name instead of rendering it.
+    var downloadName: String? = nil
 
-    /// Status line, headers, blank line, body. `Connection: close` because each request is answered
-    /// once and the server has no reason to hold a socket open for a reader who has the text already.
+    /// Status line, headers, blank line, body, and then the bytes of `file` if there is one, which
+    /// `Content-Length` already counts. `Connection: close` because each request is answered once and
+    /// the server has no reason to hold a socket open for a reader who has the text already.
     var serialized: Data {
         var head = "HTTP/1.1 \(status) \(reason)\r\n"
         head += "Content-Type: \(contentType)\r\n"
-        head += "Content-Length: \(body.count)\r\n"
+        head += "Content-Length: \(body.count + (file?.length ?? 0))\r\n"
+        if let downloadName {
+            head += "Content-Disposition: attachment; filename=\"\(downloadName)\"\r\n"
+        }
         // An expired link that a browser answers from its own cache would read as a live one.
         head += "Cache-Control: no-store\r\n"
         head += "Connection: close\r\n\r\n"
@@ -106,6 +115,11 @@ nonisolated struct LogExportSession: Sendable {
     let lifetime: TimeInterval
 
     private let lines: [String]
+    /// The file sink's file as it stood when the export opened (AE#597), nil when the sink is off or
+    /// never wrote. The buffer above is this launch only; this is what reaches back across restarts.
+    let persistedLog: PersistedLogFile?
+
+    static let persistedLogName = "sodalite-log.txt"
 
     var expiresAt: Date { capturedAt.addingTimeInterval(lifetime) }
 
@@ -113,9 +127,11 @@ nonisolated struct LogExportSession: Sendable {
         lines: [String],
         environment: Environment = .current,
         capturedAt: Date = Date(),
-        lifetime: TimeInterval = 300
+        lifetime: TimeInterval = 300,
+        persistedLog: PersistedLogFile? = nil
     ) {
         self.lines = lines
+        self.persistedLog = persistedLog
         self.environment = environment
         self.capturedAt = capturedAt
         self.lifetime = lifetime
@@ -150,11 +166,24 @@ nonisolated struct LogExportSession: Sendable {
         return header + "\n\n" + lines.joined(separator: "\n")
     }
 
+    /// Leads the downloaded file for the same reason `document` has a header, and says what the file is,
+    /// because unlike the buffer it spans launches: every launch in it starts with a `file sink armed`
+    /// line.
+    var persistedLogHeader: String? {
+        guard let persistedLog else { return nil }
+        return """
+        Sodalite \(environment.appVersion) (\(environment.build)) - \
+        \(environment.systemName) \(environment.systemVersion) - \(environment.hardware)
+        Persistent log, \(persistedLog.length) bytes, captured \(LogTimestamp.stamp(capturedAt))
+        """
+    }
+
     // MARK: - Serving
 
     private enum Route {
         case page
         case text
+        case file
     }
 
     func response(to request: String, now: Date = Date()) -> LogExportResponse {
@@ -173,9 +202,18 @@ nonisolated struct LogExportSession: Sendable {
 
         switch route {
         case .page:
-            return .html(200, "OK", LogExportPage.render(document: document, token: token))
+            let file = persistedLog.map { (path: "/\(token)/\(Self.persistedLogName)", length: $0.length) }
+            return .html(200, "OK", LogExportPage.render(document: document, token: token, persistedLog: file))
         case .text:
             return .text(200, "OK", document)
+        case .file:
+            guard let persistedLog, let persistedLogHeader else {
+                return .text(404, "Not Found", "Not Found")
+            }
+            var response = LogExportResponse.text(200, "OK", persistedLogHeader + "\n\n")
+            response.file = persistedLog
+            response.downloadName = Self.persistedLogName
+            return response
         }
     }
 
@@ -200,6 +238,7 @@ nonisolated struct LogExportSession: Sendable {
         switch path {
         case "/\(token)", "/\(token)/": .page
         case "/\(token)/log.txt": .text
+        case "/\(token)/\(Self.persistedLogName)": .file
         default: nil
         }
     }

@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UniformTypeIdentifiers
+#endif
 
 /// One buffered line. The buffer is a ring of plain strings and duplicate lines are normal in a
 /// log, so the index has to carry the identity.
@@ -35,6 +38,13 @@ struct DiagnosticLogView: View {
     /// AE#597: mirrors `LogTap.fileSinkEnabled`, which is a plain flag rather than observable
     /// state because it is read on the emitting thread for every line.
     @State private var persistsLog = LogTap.fileSinkEnabled
+
+    #if os(iOS)
+    /// Whether the file sink has left anything on disk, including from an earlier launch with the
+    /// switch since turned off. Checked on appear and on every flip, which is when it can change in a
+    /// way the reader would notice.
+    @State private var hasPersistedLog = PersistedLogShare.isAvailable
+    #endif
 
     /// tvOS groups the lines into focusable blocks (see LogBlock). 12 keeps a block roughly one
     /// screenful, so one swipe of the remote is one page.
@@ -91,6 +101,9 @@ struct DiagnosticLogView: View {
                 // The app can be in front while tvOS reloads the shelf, so activation alone can miss
                 // what the extension just wrote.
                 tap.importShelfLines()
+                #if os(iOS)
+                hasPersistedLog = PersistedLogShare.isAvailable
+                #endif
                 scrollToEnd(proxy)
             }
             .onChange(of: tap.lines.count) { _, _ in scrollToEnd(proxy) }
@@ -170,6 +183,18 @@ struct DiagnosticLogView: View {
             ) {
                 UIPasteboard.general.string = ([LogTap.environmentLine] + tap.lines).joined(separator: "\n")
             }
+
+            // AE#597: the buffer is this launch only, the file reaches back across restarts. Copy
+            // cannot carry 32 MB, a share sheet can (Mail, Files, AirDrop to a Mac).
+            if hasPersistedLog {
+                ShareLink(
+                    item: PersistedLogShare(),
+                    preview: SharePreview(LogExportSession.persistedLogName)
+                ) {
+                    LogActionLabel(titleKey: "settings.log.share", systemImage: "square.and.arrow.up", isFocused: false)
+                }
+                .buttonStyle(.plain)
+            }
             #endif
 
             #if os(tvOS)
@@ -202,6 +227,9 @@ struct DiagnosticLogView: View {
             ) {
                 persistsLog.toggle()
                 LogTap.setFileSinkEnabled(persistsLog)
+                #if os(iOS)
+                hasPersistedLog = PersistedLogShare.isAvailable
+                #endif
             }
         }
     }
@@ -228,15 +256,7 @@ struct LogActionButton: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        Label(titleKey, systemImage: systemImage)
-            .font(.callout)
-            .fontWeight(.medium)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(.white.opacity(isFocused ? 0.15 : 0.05))
-            )
+        LogActionLabel(titleKey: titleKey, systemImage: systemImage, isFocused: isFocused)
             .focusStroke(cornerRadius: 14, isFocused: isFocused)
             .focusResponse(.tile.flat, isFocused: isFocused)
             .opacity(isEnabled ? 1 : 0.4)
@@ -248,6 +268,58 @@ struct LogActionButton: View {
             }
     }
 }
+
+/// The face of `LogActionButton`, split out so the iOS share link can wear it: a `ShareLink` has to
+/// own its tap, so it cannot be one of the buttons.
+struct LogActionLabel: View {
+    let titleKey: LocalizedStringKey
+    let systemImage: String
+    let isFocused: Bool
+
+    var body: some View {
+        Label(titleKey, systemImage: systemImage)
+            .font(.callout)
+            .fontWeight(.medium)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(.white.opacity(isFocused ? 0.15 : 0.05))
+            )
+    }
+}
+
+#if os(iOS)
+/// The file sink's file as a share-sheet item (AE#597). Built lazily, when a target is picked, so
+/// opening the sheet copies nothing, and built as a copy with the provenance header on top so the
+/// file that lands in Mail says which build wrote it and does not keep growing while it is sent.
+nonisolated struct PersistedLogShare: Transferable {
+    static var isAvailable: Bool {
+        LogTap.fileSinkURL.flatMap(PersistedLogFile.init(url:)) != nil
+    }
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(exportedContentType: .plainText) { _ in
+            SentTransferredFile(try snapshot())
+        }
+    }
+
+    /// One fixed folder, emptied first, so repeated shares do not pile copies up in tmp.
+    static func snapshot() throws -> URL {
+        guard let source = LogTap.fileSinkURL, let file = PersistedLogFile(url: source) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("log-share", isDirectory: true)
+        try? FileManager.default.removeItem(at: folder)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let destination = folder.appendingPathComponent(LogExportSession.persistedLogName)
+        let header = LogTap.environmentLine
+            + "\nPersistent log, \(file.length) bytes, captured \(LogTimestamp.stamp(Date()))"
+        try file.writeCopy(to: destination, header: header)
+        return destination
+    }
+}
+#endif
 
 #if os(tvOS)
 /// A tvOS scroll view only scrolls when the focus engine has somewhere to move, and a `Text` is
