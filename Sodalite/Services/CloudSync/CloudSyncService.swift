@@ -1110,18 +1110,23 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         do {
             let results = try await database.records(for: names.map(recordID))
             var recovered = 0
+            var abandoned = 0
             for (id, result) in results {
                 switch result {
                 case .success(let record):
                     applyRemoteRecord(record)
-                    if !preferences.skippedRecords.contains(id.recordName) { recovered += 1 }
+                    if !preferences.skippedRecords.contains(id.recordName) {
+                        recovered += 1
+                    } else if preferences.noteSkippedRetryFailed(id.recordName) {
+                        abandoned += 1
+                    }
                 case .failure(let error as CKError) where error.code == .unknownItem:
                     preferences.clearSkippedRecord(id.recordName)
                 case .failure:
                     break
                 }
             }
-            LogTap.shared.note("[CloudSync] retried \(names.count) skipped record(s), \(recovered) now readable")
+            LogTap.shared.note("[CloudSync] retried \(names.count) skipped record(s), \(recovered) now readable, \(abandoned) given up after \(CloudSyncPreferences.maxSkippedRetries) starts")
         } catch {
             LogTap.shared.note("[CloudSync] skipped-record retry failed: \(error)")
         }

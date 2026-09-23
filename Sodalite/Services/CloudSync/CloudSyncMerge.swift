@@ -119,13 +119,15 @@ enum CloudSyncMerge {
         return remoteUpdatedAt > localUpdatedAt
     }
 
-    /// Union by user id; the newer addedAt wins per user. Sorted newest-first to
-    /// match listRememberedUsers ordering.
+    /// Union by user id; the newer addedAt wins per user, and on a tie the local copy stays. A name or
+    /// image refresh keeps `addedAt`, so a tie is exactly the case where this device read the profile
+    /// from the server itself: letting the cloud win it handed a stale peer's old name back until the
+    /// next refresh. Sorted newest-first to match listRememberedUsers ordering.
     static func unionRememberedUsers(local: [RememberedUser], cloud: [RememberedUser]) -> [RememberedUser] {
         var byID: [String: RememberedUser] = [:]
         for user in local { byID[user.id] = user }
         for user in cloud {
-            if let existing = byID[user.id], existing.addedAt > user.addedAt { continue }
+            if let existing = byID[user.id], existing.addedAt >= user.addedAt { continue }
             byID[user.id] = user
         }
         return byID.values.sorted { $0.addedAt > $1.addedAt }

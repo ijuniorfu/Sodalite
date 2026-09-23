@@ -123,3 +123,29 @@ struct CloudSyncOutboxTests {
         #expect(!CloudSyncService.editedWhileInFlight(sent: nil, local: built))
     }
 }
+
+@Suite("CloudSync gives up on a record it can never read")
+struct CloudSyncSkippedRetryTests {
+    @Test func aRecordIsRetriedAFewStartsThenDropped() {
+        let p = CloudSyncPreferences(store: UserDefaults(suiteName: "skipped.\(UUID().uuidString)")!)
+        p.noteSkippedRecord("profile-x")
+
+        for _ in 1 ..< CloudSyncPreferences.maxSkippedRetries {
+            #expect(!p.noteSkippedRetryFailed("profile-x"))
+            #expect(p.skippedRecords == ["profile-x"])
+        }
+        #expect(p.noteSkippedRetryFailed("profile-x"))
+        #expect(p.skippedRecords.isEmpty)
+    }
+
+    @Test func readingItOnceResetsTheCount() {
+        let p = CloudSyncPreferences(store: UserDefaults(suiteName: "skipped.\(UUID().uuidString)")!)
+        p.noteSkippedRecord("r")
+        _ = p.noteSkippedRetryFailed("r")
+        p.clearSkippedRecord("r")
+        p.noteSkippedRecord("r")
+        for _ in 1 ..< CloudSyncPreferences.maxSkippedRetries {
+            #expect(!p.noteSkippedRetryFailed("r"))
+        }
+    }
+}
