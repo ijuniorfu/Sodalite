@@ -48,6 +48,9 @@ struct CloudSyncRecoveryTests {
     func missingZoneIsRecreated() {
         #expect(CloudSyncRecovery.saveAction(for: CKError(.zoneNotFound)) == .recreateZone)
         #expect(CloudSyncRecovery.saveAction(for: CKError(.userDeletedZone)) == .zoneDeletedByUser)
+        // Seen on a device (code 22): a batch another record failed takes this one down with it.
+        #expect(CloudSyncRecovery.saveAction(for: CKError(.batchRequestFailed)) == .retry)
+        #expect(CloudSyncRecovery.deleteAction(for: CKError(.batchRequestFailed)) == .retry)
     }
 
     @Test("transient failures only re-queue")

@@ -64,8 +64,10 @@ enum CloudSyncRecovery {
             .recreateZone
         case .userDeletedZone:
             .zoneDeletedByUser
+        // batchRequestFailed: this record was fine, another one in the same batch failed and took the
+        // batch down. That one gets its own error and its own recovery; this one simply goes again.
         case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy,
-             .serverResponseLost:
+             .serverResponseLost, .batchRequestFailed:
             .retry
         case .quotaExceeded:
             .surfaceQuota
@@ -80,7 +82,8 @@ enum CloudSyncRecovery {
         switch error.code {
         case .unknownItem, .zoneNotFound, .userDeletedZone:
             .alreadyGone
-        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy,
+             .serverResponseLost, .batchRequestFailed:
             .retry
         default:
             .report
