@@ -13,7 +13,13 @@ import Foundation
 /// modern API is the optimization.
 nonisolated enum LogExportPage {
 
-    static func render(document: String, token: String) -> String {
+    /// `persistedLog` is the file sink's file when there is one: a link and not inline, because it runs to
+    /// 32 MB and a phone that renders that into a `pre` stops responding.
+    static func render(
+        document: String,
+        token: String,
+        persistedLog: (path: String, length: Int)? = nil
+    ) -> String {
         """
         <!DOCTYPE html>
         <html lang="\(languageTag)">
@@ -29,7 +35,7 @@ nonisolated enum LogExportPage {
         <div class="actions">
         <button id="copy" type="button">\(escape(String(localized: "settings.log.export.page.copy")))</button>
         <a class="button" href="/\(token)/log.txt">\(escape(String(localized: "settings.log.export.page.text")))</a>
-        </div>
+        \(persistedLogLink(persistedLog))</div>
         <p id="status" role="status" aria-live="polite"></p>
         <p class="note">\(escape(String(localized: "settings.log.export.page.note")))</p>
         <pre id="log">\(escape(document))</pre>
@@ -38,6 +44,13 @@ nonisolated enum LogExportPage {
         </body>
         </html>
         """
+    }
+
+    private static func persistedLogLink(_ file: (path: String, length: Int)?) -> String {
+        guard let file else { return "" }
+        let size = ByteCountFormatter.string(fromByteCount: Int64(file.length), countStyle: .file)
+        let title = String(format: String(localized: "settings.log.export.page.file"), size)
+        return "<a class=\"button\" href=\"\(escape(file.path))\" download>\(escape(title))</a>\n"
     }
 
     /// Only reachable by a connection already in flight when the deadline passed: the listener closes

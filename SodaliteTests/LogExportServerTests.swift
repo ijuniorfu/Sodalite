@@ -116,6 +116,30 @@ struct LogExportServerTests {
         #expect(String(response[body..<response.endIndex]).hasSuffix(Self.lines.joined(separator: "\n")))
     }
 
+    /// AE#597. Larger than several stream chunks, so a partial send or a dropped chunk shows up as a
+    /// body that is short of, or longer than, the file.
+    @Test("the persistent log downloads whole over a real socket", .enabled(if: hasNetwork))
+    func servesThePersistentLog() throws {
+        let contents = (0 ..< 20_000).map { "[player] line \($0)" }.joined(separator: "\n")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("export-\(UUID()).txt")
+        try Data(contents.utf8).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let server = LogExportServer()
+        defer { server.stop() }
+        let endpoint = try server.start(lines: Self.lines, persistedLog: [url])
+
+        let response = try Self.fetch(
+            port: try Self.port(of: endpoint),
+            path: "/\(Self.token(of: endpoint))/\(LogExportSession.persistedLogName)"
+        )
+        let body = try #require(response.range(of: "\r\n\r\n")).upperBound
+
+        #expect(response.hasPrefix("HTTP/1.1 200 OK\r\n"))
+        #expect(response.contains("Content-Disposition: attachment"))
+        #expect(String(response[body...]).hasSuffix("\n\n" + contents))
+    }
+
     @Test("a wrong token gets nothing over the wire either", .enabled(if: hasNetwork))
     func rejectsWrongToken() throws {
         let server = LogExportServer()

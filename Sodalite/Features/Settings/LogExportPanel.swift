@@ -80,7 +80,7 @@ struct LogExportPanel: View {
         hasExpired = false
         failure = nil
         do {
-            endpoint = try server.start(lines: lines)
+            endpoint = try server.start(lines: lines, persistedLog: LogTap.persistedLogURLs)
         } catch let error as LogExportServer.StartError {
             endpoint = nil
             failure = error
