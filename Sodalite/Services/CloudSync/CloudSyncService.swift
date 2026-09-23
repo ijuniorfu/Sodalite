@@ -108,6 +108,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// zone being removed, and must not queue it for recreation.
     private var deletingZone = false
     private var zoneDeleteFailure: CKError?
+    /// The stamp each record was built with for the send in flight. An edit that lands after the
+    /// build re-adds a save the engine already holds, which is a no-op, and the engine then drops it
+    /// on success: without comparing stamps the newer edit stayed local until the next one.
+    private var inFlightStamps: [String: Date] = [:]
 
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
@@ -221,6 +225,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         zoneCheckTask?.cancel()
         zoneCheckTask = nil
         zoneMissingSaves = []
+        inFlightStamps = [:]
     }
 
     private func removeObservers() {
@@ -422,7 +427,10 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     private func resyncZoneFromScratch(reason: String) {
         guard preferences.isEnabled, resyncTask == nil else { return }
         guard resyncCount < Self.maxResyncsPerSession else {
-            LogTap.shared.note("[CloudSync] resync limit reached, leaving the error up: \(reason)")
+            // Said to leave "the error" up, but nothing had set one: the row read healthy while the
+            // record was never going to land.
+            latchFailure(Self.rejectedMessage)
+            LogTap.shared.note("[CloudSync] resync limit reached, sync error latched: \(reason)")
             return
         }
         resyncCount += 1
@@ -500,11 +508,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         // Also with a live engine, not just on the stashed path: a fetch landing between the
         // queued delete and its confirmation would otherwise re-adopt the record we just removed.
         recentLocalDeletes.insert(name)
-        guard let engine else {
-            preferences.stashPendingDelete(name)
-            return
-        }
-        engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
+        addPendingDelete(recordName: name)
     }
 
     func markSettingsDirty(_ key: CloudSyncStoreKey) {
@@ -533,11 +537,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         let name = CloudSyncRecordName.securitySingleton
         preferences.removeRecordCaches(for: name)
         recentLocalDeletes.insert(name)
-        guard let engine else {
-            preferences.stashPendingDelete(name)
-            return
-        }
-        engine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(name))])
+        addPendingDelete(recordName: name)
     }
 
     /// Manual push: re-stamp every settings store so THIS device wins LWW
@@ -771,8 +771,16 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         engine?.state.add(pendingRecordZoneChanges: [.saveRecord(recordID(recordName))])
     }
 
+    /// Same outbox for deletes. With a live engine they used to live in its memory only until the
+    /// next state event, and a removed Guardian PIN has no tombstone that would carry it otherwise.
+    private func addPendingDelete(recordName: String) {
+        preferences.stashPendingDelete(recordName)
+        engine?.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(recordName))])
+    }
+
     private func collectPayloadData(recordName: String) -> Data? {
         let stamp = preferences.localStamp(for: recordName) ?? preferences.nextStamp()
+        inFlightStamps[recordName] = stamp
         guard let encoded = encodeLocalPayload(recordName: recordName, stamp: stamp) else { return nil }
         // Uploads stay additive across app versions: whatever a newer build wrote into this record
         // and this one cannot decode rides along instead of being dropped, which last-writer-wins
@@ -1260,8 +1268,14 @@ extension CloudSyncService: CKSyncEngineDelegate {
 
         case .sentRecordZoneChanges(let sent):
             for saved in sent.savedRecords {
-                preferences.setSystemFields(Self.encodeSystemFields(saved), for: saved.recordID.recordName)
-                preferences.unstashPendingSave(saved.recordID.recordName)
+                let name = saved.recordID.recordName
+                preferences.setSystemFields(Self.encodeSystemFields(saved), for: name)
+                let sentStamp = inFlightStamps.removeValue(forKey: name)
+                if Self.editedWhileInFlight(sent: sentStamp, local: preferences.localStamp(for: name)) {
+                    addPendingSave(recordName: name)
+                } else {
+                    preferences.unstashPendingSave(name)
+                }
             }
             if !sent.savedRecords.isEmpty || !sent.failedRecordSaves.isEmpty {
                 LogTap.shared.note(
@@ -1280,6 +1294,12 @@ extension CloudSyncService: CKSyncEngineDelegate {
             }
             // Deletes actually confirmed sent no longer need resurrection protection.
             recentLocalDeletes.subtract(sent.deletedRecordIDs.map(\.recordName))
+            for deleted in sent.deletedRecordIDs { preferences.unstashPendingDelete(deleted.recordName) }
+            // A manual push or a resync waits in `.syncing`; one whose every save failed must not
+            // settle to "Active" afterwards as if it had landed.
+            if sent.savedRecords.isEmpty, let first = sent.failedRecordSaves.first, case .syncing = status {
+                status = .error(CloudSyncRecovery.describe(first.error))
+            }
             if !sent.savedRecords.isEmpty {
                 preferences.lastSyncAt = Date()
                 settleActive()
@@ -1308,6 +1328,19 @@ extension CloudSyncService: CKSyncEngineDelegate {
         return await CKSyncEngine.RecordZoneChangeBatch(pendingChanges: pending) { recordID in
             built[recordID]
         }
+    }
+
+    private static var rejectedMessage: String {
+        String(
+            localized: "cloudSync.error.rejected",
+            defaultValue: "iCloud rejected this device's data. This is a fault in Sodalite, not on your device."
+        )
+    }
+
+    /// Internal for tests.
+    nonisolated static func editedWhileInFlight(sent: Date?, local: Date?) -> Bool {
+        guard let sent, let local else { return false }
+        return local > sent
     }
 
     /// Deleted on purpose, from another device's "Delete iCloud Data" or from the iCloud storage
@@ -1393,10 +1426,12 @@ extension CloudSyncService: CKSyncEngineDelegate {
         case .alreadyGone:
             recentLocalDeletes.remove(recordName)
             preferences.removeRecordCaches(for: recordName)
+            preferences.unstashPendingDelete(recordName)
         case .retry:
             syncEngine.state.add(pendingRecordZoneChanges: [.deleteRecord(recordID(recordName))])
         case .report:
-            LogTap.shared.note("[CloudSync] delete failed \(recordName): \(error.code.rawValue)")
+            // Left in the outbox: replayed on the next start rather than forgotten.
+            LogTap.shared.note("[CloudSync] delete failed \(recordName): \(error.code.rawValue), kept for the next start")
         }
     }
 
@@ -1418,6 +1453,8 @@ extension CloudSyncService: CKSyncEngineDelegate {
                 addPendingSave(recordName: recordName)
             }
         case .resyncZone:
+            // The engine no longer holds this save, so the resync's stash would miss it.
+            preferences.stashPendingSave(recordName)
             resyncZoneFromScratch(reason: "save rejected as an insert of an existing record (\(recordName))")
         case .reinsert:
             preferences.removeSystemFields(for: recordName)
@@ -1437,19 +1474,21 @@ extension CloudSyncService: CKSyncEngineDelegate {
         case .retry:
             addPendingSave(recordName: recordName)
         case .surfaceQuota:
+            // Deferred, not dropped: it goes again on the next start, once there may be room.
+            preferences.stashPendingSave(recordName)
             latchFailure(ErrorText.user(for: error))
             LogTap.shared.note("[CloudSync] iCloud quota exceeded, save deferred: \(recordName)")
         case .surfaceRejection:
             // CloudKit's own text here is "Invalid Arguments", which tells a user nothing; the
             // part worth reading ("Cannot create new type … in production schema") is a server
             // message and goes to the diagnostic log, where a bug report can carry it.
-            latchFailure(String(
-                localized: "cloudSync.error.rejected",
-                defaultValue: "iCloud rejected this device's data. This is a fault in Sodalite, not on your device."
-            ))
+            latchFailure(Self.rejectedMessage)
             LogTap.shared.note("[CloudSync] save rejected as invalid \(recordName): \(error)")
         case .report:
-            LogTap.shared.note("[CloudSync] save failed \(recordName): \(error.code.rawValue)")
+            // Unclassified is not the same as permanent: kept for the next start instead of lost
+            // until someone happens to edit the same setting again.
+            preferences.stashPendingSave(recordName)
+            LogTap.shared.note("[CloudSync] save failed \(recordName): \(error.code.rawValue), kept for the next start")
         }
     }
 }

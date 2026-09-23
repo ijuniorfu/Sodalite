@@ -176,6 +176,13 @@ final class CloudSyncPreferences {
         store.set(pendingSaveNames, forKey: Keys.pendingSaves)
     }
 
+    /// A delete CloudKit confirmed, or one for a record that is already gone.
+    func unstashPendingDelete(_ recordName: String) {
+        guard pendingDeleteNames.contains(recordName) else { return }
+        pendingDeleteNames.removeAll { $0 == recordName }
+        store.set(pendingDeleteNames, forKey: Keys.pendingDeletes)
+    }
+
     func drainPendingChanges() -> (saves: [String], deletes: [String]) {
         let result = (saves: pendingSaveNames, deletes: pendingDeleteNames)
         pendingSaveNames = []

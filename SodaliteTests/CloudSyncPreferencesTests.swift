@@ -98,3 +98,28 @@ struct CloudSyncPreferencesTests {
         #expect(drained.saves.isEmpty && drained.deletes.isEmpty)
     }
 }
+
+@Suite("CloudSync outbox keeps what has not landed")
+struct CloudSyncOutboxTests {
+    private func prefs() -> CloudSyncPreferences {
+        CloudSyncPreferences(store: UserDefaults(suiteName: "outbox.\(UUID().uuidString)")!)
+    }
+
+    @Test func aDeleteStaysUntilConfirmed() {
+        let p = prefs()
+        p.stashPendingDelete("security")
+        #expect(p.drainPendingChanges().deletes == ["security"])
+
+        p.stashPendingDelete("security")
+        p.unstashPendingDelete("security")
+        #expect(p.drainPendingChanges().deletes.isEmpty)
+    }
+
+    /// An edit that lands after its record was built for a send must go again once that send lands.
+    @Test func anEditAfterTheBuildIsSentAgain() {
+        let built = Date(timeIntervalSince1970: 100)
+        #expect(CloudSyncService.editedWhileInFlight(sent: built, local: built.addingTimeInterval(1)))
+        #expect(!CloudSyncService.editedWhileInFlight(sent: built, local: built))
+        #expect(!CloudSyncService.editedWhileInFlight(sent: nil, local: built))
+    }
+}
