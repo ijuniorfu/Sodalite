@@ -68,6 +68,7 @@ final class AppearancePreferences {
         static let spoilerHideEpisodes = "appearance.spoilerHideEpisodes"
         static let spoilerHideMovies = "appearance.spoilerHideMovies"
         static let hiddenTabs = "appearance.hiddenTabs"
+        static let hiddenTabsFromNewerBuilds = "appearance.hiddenTabs.newerBuilds"
         static let navigationStyle = "appearance.navigationStyle"
         static let showPosterBadges = "appearance.showPosterBadges"
         static let showDetailBadges = "appearance.showDetailBadges"
@@ -214,6 +215,25 @@ final class AppearancePreferences {
             next.remove(tab)
         }
         setHiddenTabs(next)
+    }
+
+    /// Hidden tabs a synced record named that this build does not have. Kept and written back with
+    /// the known ones, or this device's next upload would unhide them on every newer device. Computed
+    /// over the keyspace rather than stored, because it is not a setting this build can change.
+    var hiddenTabsFromNewerBuilds: [String] {
+        get { (store.array(forKey: Keys.hiddenTabsFromNewerBuilds) as? [String]) ?? [] }
+        set { store.set(newValue.isEmpty ? nil : newValue.sorted(), forKey: Keys.hiddenTabsFromNewerBuilds) }
+    }
+
+    /// The synced form: every hidden tab this build knows, plus the ones only a newer build knows.
+    var syncedHiddenTabs: [String] {
+        (hiddenTabs.map(\.rawValue) + hiddenTabsFromNewerBuilds).sorted()
+    }
+
+    /// The inverse of `syncedHiddenTabs`. A name this build knows but cannot hide is dropped.
+    func applySyncedHiddenTabs(_ names: [String]) {
+        setHiddenTabs(Set(names.compactMap(AppTab.init(rawValue:))))
+        hiddenTabsFromNewerBuilds = names.filter { AppTab(rawValue: $0) == nil }
     }
 
     /// One assignment for a whole set, so the settings screen's deferred commit rebuilds the tab

@@ -174,7 +174,7 @@ extension ProfileAppearancePayload {
             spoilerProtectionEnabled: a.spoilerProtectionEnabled,
             spoilerHideEpisodes: a.spoilerHideEpisodes,
             spoilerHideMovies: a.spoilerHideMovies,
-            hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted(),
+            hiddenTabs: a.syncedHiddenTabs,
             navigationStyle: a.navigationStyle.rawValue,
             showPosterBadges: a.showPosterBadges,
             showDetailBadges: a.showDetailBadges,
@@ -197,7 +197,7 @@ extension ProfileAppearancePayload {
         a.spoilerProtectionEnabled = spoilerProtectionEnabled
         a.spoilerHideEpisodes = spoilerHideEpisodes
         a.spoilerHideMovies = spoilerHideMovies
-        a.hiddenTabs = Set(hiddenTabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+        a.applySyncedHiddenTabs(hiddenTabs)
         a.navigationStyle = AppearancePreferences.NavigationStyle(rawValue: navigationStyle) ?? a.navigationStyle
         a.showPosterBadges = showPosterBadges
         a.showDetailBadges = showDetailBadges

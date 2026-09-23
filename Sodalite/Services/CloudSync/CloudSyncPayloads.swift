@@ -210,6 +210,46 @@ struct SpoilerSeriesRulesPayload: Codable, Equatable {
     var entries: [String: SpoilerSeriesRuleEntry]
 }
 
+/// One map entry that failed to decode is dropped on its own instead of failing the record. The two
+/// per-entry records carry enums (`RememberedSubtitle`, `SpoilerSeriesRule`), and one case added by a
+/// newer build would otherwise make every older build skip the whole record, which the top-level
+/// field carrying in `CloudSyncForwardCompat` cannot help with. Dropping is safe for both: they merge
+/// per entry, so an entry missing here deletes nothing anywhere else.
+private struct LossyEntry<Value: Decodable>: Decodable {
+    let value: Value?
+    init(from decoder: Decoder) throws {
+        value = try? Value(from: decoder)
+    }
+}
+
+private enum LossyEntriesKeys: String, CodingKey {
+    case schemaVersion, updatedAt, entries
+}
+
+private func decodeLossyEntries<Value: Decodable>(_ decoder: Decoder) throws -> (Int, Date, [String: Value]) {
+    let values = try decoder.container(keyedBy: LossyEntriesKeys.self)
+    let entries = try values.decode([String: LossyEntry<Value>].self, forKey: .entries)
+    return (
+        try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1,
+        try values.decode(Date.self, forKey: .updatedAt),
+        entries.compactMapValues(\.value)
+    )
+}
+
+extension TrackMemoryPayload {
+    init(from decoder: Decoder) throws {
+        let (schemaVersion, updatedAt, entries): (Int, Date, [String: TrackMemoryEntry]) = try decodeLossyEntries(decoder)
+        self.init(schemaVersion: schemaVersion, updatedAt: updatedAt, entries: entries)
+    }
+}
+
+extension SpoilerSeriesRulesPayload {
+    init(from decoder: Decoder) throws {
+        let (schemaVersion, updatedAt, entries): (Int, Date, [String: SpoilerSeriesRuleEntry]) = try decodeLossyEntries(decoder)
+        self.init(schemaVersion: schemaVersion, updatedAt: updatedAt, entries: entries)
+    }
+}
+
 struct AppearanceSettingsPayload: Codable, Equatable {
     var schemaVersion: Int
     var updatedAt: Date

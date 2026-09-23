@@ -207,8 +207,8 @@ extension DependencyContainer {
             HomeRowConfig.setMergeContinueWatchingNextUp(homeRows.mergeCWNextUp, scope: serverID)
             HomeRowConfig.setEnableRewatchingNextUp(homeRows.rewatchNextUp, scope: serverID)
             // Absent on payloads from builds before Sodalite#44; leave the local mode alone rather than resetting it to the server default.
-            if let grouping = homeRows.collectionGrouping {
-                HomeRowConfig.setCollectionGrouping(CollectionGrouping(storedValue: grouping), scope: serverID)
+            if let raw = homeRows.collectionGrouping, let grouping = CollectionGrouping(rawValue: raw) {
+                HomeRowConfig.setCollectionGrouping(grouping, scope: serverID)
             }
             // Absent on payloads from builds before Sodalite#78, and per scope: a tile this payload
             // says nothing about keeps whatever this device chose for it.
@@ -363,7 +363,7 @@ extension DependencyContainer {
                 showCommunityRating: a.showCommunityRating,
                 showCriticRating: a.showCriticRating,
                 showTagline: a.showTagline,
-                hiddenTabs: a.hiddenTabs.map(\.rawValue).sorted(),
+                hiddenTabs: a.syncedHiddenTabs,
                 navigationStyle: a.navigationStyle.rawValue
             ))
         case .auth:
@@ -490,7 +490,7 @@ extension DependencyContainer {
             store.showTagline = a.showTagline
             // Absent field = sender predates tab visibility, so it carries no opinion; applying an empty set would silently unhide the receiver's tabs (Sodalite#62).
             if let tabs = a.hiddenTabs {
-                store.hiddenTabs = Set(tabs.compactMap(AppTab.init(rawValue:)).filter(\.isHideable))
+                store.applySyncedHiddenTabs(tabs)
             }
             // Same shape (Sodalite#140): absent means the sender has no navigation style to offer,
             // and a default applied here would move the receiver's whole shell out from under it.
