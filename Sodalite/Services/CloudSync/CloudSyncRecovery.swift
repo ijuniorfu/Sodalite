@@ -16,8 +16,11 @@ enum CloudSyncRecovery {
         /// We hold an identity for a record the server no longer has. Forget it so the re-queued
         /// save goes out as a fresh insert.
         case reinsert
-        /// The zone is gone. Recreate it and re-queue.
+        /// The zone is gone and nothing says who removed it. Before adoption that is simply a zone not
+        /// created yet; after it, the service first fetches to learn whether it was a deletion.
         case recreateZone
+        /// Removed from the iCloud storage settings on purpose. Recreating it undid that.
+        case zoneDeletedByUser
         /// Transient. Re-queue unchanged.
         case retry
         /// Out of iCloud storage. Surfacing it is all we can do.
@@ -57,9 +60,12 @@ enum CloudSyncRecovery {
             error.serverRecord == nil ? .resyncZone : .adoptServerRecord
         case .unknownItem:
             .reinsert
-        case .zoneNotFound, .userDeletedZone:
+        case .zoneNotFound:
             .recreateZone
-        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy:
+        case .userDeletedZone:
+            .zoneDeletedByUser
+        case .networkFailure, .networkUnavailable, .serviceUnavailable, .requestRateLimited, .zoneBusy,
+             .serverResponseLost:
             .retry
         case .quotaExceeded:
             .surfaceQuota

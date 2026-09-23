@@ -47,7 +47,7 @@ struct CloudSyncRecoveryTests {
     @Test("a missing zone is recreated")
     func missingZoneIsRecreated() {
         #expect(CloudSyncRecovery.saveAction(for: CKError(.zoneNotFound)) == .recreateZone)
-        #expect(CloudSyncRecovery.saveAction(for: CKError(.userDeletedZone)) == .recreateZone)
+        #expect(CloudSyncRecovery.saveAction(for: CKError(.userDeletedZone)) == .zoneDeletedByUser)
     }
 
     @Test("transient failures only re-queue")

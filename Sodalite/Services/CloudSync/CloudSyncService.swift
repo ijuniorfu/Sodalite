@@ -100,6 +100,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     /// Holds an upload failure the server will keep rejecting, so the next fetch (which succeeds
     /// against a zone this device has never written to) cannot report the row back to healthy.
     private var statusLatch = CloudSyncStatusLatch()
+    /// Saves that came back "zone not found" after adoption, held until a fetch has said whether the
+    /// zone was deleted on purpose.
+    private var zoneMissingSaves: Set<String> = []
+    private var zoneCheckTask: Task<Void, Never>?
+    /// Set while this device deletes the zone itself: saves still in the same send fail against the
+    /// zone being removed, and must not queue it for recreation.
+    private var deletingZone = false
+    private var zoneDeleteFailure: CKError?
 
     init(dependencies: DependencyContainer, preferences: CloudSyncPreferences = CloudSyncPreferences()) {
         self.dependencies = dependencies
@@ -210,6 +218,9 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         // A delete queued under one account must not block adoption of the same
         // record name under the next account.
         recentLocalDeletes = []
+        zoneCheckTask?.cancel()
+        zoneCheckTask = nil
+        zoneMissingSaves = []
     }
 
     private func removeObservers() {
@@ -258,7 +269,12 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             let engine = CKSyncEngine(config)
             self.engine = engine
             self.database = container.privateCloudDatabase
-            engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+            // Only a device that has not adopted yet creates the zone on start. Queued on every start,
+            // it raced the fetch that would have told this device another one had deleted the zone,
+            // and recreated it: "Delete iCloud Data" came undone whenever any other device woke up.
+            if !preferences.adoptionCompleted {
+                engine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+            }
             // Healthy only once there is something to be healthy about: before the adoption fetch
             // this device has not seen the zone, and "Active" there reads as "nothing in iCloud".
             if preferences.adoptionCompleted { settleActive() }
@@ -590,12 +606,20 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             return
         }
         var failure: Error?
+        deletingZone = true
+        zoneDeleteFailure = nil
+        // Pending saves would go out in the same send, fail against the zone being deleted, and are
+        // pointless anyway: everything they would write is about to be removed.
+        engine.state.remove(pendingRecordZoneChanges: engine.state.pendingRecordZoneChanges)
         do {
             engine.state.add(pendingDatabaseChanges: [.deleteZone(Self.zoneID)])
             try await engine.sendChanges()
         } catch {
             failure = error
         }
+        deletingZone = false
+        // A zone delete the server refused is reported per zone and does not necessarily throw.
+        if failure == nil, let refused = zoneDeleteFailure { failure = refused }
         preferences.isEnabled = false
         if let failure {
             // The zone survived. Wiping the local bookkeeping now is precisely how the identities
@@ -1197,17 +1221,20 @@ extension CloudSyncService: CKSyncEngineDelegate {
                     syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
                     completeAdoption()
                 default:
-                    // Deleted on purpose, from another device's "Delete iCloud Data" or from the
-                    // iCloud storage settings. Re-uploading here undid that the moment any other
-                    // device came to the foreground, so this one stops and keeps its local data,
-                    // which is what the deletion's confirmation promises.
-                    LogTap.shared.note("[CloudSync] zone deleted remotely, sync turned off here, local data kept")
-                    preferences.resetForCloudDataDeletion()
-                    preferences.isEnabled = false
-                    teardownEngine()
-                    statusLatch.clear()
-                    status = .disabled
+                    turnOffForDeletedZone(reason: "zone deleted remotely")
                 }
+            }
+
+        case .sentDatabaseChanges(let sent):
+            for failed in sent.failedZoneSaves where failed.zone.zoneID == Self.zoneID {
+                LogTap.shared.note("[CloudSync] zone save failed: \(failed.error.code.rawValue)")
+                if CloudSyncRecovery.saveAction(for: failed.error) == .retry {
+                    syncEngine.state.add(pendingDatabaseChanges: [.saveZone(failed.zone)])
+                }
+            }
+            if let error = sent.failedZoneDeletes[Self.zoneID] {
+                zoneDeleteFailure = error
+                LogTap.shared.note("[CloudSync] zone delete failed: \(error.code.rawValue)")
             }
 
         case .fetchedRecordZoneChanges(let changes):
@@ -1283,6 +1310,41 @@ extension CloudSyncService: CKSyncEngineDelegate {
         }
     }
 
+    /// Deleted on purpose, from another device's "Delete iCloud Data" or from the iCloud storage
+    /// settings. Re-uploading undid that the moment any other device came to the foreground, so this
+    /// one stops and keeps its local data, which is what the deletion's confirmation promises.
+    private func turnOffForDeletedZone(reason: String) {
+        LogTap.shared.note("[CloudSync] \(reason), sync turned off here, local data kept")
+        preferences.resetForCloudDataDeletion()
+        preferences.isEnabled = false
+        teardownEngine()
+        statusLatch.clear()
+        status = .disabled
+    }
+
+    /// After adoption a missing zone is either a deletion this device has not heard of yet or a zone
+    /// lost some other way. One fetch tells them apart: a deletion arrives as a database change and
+    /// turns sync off, and only if the engine is still running afterwards is the zone recreated.
+    private func checkZoneBeforeRecreating(_ syncEngine: CKSyncEngine) {
+        guard zoneCheckTask == nil else { return }
+        zoneCheckTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { self.zoneCheckTask = nil }
+            do {
+                try await syncEngine.fetchChanges()
+            } catch {
+                LogTap.shared.note("[CloudSync] zone check fetch failed, saves kept for the next start: \(error)")
+                return
+            }
+            let names = self.zoneMissingSaves
+            self.zoneMissingSaves = []
+            guard self.engine === syncEngine, self.preferences.isEnabled else { return }
+            LogTap.shared.note("[CloudSync] zone missing but not deleted, recreating it")
+            syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+            for name in names { self.addPendingSave(recordName: name) }
+        }
+    }
+
     /// A sign-out keeps everything tied to the account: the account id is what lets the next start
     /// tell "the same person signed back in" from "someone else did". Wiping it here made the next
     /// start a first adoption, which uploads every server with its tokens, passwords and Seerr
@@ -1342,6 +1404,7 @@ extension CloudSyncService: CKSyncEngineDelegate {
         // Off the outbox unless a branch below queues it again: a save the server keeps refusing
         // would otherwise be replayed on every launch.
         preferences.unstashPendingSave(recordName)
+        guard !deletingZone else { return }
         switch CloudSyncRecovery.saveAction(for: error) {
         case .adoptServerRecord:
             guard let serverRecord = error.serverRecord else { return }
@@ -1360,8 +1423,17 @@ extension CloudSyncService: CKSyncEngineDelegate {
             preferences.removeSystemFields(for: recordName)
             addPendingSave(recordName: recordName)
         case .recreateZone:
-            syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
-            addPendingSave(recordName: recordName)
+            guard preferences.adoptionCompleted else {
+                syncEngine.state.add(pendingDatabaseChanges: [.saveZone(CKRecordZone(zoneID: Self.zoneID))])
+                addPendingSave(recordName: recordName)
+                return
+            }
+            // Kept in the outbox, not handed back to the engine until the check below has run.
+            preferences.stashPendingSave(recordName)
+            zoneMissingSaves.insert(recordName)
+            checkZoneBeforeRecreating(syncEngine)
+        case .zoneDeletedByUser:
+            turnOffForDeletedZone(reason: "zone deleted from the iCloud settings")
         case .retry:
             addPendingSave(recordName: recordName)
         case .surfaceQuota:
