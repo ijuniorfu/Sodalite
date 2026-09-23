@@ -190,4 +190,76 @@ struct ProfileSettingsRegistryTests {
         #expect(registry.lastActiveKey == nil)
         #expect(defaults.dictionaryRepresentation().keys.allSatisfy { !$0.hasPrefix(alice.storageScope) })
     }
+
+    @Test func onlyMigrationSeedsWaitToBeClaimed() {
+        let defaults = scratch("migrationSeeds")
+        let (alice, _, carol) = profiles()
+        let registry = ProfileSettingsRegistry(defaults: defaults)
+        registry.migrateIfNeeded(profiles: [alice])
+        registry.lastActiveKey = alice
+        _ = registry.settings(for: carol)
+
+        let seeds = registry.unclaimedMigrationSeeds()
+        #expect(seeds.count == ProfileRecordKind.allCases.count)
+        #expect(seeds.allSatisfy { $0.key == alice })
+    }
+
+    @Test func anEditAClaimOrACloudRecordEndsAMigrationSeed() {
+        let defaults = scratch("seedEnds")
+        let (alice, _, _) = profiles()
+        let registry = ProfileSettingsRegistry(defaults: defaults)
+        registry.migrateIfNeeded(profiles: [alice])
+
+        registry.settings(for: alice).playback.autoSkipIntro.toggle()
+        registry.claim(alice, .appearance)
+        registry.noteCloudApplied(alice, .home)
+
+        #expect(registry.unclaimedMigrationSeeds().isEmpty)
+        #expect(ProfileRecordKind.allCases.allSatisfy { !registry.isProvisional(alice, $0) })
+    }
+
+    /// Installs that migrated before seeds were told apart still hold their copies, and those have
+    /// to go up too, or the device that nobody touched since keeps publishing nothing.
+    @Test func anEarlierMigrationIsMarkedOnce() {
+        let defaults = scratch("earlierMigration")
+        let (alice, _, _) = profiles()
+        let registry = ProfileSettingsRegistry(defaults: defaults)
+        registry.migrateIfNeeded(profiles: [alice])
+        for kind in ProfileRecordKind.allCases {
+            defaults.removeObject(forKey: "\(alice.storageScope)/profileSettings.migrationSeed.\(kind.rawValue)")
+        }
+        defaults.removeObject(forKey: "profileSettings.migrationSeedsMarked")
+        registry.settings(for: alice).playback.autoSkipIntro.toggle()
+
+        registry.markEarlierMigrationSeedsIfNeeded()
+        #expect(Set(registry.unclaimedMigrationSeeds().map(\.kind)) == [.appearance, .home])
+
+        registry.claim(alice, .appearance)
+        registry.markEarlierMigrationSeedsIfNeeded()
+        #expect(registry.unclaimedMigrationSeeds().map(\.kind) == [.home])
+    }
+
+    @Test func aFreshInstallHasNoEarlierMigrationToMark() {
+        let defaults = scratch("freshInstall")
+        let (alice, _, _) = profiles()
+        let registry = ProfileSettingsRegistry(defaults: defaults)
+        registry.migrateIfNeeded(profiles: [])
+        registry.markEarlierMigrationSeedsIfNeeded()
+        _ = registry.settings(for: alice)
+
+        #expect(registry.unclaimedMigrationSeeds().isEmpty)
+    }
+
+    @Test func aRemovedServersProfilesLeaveTheRegistry() {
+        let defaults = scratch("forgetServer")
+        let (alice, _, _) = profiles()
+        let other = ProfileKey(serverID: "other-\(UUID().uuidString)", userID: "dave")
+        let registry = ProfileSettingsRegistry(defaults: defaults)
+        registry.migrateIfNeeded(profiles: [alice, other])
+
+        registry.forgetProfiles(onServer: alice.serverID)
+
+        #expect(registry.knownProfiles == [other])
+        #expect(!registry.hasValues(alice))
+    }
 }

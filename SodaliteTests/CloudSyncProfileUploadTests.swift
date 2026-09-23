@@ -64,6 +64,37 @@ struct CloudSyncProfileUploadTests {
         #expect(prefs.drainPendingChanges().saves.isEmpty)
     }
 
+    /// A device that migrated and was never edited since holds only copies. The push is the viewer
+    /// saying "these are my settings", so the active profile's copies go up; another profile's do not.
+    @Test func aManualPushClaimsTheActiveProfilesCopies() {
+        let (container, service, prefs, alice, bob) = setUp("push")
+        _ = container.profileSettings.settings(for: alice)
+        _ = container.profileSettings.settings(for: bob)
+        container.profileSettings.activeKey = { alice }
+
+        service.pushLocalSettingsToAllDevices()
+        let saves = Set(prefs.drainPendingChanges().saves)
+
+        for kind in ProfileRecordKind.allCases {
+            #expect(saves.contains(CloudSyncRecordName.profile(kind, alice)))
+            #expect(!container.profileSettings.isProvisional(alice, kind))
+            #expect(!saves.contains(CloudSyncRecordName.profile(kind, bob)))
+            #expect(container.profileSettings.isProvisional(bob, kind))
+        }
+    }
+
+    @Test func aClaimedCopyKeepsSyncingAfterThePush() {
+        let (container, service, prefs, alice, _) = setUp("claimed")
+        container.profileSettings.activeKey = { alice }
+        service.pushLocalSettingsToAllDevices()
+        _ = prefs.drainPendingChanges()
+
+        container.profileSettings.settings(for: alice).playback.autoSkipIntro.toggle()
+        service.uploadProfileIfChanged(.playback, alice)
+
+        #expect(prefs.drainPendingChanges().saves == [CloudSyncRecordName.profile(.playback, alice)])
+    }
+
     @Test func aZoneRecreationStillReuploadsEditedProfiles() {
         let (container, service, prefs, alice, _) = setUp("zone")
         container.profileSettings.settings(for: alice).appearance.largeCards.toggle()
@@ -74,5 +105,72 @@ struct CloudSyncProfileUploadTests {
         service.completeAdoption()
 
         #expect(prefs.drainPendingChanges().saves.contains(CloudSyncRecordName.profile(.appearance, alice)))
+    }
+
+    /// Settings first, then servers, then profiles: a profile record for an unknown profile seeds
+    /// the kinds it does not carry from the other two.
+    @Test func aBatchAppliesSettingsBeforeServersBeforeProfiles() {
+        let key = ProfileKey(serverID: "s", userID: "u")
+        let names = [
+            CloudSyncRecordName.profile(.playback, key),
+            CloudSyncRecordName.server(id: "s"),
+            CloudSyncRecordName.securitySingleton,
+            CloudSyncRecordName.settings(.playback),
+        ]
+        let ordered = names.sorted { CloudSyncService.applyOrder($0) < CloudSyncService.applyOrder($1) }
+        #expect(ordered == [
+            CloudSyncRecordName.settings(.playback),
+            CloudSyncRecordName.server(id: "s"),
+            CloudSyncRecordName.profile(.playback, key),
+            CloudSyncRecordName.securitySingleton,
+        ])
+    }
+
+    @Test func theLogSummaryNamesKindsNotIdentifiers() {
+        let key = ProfileKey(serverID: "server-secret", userID: "user-secret")
+        let summary = CloudSyncService.summary([
+            CloudSyncRecordName.profile(.home, key),
+            CloudSyncRecordName.profile(.home, ProfileKey(serverID: "server-secret", userID: "other")),
+            CloudSyncRecordName.server(id: "server-secret"),
+        ])
+        #expect(summary == "profile-home×2, server×1")
+        #expect(!summary.contains("secret"))
+    }
+
+    /// A save stays in the persistent outbox until CloudKit confirms it, so an app killed before the
+    /// engine persisted its own queue still sends it on the next launch.
+    @Test func anEditIsInTheOutboxTheMomentItIsMade() {
+        let (container, service, prefs, alice, _) = setUp("outbox")
+        container.profileSettings.settings(for: alice).playback.autoSkipIntro.toggle()
+
+        service.uploadProfileIfChanged(.playback, alice)
+
+        let name = CloudSyncRecordName.profile(.playback, alice)
+        #expect(prefs.localStamp(for: name) != nil)
+        #expect(prefs.drainPendingChanges().saves == [name])
+    }
+
+    @Test func aConfirmedSaveLeavesTheOutbox() {
+        let prefs = CloudSyncPreferences(store: scratch("unstash"))
+        prefs.stashPendingSave("a")
+        prefs.stashPendingSave("b")
+
+        prefs.unstashPendingSave("a")
+
+        #expect(prefs.drainPendingChanges().saves == ["b"])
+    }
+
+    @Test func anUnreadableRecordIsRememberedUntilItIsRead() {
+        let prefs = CloudSyncPreferences(store: scratch("skipped"))
+        prefs.noteSkippedRecord("settings-playback")
+        prefs.noteSkippedRecord("settings-playback")
+        #expect(prefs.skippedRecords == ["settings-playback"])
+
+        prefs.clearSkippedRecord("settings-playback")
+        #expect(prefs.skippedRecords.isEmpty)
+
+        prefs.noteSkippedRecord("x")
+        prefs.resetForZoneRecreation()
+        #expect(prefs.skippedRecords.isEmpty)
     }
 }

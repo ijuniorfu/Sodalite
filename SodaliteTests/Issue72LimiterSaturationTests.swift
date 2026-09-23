@@ -39,8 +39,13 @@ struct Issue72LimiterSaturationTests {
                 }
             }
         }
-        // Let the passes saturate the limiter before the tap arrives.
-        try? await Task.sleep(nanoseconds: UInt64(requestSeconds * 2 * 1_000_000_000))
+        // Let the passes saturate the limiter before the tap arrives, and land it in the MIDDLE of a
+        // hold. The workers start together, so all six permits turn over at once every hold; a tap
+        // at a whole multiple arrives on that edge and, depending on scheduler jitter, either takes
+        // a freed permit or waits a full round, which made this test fail about two runs in three.
+        // Mid-hold, the lane waits about half a hold and FIFO (eight waiters ahead) about one and a
+        // half, so the bound below separates them by half a hold either way.
+        try? await Task.sleep(nanoseconds: UInt64(requestSeconds * 2.5 * 1_000_000_000))
         let waited = await Task(priority: .userInitiated) { () -> Double in
             let start = DispatchTime.now()
             try? await limiter.wait()
