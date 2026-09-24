@@ -97,6 +97,8 @@ struct SeriesDetailView: View {
     @State private var pendingSeasonOverviewFocus = false
     /// Which card the episode row aims at, so a return from above lands there instead of scrolling the row back to the start. Fed by the way OUT of the row and by the player's in-session item switches; see EpisodeRowAim for why it is never fed on the way in.
     @State private var episodeAim = EpisodeRowAim()
+    /// The episode the player session is on while it sits in front of the page. The row scrolls to it behind the modal, so the card the return restore aims at is already rendered when the player closes.
+    @State private var episodeRowFollowID: String?
     /// Which cast card holds focus, for the row's entry aim (Sodalite#146 round 2). Same rule as the
     /// movie page: the first entry lands on the first card, after that the row remembers.
     @FocusState private var focusedCastID: String?
@@ -303,7 +305,12 @@ struct SeriesDetailView: View {
                     focusedEpisodeID = nil
                     episodeAim.sessionMoved(to: ep.id)
                     pendingEpisodeFocus = ep.id
+                    let target = ep.id
+                    deferOnMain(by: 0.6) {
+                        LogTap.shared.note("[EpisodeRow] player_return target=\(target) focused=\(focusedEpisodeID ?? "nil")")
+                    }
                 }
+                episodeRowFollowID = nil
                 playItem = nil
                 playOriginatedFromPlayButton = false
             }
@@ -325,6 +332,11 @@ struct SeriesDetailView: View {
             // ago. Move it along with the session, else every entry into the row (the return from
             // the player included) aims at the episode that was started rather than the one watched.
             episodeAim.sessionMoved(to: episode.id)
+            // Moving the aim is not enough on its own: the row stays parked on the card the session
+            // was started from, the new card sits off-row and unrendered, and the restore's scroll is
+            // still in flight when its focus write lands, so a binge of more than a few episodes came
+            // back on the start card. Scroll the row along now, while nobody is looking at it.
+            episodeRowFollowID = episode.id
             // Rolled into the next season: its episode row has to be loaded or the focus restore on
             // dismiss has no card to land on.
             if let seasonID = episode.seasonId, viewModel?.selectedSeasonID != seasonID {
@@ -1545,6 +1557,12 @@ struct SeriesDetailView: View {
                             pendingEpisodeFocus = nil
                         }
                     }
+                    // No animation: the row is behind the player, and an animated scroll is exactly
+                    // what leaves the target unrendered for a moment.
+                    .onChange(of: episodeRowFollowID) { _, target in
+                        guard let target, vm.episodes.contains(where: { $0.id == target }) else { return }
+                        episodeProxy.scrollTo(target, anchor: .center)
+                    }
                     .onAppear {
                         scrollToCurrentEpisode(proxy: episodeProxy, vm: vm)
                     }
@@ -1606,8 +1624,10 @@ struct SeriesDetailView: View {
         }
     }
 
+    /// While a player session is up, the episode it is on wins over next-up: a session that rolled into
+    /// the next season rebuilds or re-seats this row, and next-up still names the episode it was loaded with.
     private func scrollToCurrentEpisode(proxy: ScrollViewProxy, vm: DetailViewModel) {
-        guard let currentID = vm.currentEpisodeID,
+        guard let currentID = episodeRowFollowID ?? vm.currentEpisodeID,
               vm.episodes.contains(where: { $0.id == currentID }) else { return }
         deferOnMain(by: 0.1) {
             withAnimation(.easeInOut(duration: 0.3)) {
