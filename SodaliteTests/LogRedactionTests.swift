@@ -187,4 +187,23 @@ struct LogRedactionTests {
         #expect(!LogTap.shared.lines.contains { $0.contains(token) })
         LogTap.shared.clear()
     }
+
+    @Test("an Xtream Codes path loses its password and keeps the account name", arguments: [
+        ("http://h:8080/live/john/S3cretPass/12345.m3u8", "http://h:8080/live/john/<redacted>/12345.m3u8"),
+        ("http://h:8080/timeshift/john/S3cretPass/60/2026-09-24:20-00/12345.ts",
+         "http://h:8080/timeshift/john/<redacted>/60/2026-09-24:20-00/12345.ts"),
+        ("http://h:8080/hlsr/a1b2c3d4e5/john/S3cretPass/12345/1/7.ts", "http://h:8080/hlsr/<redacted>/12345/1/7.ts"),
+    ])
+    func xtreamPath(url: String, expected: String) {
+        #expect(LogRedaction.redact("[x] load url=\(url) ok") == "[x] load url=\(expected) ok")
+    }
+
+    @Test("an ordinary path under the same prefixes is left alone", arguments: [
+        "https://origin.example/live/master.m3u8",
+        "https://origin.example/live/channel1/index.m3u8",
+        "https://jellyfin.example/LiveTv/LiveStreamFiles/abc/stream.ts",
+    ])
+    func ordinaryPrefixedPathsSurvive(url: String) {
+        #expect(LogRedaction.redact("[x] url=\(url) ok") == "[x] url=\(url) ok")
+    }
 }

@@ -49,11 +49,13 @@ nonisolated enum LogRedaction {
             // matcher covers `api_key=…`, `X-Emby-Token: …` and the cookie; the payload matcher
             // covers an encoded blob that no name points at, which is how a path segment carries
             // one; the userinfo matcher covers `smb://user:secret@host`, which carries no key at
-            // all and would otherwise pass through untouched.
+            // all and would otherwise pass through untouched; the path matcher covers the Xtream
+            // Codes layout, which puts an IPTV password in a bare path segment.
             guard let value = matchedKeyLength(in: bytes, at: i)
                     .flatMap({ valueRange(in: bytes, after: i + $0) })
                     ?? encodedPayloadRange(in: bytes, at: i)
-                    ?? userInfoSecretRange(in: bytes, at: i) else {
+                    ?? userInfoSecretRange(in: bytes, at: i)
+                    ?? xtreamPathSecretRange(in: bytes, at: i) else {
                 i += 1
                 continue
             }
@@ -200,6 +202,63 @@ nonisolated enum LogRedaction {
         // secret (a bare token in the authority), and then the user name cannot be spared.
         let secretStart = colon.map { $0 + 1 } ?? start
         return secretStart < i ? secretStart ..< i : nil
+    }
+
+    // MARK: Xtream Codes paths
+
+    /// Path prefixes of the Xtream Codes stream layout, each paired with the zero-based positions of
+    /// the segments after it that hold a credential. `/live/`, `/movie/`, `/series/` and `/timeshift/`
+    /// carry `{user}/{password}/...`; the HLS redirect targets carry a session token first, and
+    /// `/hlsr/` then repeats `{user}/{password}` behind it.
+    private static let xtreamLayouts: [(prefix: [UInt8], secretSegments: [Int])] = [
+        ("/live/", [1]), ("/movie/", [1]), ("/series/", [1]), ("/timeshift/", [1]),
+        ("/hls/", [0]), ("/hlsr/", [0, 2]),
+    ].map { (Array($0.0.utf8), $0.1) }
+
+    /// The span from the first credential segment through the last one, given an index that may
+    /// start one of `xtreamLayouts`' prefixes, or nil. The user name in front of the password is left
+    /// readable for the same reason as in `userInfoSecretRange`; on `/hlsr/` it sits between the token
+    /// and the password and goes with them, since one line yields one span.
+    ///
+    /// A credential segment only counts when a further path segment follows it, because that is what
+    /// the layout guarantees and what an ordinary HLS path lacks: `/live/master.m3u8` and
+    /// `/live/channel1/index.m3u8` stay whole. Over-redacting some other three-deep `/live/` path is
+    /// the accepted cost.
+    private static func xtreamPathSecretRange(in bytes: [UInt8], at index: Int) -> Range<Int>? {
+        guard bytes[index] == UInt8(ascii: "/") else { return nil }
+        for layout in xtreamLayouts where hasPrefix(layout.prefix, in: bytes, at: index) {
+            var segments: [Range<Int>] = []
+            var i = index + layout.prefix.count
+            let needed = layout.secretSegments.max()! + 2
+            while segments.count < needed {
+                let start = i
+                while i < bytes.count, bytes[i] != UInt8(ascii: "/"), !isPathTerminator(bytes[i]) { i += 1 }
+                guard i > start else { break }
+                segments.append(start ..< i)
+                guard i < bytes.count, bytes[i] == UInt8(ascii: "/") else { break }
+                i += 1
+            }
+            guard segments.count >= needed else { continue }
+            return segments[layout.secretSegments.min()!].lowerBound ..< segments[layout.secretSegments.max()!].upperBound
+        }
+        return nil
+    }
+
+    private static func hasPrefix(_ prefix: [UInt8], in bytes: [UInt8], at index: Int) -> Bool {
+        guard index + prefix.count <= bytes.count else { return false }
+        for offset in 0 ..< prefix.count where bytes[index + offset] != prefix[offset] { return false }
+        return true
+    }
+
+    /// Ends a URL path: the query, the fragment, or whatever the log line puts after the URL.
+    private static func isPathTerminator(_ b: UInt8) -> Bool {
+        switch b {
+        case UInt8(ascii: "?"), UInt8(ascii: "#"), UInt8(ascii: "\""), UInt8(ascii: "'"),
+             UInt8(ascii: ","), UInt8(ascii: ")"), UInt8(ascii: ">"), UInt8(ascii: " "), 0x09, 0x0A, 0x0D:
+            return true
+        default:
+            return false
+        }
     }
 
     /// Ends an authority component. `@` is deliberately absent: it is what the scan is looking for.
