@@ -20,6 +20,8 @@ struct TabRootView: View {
     /// arriving from the login probe one or more updates later is still judged against it. Dropped
     /// once the viewer navigates: after that a tab appearing is their own doing.
     @State private var switchOrigin: ProfileShellLayout?
+    /// Identity of the Settings content, bumped by a profile switch that pops its stack.
+    @State private var settingsEpoch = 0
     @Environment(\.dependencies) private var dependencies
     @Environment(\.appState) private var appState
     @Environment(\.appearanceTheme) private var appearanceTheme
@@ -164,6 +166,7 @@ struct TabRootView: View {
         #if os(iOS)
         .sheet(isPresented: $showSettings) {
             SettingsView(onClose: { showSettings = false })
+                .id(settingsEpoch)
                 .themedPresentationBackground()
                 // Settings is the one surface that raises the Guardian-PIN from above the router,
                 // and a cover cannot stack on this sheet. It hosts the prompt itself instead.
@@ -287,6 +290,20 @@ struct TabRootView: View {
         .onChange(of: selectedTab) { _, _ in
             // The viewer moved, so the switch is over: a later tab change is theirs, not its.
             switchOrigin = nil
+        }
+        .onChange(of: appState.profileKey) { old, new in
+            if ProfileShellLayout.switchResetsSettings(
+                from: old, to: new,
+                escapesGated: dependencies.parentalGateRequiredForSessionAction()
+            ) {
+                settingsEpoch &+= 1
+            }
+            // A same-server switch raises neither serverDidSwitch nor loginDidComplete. Shares the
+            // login probe's task, so an add-profile login that follows replaces this one.
+            if ProfileShellLayout.switchReprobesOptionalTabs(from: old, to: new) {
+                loginProbeTask?.cancel()
+                loginProbeTask = Task { await recoverOptionalTabs() }
+            }
         }
     }
 
@@ -453,6 +470,10 @@ struct TabRootView: View {
                 SettingsView()
             }
         }
+        // Every tab's screens hold the profile they were built for (Live TV captures its user id
+        // once, Search its results), so a switch rebuilds them. Settings keeps its stack unless the
+        // switch has to take away what the previous profile unlocked, see switchResetsSettings.
+        .id(tab == .settings ? AnyHashable(settingsEpoch) : AnyHashable(appState.profileKey))
         // The verdict is measured once for the whole app, so it is consumed once for the whole app
         // (Sodalite#126). Inside the tab content, never over the tab bar: the fix for the case that
         // has one is in Settings, and the bar is the way there.

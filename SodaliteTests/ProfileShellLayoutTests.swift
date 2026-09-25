@@ -110,4 +110,35 @@ struct ProfileShellLayoutTests {
         #expect(!result.landsOnHome)
         #expect(result.origin == nil)
     }
+
+    // MARK: What a switch takes down (audit 2026-09-25, CS-1 / SESSION-7)
+
+    /// The reported case: a parent's unlocked Parental Controls must not survive into the child.
+    @Test func aSwitchIntoAGatedProfilePopsSettings() {
+        #expect(ProfileShellLayout.switchResetsSettings(from: alice, to: bob, escapesGated: true))
+    }
+
+    /// Nothing on the stack was locked, so an add-profile login returns where it started (#141).
+    @Test func aSwitchWithoutGatesKeepsSettings() {
+        #expect(!ProfileShellLayout.switchResetsSettings(from: alice, to: bob, escapesGated: false))
+    }
+
+    /// A refreshed user object for the same profile, or signing in, is not a switch.
+    @Test func onlyAChangeOfProfilePopsSettings() {
+        #expect(!ProfileShellLayout.switchResetsSettings(from: alice, to: alice, escapesGated: true))
+        #expect(!ProfileShellLayout.switchResetsSettings(from: nil, to: alice, escapesGated: true))
+    }
+
+    /// Live TV access and the music library are per user, and nothing else re-probes a same-server switch.
+    @Test func aSameServerSwitchReprobesTheOptionalTabs() {
+        #expect(ProfileShellLayout.switchReprobesOptionalTabs(from: alice, to: bob))
+        #expect(!ProfileShellLayout.switchReprobesOptionalTabs(from: alice, to: alice))
+    }
+
+    /// Another server has its own probes, which also drop the stale set first.
+    @Test func aServerChangeIsLeftToTheServerProbes() {
+        let elsewhere = ProfileKey(serverID: "t", userID: "bob")
+        #expect(!ProfileShellLayout.switchReprobesOptionalTabs(from: alice, to: elsewhere))
+        #expect(!ProfileShellLayout.switchReprobesOptionalTabs(from: nil, to: alice))
+    }
 }
