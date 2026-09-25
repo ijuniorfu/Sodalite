@@ -27,6 +27,10 @@ final class CloudSyncPreferences {
 
     var isEnabled: Bool { didSet { store.set(isEnabled, forKey: Keys.enabled) } }
     var adoptionCompleted: Bool { didSet { store.set(adoptionCompleted, forKey: Keys.adoptionCompleted) } }
+    /// Local edits are stamped and queued while sync runs, and also while it is merely switched off
+    /// on a device that adopted the zone, so they go up when it is switched back on. Log Out, an
+    /// account change and a cloud delete all clear the adoption, and with it this.
+    var tracksLocalEdits: Bool { isEnabled || adoptionCompleted }
     var accountID: String? {
         didSet {
             if let accountID { store.set(accountID, forKey: Keys.accountID) }

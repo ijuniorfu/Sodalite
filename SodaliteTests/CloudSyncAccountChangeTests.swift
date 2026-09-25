@@ -95,4 +95,46 @@ struct CloudSyncAccountChangeTests {
         try container.rememberUser(RememberedUser(id: "u", serverID: "srv", name: "Vincent", imageTag: nil, token: "t", addedAt: user.addedAt))
         #expect(prefs.drainPendingChanges().saves == [CloudSyncRecordName.server(id: "srv")])
     }
+
+    // MARK: Switched off (audit 2026-09-25 CS-5)
+
+    /// Switching sync off on an adopted device used to drop every edit on the floor: the next start
+    /// seeded its snapshots from the edited values and nothing ever went up, removals included.
+    @Test func editsWhileSwitchedOffAreStampedAndQueuedForTheNextStart() {
+        let (container, service, prefs) = setUp("offEdit")
+        _ = prefs.drainPendingChanges()
+        let before = prefs.localStamp(for: CloudSyncRecordName.settings(.auth))!
+
+        service.setEnabled(false)
+        // The switch itself is no edit.
+        #expect(prefs.drainPendingChanges().saves.isEmpty)
+
+        container.seerrNotificationPreferences.notifyPendingRequests.toggle()
+        service.uploadSettingsIfChanged(.seerrNotifications)
+        service.markSettingsDirty(.auth)
+        service.markServerDeleted(serverID: "gone")
+
+        let pending = prefs.drainPendingChanges()
+        #expect(Set(pending.saves) == [CloudSyncRecordName.settings(.seerrNotifications),
+                                       CloudSyncRecordName.settings(.auth)])
+        #expect(pending.deletes == [CloudSyncRecordName.server(id: "gone")])
+        // Stamped at the edit, so an older edit from another device loses to it once sync is back.
+        #expect(prefs.localStamp(for: CloudSyncRecordName.settings(.auth))! > before)
+        #expect(!prefs.isEnabled)
+    }
+
+    /// Log Out is local only: what is edited afterwards must not reach the zone on a later enable,
+    /// which is a deliberate first adoption.
+    @Test func afterLogOutNothingIsQueued() {
+        let (container, service, prefs) = setUp("offLogout")
+        service.handleFullLogout()
+
+        service.markSettingsDirty(.auth)
+        service.markServerDeleted(serverID: "gone")
+
+        let pending = prefs.drainPendingChanges()
+        #expect(pending.saves.isEmpty)
+        #expect(pending.deletes.isEmpty)
+        withExtendedLifetime(container) {}
+    }
 }
