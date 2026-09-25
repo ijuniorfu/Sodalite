@@ -48,6 +48,12 @@ struct JellyfinUser: Codable, Sendable, Identifiable, Equatable {
         return policy.isAdministrator || policy.enableContentDeletion
     }
 
+    /// Jellyfin's `EnableLiveTvManagement`, which every timer and series-timer endpoint checks with no
+    /// administrator shortcut. False while the policy is unloaded, like `canDeleteContent`.
+    var canManageLiveTv: Bool {
+        policy?.enableLiveTvManagement == true
+    }
+
     /// Nothing in the policy keeps library items from this user: every folder, no rating ceiling, no tag
     /// filter. Jellyfin answers 404 for an item the user may not see exactly as for one that is gone, so
     /// only for this user does a 404 on a known item id prove the item was deleted.

@@ -5,7 +5,7 @@ import Foundation
 /// The account-policy gates read off `/Users/Me`'s Policy block.
 struct JellyfinUserPolicyTests {
 
-    private func user(policy: String?) throws -> JellyfinUser {
+    func user(policy: String?) throws -> JellyfinUser {
         let policyJSON = policy.map { #", "Policy": {"IsAdministrator": false, "EnableContentDeletion": false\#($0)}"# } ?? ""
         let json = #"{"Id": "u", "Name": "N", "ServerId": "s"\#(policyJSON)}"#
         return try JSONDecoder().decode(JellyfinUser.self, from: Data(json.utf8))
@@ -34,5 +34,18 @@ struct JellyfinUserPolicyTests {
     @Test func anUnknownPolicyIsTreatedAsRestricted() throws {
         #expect(try user(policy: nil).seesWholeLibrary == false)
         #expect(try user(policy: "").seesWholeLibrary == false)
+    }
+}
+
+extension JellyfinUserPolicyTests {
+
+    // MARK: - canManageLiveTv (audit 2026-09-25 LTV-5)
+
+    /// Jellyfin's timer endpoints check EnableLiveTvManagement with no administrator shortcut.
+    @Test func liveTvManagementFollowsItsOwnFlag() throws {
+        #expect(try user(policy: #", "EnableLiveTvManagement": true"#).canManageLiveTv)
+        #expect(try user(policy: #", "EnableLiveTvManagement": false"#).canManageLiveTv == false)
+        #expect(try user(policy: "").canManageLiveTv == false)
+        #expect(try user(policy: nil).canManageLiveTv == false)
     }
 }

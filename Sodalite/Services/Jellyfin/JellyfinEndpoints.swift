@@ -427,7 +427,8 @@ enum JellyfinEndpoint: APIEndpoint {
             var items = [
                 URLQueryItem(name: "UserId", value: userID),
                 URLQueryItem(name: "EnableImages", value: "true"),
-                URLQueryItem(name: "Fields", value: "Overview"),
+                // CanDelete gates the trash chip: the server folds in EnableContentDeletionFromFolders.
+                URLQueryItem(name: "Fields", value: "Overview,CanDelete"),
                 // userData.playbackPositionTicks drives resume, matching liveTvChannels.
                 URLQueryItem(name: "EnableUserData", value: "true"),
             ]
