@@ -52,8 +52,13 @@ struct ChannelListView: View {
         if model.channels.isEmpty, model.isLoading, model.loadError == nil, searchText.isEmpty {
             ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if model.channels.isEmpty, let error = model.loadError {
-            ContentUnavailableView("livetv.loadFailed.title", systemImage: "tv.slash",
-                                   description: Text(error))
+            ContentUnavailableView {
+                Label("livetv.loadFailed.title", systemImage: "tv.slash")
+            } description: {
+                Text(error)
+            } actions: {
+                Button("home.retry") { Task { await model.recover() } }
+            }
         } else {
             List {
                 Section {

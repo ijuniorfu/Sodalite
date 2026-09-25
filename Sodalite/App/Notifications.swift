@@ -18,6 +18,10 @@ extension Notification.Name {
     /// Posted whenever the set of Seerr requests changed (submitted, or removed from the catalog detail / by a cascading deletion) so CatalogView refreshes loaded request lists. Without it the list keeps its stale rows until an app restart.
     static let seerrRequestsDidChange = Notification.Name("seerrRequestsDidChange")
 
+    /// Posted by SeerrClient when Seerr answers 401 to the session cookie it still holds. CatalogView
+    /// re-probes the session and, if it is gone, drops to its "Set up Seerr" state.
+    static let seerrSessionRejected = Notification.Name("seerrSessionRejected")
+
     /// Posted after an admin approves/declines/deletes a request or the admin queue reloads its counts,
     /// so the pending-requests monitor recomputes the Catalog tab badge.
     static let seerrPendingRequestsShouldRefresh = Notification.Name("seerrPendingRequestsShouldRefresh")

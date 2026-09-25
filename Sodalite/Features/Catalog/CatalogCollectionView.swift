@@ -53,13 +53,15 @@ struct CatalogCollectionView: View {
         collection: SeerrCollectionRef,
         serviceDetails: SeerrServiceDetails? = nil,
         profileID: Int? = nil,
-        rootFolder: String? = nil
+        rootFolder: String? = nil,
+        implicitOptions: SeerrRequestDefaults.Implicit? = nil
     ) {
         self.collection = collection
         _options = State(initialValue: SeerrRequestOptions(
             details: serviceDetails,
             profileID: profileID,
-            rootFolder: rootFolder
+            rootFolder: rootFolder,
+            implicit: implicitOptions
         ))
     }
 
@@ -320,6 +322,7 @@ struct CatalogCollectionView: View {
     /// per movie too. Sequential rather than fanned out: a collection is a handful of titles, and a burst of parallel
     /// POSTs against a remote instance buys nothing but a contended request pool.
     private func submitMissing() async {
+        guard !isSubmitting else { return }
         let targets = missingParts
         guard !targets.isEmpty else { return }
 
@@ -336,10 +339,10 @@ struct CatalogCollectionView: View {
                     mediaType: .movie,
                     tmdbID: part.id,
                     seasons: nil,
-                    serverID: options.serverID,
-                    profileID: options.profileID,
-                    rootFolder: options.rootFolder,
-                    languageProfileID: options.languageProfileID,
+                    serverID: options.serverIDPayload,
+                    profileID: options.profileIDPayload,
+                    rootFolder: options.rootFolderPayload,
+                    languageProfileID: nil,
                     tags: options.tagsPayload
                 )
                 requested += 1

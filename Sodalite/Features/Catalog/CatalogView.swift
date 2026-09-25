@@ -11,6 +11,7 @@ struct CatalogView: View {
     @State private var selectedMedia: SeerrMedia?
     @State private var selectedFilter: CatalogFilter?
     @State private var selectedSection: Section = .discover
+    @State private var isRevalidatingSeerr = false
 
     private enum Section: Hashable {
         case discover, myRequests, allRequests
@@ -92,6 +93,9 @@ struct CatalogView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .seerrSessionRejected)) { _ in
+            Task { await revalidateSeerrSession() }
+        }
         .onChange(of: appState.activeUser?.id) { _, _ in
             // Profile switch: cached Seerr state (permission-scoped discover, prior-user My Requests) is stale; reset so bootstrap() rebuilds once Seerr reconnects.
             viewModel = nil
@@ -123,6 +127,32 @@ struct CatalogView: View {
             )
             viewModel = vm
             Task { await vm.loadDiscover() }
+        }
+    }
+
+    /// A 401 means the session may be gone (idle past Seerr's 30-day store TTL, or its user or session
+    /// table removed), and every Retry would repeat it. The launch's own probe decides: a rejected cookie
+    /// disconnects, which puts this tab on "Set up Seerr" and closes any detail cover above it.
+    private func revalidateSeerrSession() async {
+        guard appState.isSeerrConnected, !isRevalidatingSeerr else { return }
+        isRevalidatingSeerr = true
+        defer { isRevalidatingSeerr = false }
+        let userID = appState.activeUser?.id
+        let serverID = appState.activeServer?.id
+        let outcome = await dependencies.syncSeerrSession(
+            forJellyfinUserID: userID,
+            jellyfinServerID: serverID,
+            allowLegacyFallback: true
+        )
+        // A profile switch during the probe owns the Seerr state from here.
+        guard appState.activeUser?.id == userID, appState.activeServer?.id == serverID else { return }
+        switch outcome {
+        case .connected(let server, let user):
+            appState.setSeerrConnected(server: server, user: user)
+        case .invalidated, .notConfigured:
+            appState.disconnectSeerr()
+        case .transientFailure:
+            break
         }
     }
 

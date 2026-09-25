@@ -26,13 +26,7 @@ final class SeerrClient {
         endpoint: APIEndpoint,
         responseType: T.Type
     ) async throws -> T {
-        guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
-        let (data, _) = try await httpClient.requestData(
-            baseURL: baseURL,
-            endpoint: endpoint,
-            headers: headers
-        )
+        let (data, _) = try await send(endpoint)
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
@@ -41,24 +35,12 @@ final class SeerrClient {
     }
 
     func request(endpoint: APIEndpoint) async throws {
-        guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
-        _ = try await httpClient.requestData(
-            baseURL: baseURL,
-            endpoint: endpoint,
-            headers: headers
-        )
+        _ = try await send(endpoint)
     }
 
     /// Raw variant for endpoints whose 2xx responses aren't always the expected payload (POST /request answers 202 + error JSON when nothing is requestable); caller checks the status before decoding via `decode(_:from:)`.
     func requestData(endpoint: APIEndpoint) async throws -> (Data, HTTPURLResponse) {
-        guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
-        return try await httpClient.requestData(
-            baseURL: baseURL,
-            endpoint: endpoint,
-            headers: headers
-        )
+        try await send(endpoint)
     }
 
     func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
@@ -73,18 +55,33 @@ final class SeerrClient {
         endpoint: APIEndpoint,
         responseType: T.Type
     ) async throws -> (T, HTTPURLResponse) {
-        guard let baseURL else { throw APIError.invalidURL }
-        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
-        let (data, response) = try await httpClient.requestData(
-            baseURL: baseURL,
-            endpoint: endpoint,
-            headers: headers
-        )
+        let (data, response) = try await send(endpoint)
         do {
             let value = try decoder.decode(T.self, from: data)
             return (value, response)
         } catch {
             throw APIError.decodingError(error)
+        }
+    }
+
+    /// The one path every call takes. A 401 on the cookie this client still holds says Seerr no longer
+    /// knows the session, which no retry can fix, so it is announced for the Catalog to re-check the
+    /// session. A cookie swapped during the request (profile switch) belongs to someone else's verdict.
+    private func send(_ endpoint: APIEndpoint) async throws -> (Data, HTTPURLResponse) {
+        guard let baseURL else { throw APIError.invalidURL }
+        let sentCookie = endpoint.requiresAuth ? sessionCookie : nil
+        let headers = buildHeaders(requiresAuth: endpoint.requiresAuth)
+        do {
+            return try await httpClient.requestData(
+                baseURL: baseURL,
+                endpoint: endpoint,
+                headers: headers
+            )
+        } catch let error as APIError {
+            if case .unauthorized = error, let sentCookie, sentCookie == sessionCookie {
+                NotificationCenter.default.post(name: .seerrSessionRejected, object: self)
+            }
+            throw error
         }
     }
 
