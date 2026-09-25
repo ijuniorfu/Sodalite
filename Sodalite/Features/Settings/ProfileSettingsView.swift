@@ -371,16 +371,10 @@ struct ProfileSettingsView: View {
     }
 
     private func restoreSeerrForSwitchedProfile(userID: String, serverID: String) async {
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID
         )
-        if case .connected(let server, let user) = outcome {
-            appState.setSeerrConnected(server: server, user: user)
-            dependencies.scheduleRouteResolve()
-        } else {
-            appState.disconnectSeerr()
-        }
     }
 
     private func forget(_ user: RememberedUser) {

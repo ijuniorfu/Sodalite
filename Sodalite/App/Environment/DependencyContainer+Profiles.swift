@@ -22,7 +22,8 @@ extension DependencyContainer {
         /// The token was refused and no stored password could mint a new one. The profile, its
         /// credentials and the session pointers are gone from this device; the caller does the routing.
         case rejected(profileName: String?)
-        /// No answer (offline, server down, request cancelled). Nothing was changed.
+        /// No answer (offline, server down, request cancelled), or the answer came back after another
+        /// profile became active. Nothing was changed.
         case unreachable(any Error)
     }
 
@@ -48,14 +49,21 @@ extension DependencyContainer {
               let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
               (try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))) != nil
         else { return .noSession }
+        // Every verdict below is about this profile. One switched to during a round trip owns the
+        // pointers by then, and acting would save this profile's token over it or delete its slots.
+        let profile = ProfileRef(serverID: server.id, userID: userID)
+        let superseded = SessionCheck.unreachable(CancellationError())
 
         do {
-            return .valid(try await jellyfinAuthService.getCurrentUser())
+            let user = try await jellyfinAuthService.getCurrentUser()
+            return isActiveProfile(profile) ? .valid(user) : superseded
         } catch APIError.unauthorized {
+            guard isActiveProfile(profile) else { return superseded }
             if let recovered = await reauthenticateWithStoredPassword(server: server, userID: userID) {
                 sessionNote("token for \(recovered.name) on \(server.name) was refused, the stored password minted a fresh one.")
                 return .valid(recovered)
             }
+            guard isActiveProfile(profile) else { return superseded }
             let name = listRememberedUsers(serverID: server.id).first { $0.id == userID }?.name
             sessionNote("\(server.name) refused the saved sign-in for \(name ?? userID), dropping the profile.")
             dropActiveProfile(serverID: server.id, userID: userID)
@@ -79,7 +87,8 @@ extension DependencyContainer {
               ),
               let name = listRememberedUsers(serverID: server.id).first(where: { $0.id == userID })?.name,
               let auth = try? await jellyfinAuthService.login(username: name, password: password),
-              auth.user.id == userID
+              auth.user.id == userID,
+              isActiveProfile(ProfileRef(serverID: server.id, userID: userID))
         else { return nil }
         try? saveSession(server: server, user: auth.user, token: auth.accessToken, password: password)
         return auth.user

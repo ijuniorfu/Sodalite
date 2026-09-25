@@ -47,6 +47,10 @@ struct LaunchProfilePickerView: View {
                     .focusSectionCompat()
             }
             .focusScopeCompat(focusNamespace)
+            // The reprompt cover cannot be dismissed (AppRouter), so Menu is the same "continue as
+            // current" as tapping the active card, PIN included. On the root only: a pushed screen
+            // keeps its own Menu press for popping.
+            .onExitCommandIfEnabled(context == .reprompt) { continueAsCurrent() }
             .screenContentInset()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationDestination(isPresented: $navigateToAddProfile) {
@@ -276,8 +280,13 @@ struct LaunchProfilePickerView: View {
 
     // MARK: - Actions
 
+    private func continueAsCurrent() {
+        guard let current = rememberedUsers.first(where: { $0.id == activeSessionUserID }) else { return }
+        select(current)
+    }
+
     private func select(_ user: RememberedUser) {
-        // Reprompt context, active profile tapped: continue as current, same as a Menu dismiss.
+        // Reprompt context, active profile tapped (or Menu pressed): continue as current.
         // Nothing is activated, so an open or locked-in profile continues free, as before. An
         // entry-locked one does not: the reprompt asks because the person at the TV may have
         // changed, and waving the last active card through is the one way in that lock is for.
@@ -374,17 +383,11 @@ struct LaunchProfilePickerView: View {
 
     private func restoreSeerrForProfile(userID: String, serverID: String) async {
         // allowLegacyFallback mirrors AppRouter launch-restore: a pre-0.3.0 install on the picker has only the legacy global Seerr entry, else it never bridges to a scoped copy here.
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID,
             allowLegacyFallback: true
         )
-        if case .connected(let server, let user) = outcome {
-            appState.setSeerrConnected(server: server, user: user)
-            dependencies.scheduleRouteResolve()
-        } else {
-            appState.disconnectSeerr()
-        }
     }
 
     /// The profile the active session points at. `AppState.activeUser` may not be populated at the

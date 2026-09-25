@@ -58,7 +58,8 @@ final class DependencyContainer {
 
     let seerrClient: SeerrClient
     let seerrServerDiscoveryService: SeerrServerDiscoveryServiceProtocol
-    let seerrAuthService: SeerrAuthServiceProtocol
+    /// `var` only so a test can hold the Seerr round trip open across a profile switch.
+    var seerrAuthService: SeerrAuthServiceProtocol
     let seerrDiscoverService: SeerrDiscoverServiceProtocol
     let seerrMediaService: SeerrMediaServiceProtocol
     let seerrRequestService: SeerrRequestServiceProtocol
@@ -90,6 +91,10 @@ final class DependencyContainer {
     /// When each server's remembered profiles were last held against its user table (Sodalite#90),
     /// so the launch pass and the picker that comes up right behind it do not each ask.
     var lastProfileReconcile: [String: Date] = [:]
+
+    /// Bumped by every `syncSeerrSession`, so a call that a newer one overtook leaves the live
+    /// client alone after its await.
+    var seerrSyncGeneration = 0
 
     /// Dual-URL routing state. Routes are per active session; nil when the
     /// active server has no resolved route yet.
@@ -1358,8 +1363,16 @@ final class DependencyContainer {
         return CacheIdentity(serverID: serverID, userID: userID)
     }
 
-    private func activeProfileRef() -> ProfileRef? {
+    /// The profile the session is signed in as, from the keychain pointers every switch writes
+    /// before AppState follows. Capture it before an await and hand it to `isActiveProfile` after.
+    func activeProfileRef() -> ProfileRef? {
         activeSessionIdentity().map { ProfileRef(serverID: $0.serverID, userID: $0.userID) }
+    }
+
+    /// Whether `ref` is still the active profile. Anything acting on a session after an await asks
+    /// this first: a same-server profile switch raises no signal a task could be cancelled by.
+    func isActiveProfile(_ ref: ProfileRef?) -> Bool {
+        activeProfileRef() == ref
     }
 
     /// The lock role of the active session, or `.open` when there is no session yet.
@@ -1593,6 +1606,8 @@ final class DependencyContainer {
         jellyfinServerID: String?,
         allowLegacyFallback: Bool = false
     ) async -> SeerrSyncOutcome {
+        seerrSyncGeneration &+= 1
+        let generation = seerrSyncGeneration
         let scopedServer: SeerrServer? = {
             guard let jellyfinUserID, let jellyfinServerID else { return nil }
             return restoreSeerrSession(
@@ -1635,11 +1650,46 @@ final class DependencyContainer {
                     jellyfinServerID: jellyfinServerID
                 )
             }
-            try? clearSeerrSession()
+            // A newer sync has pointed the live client at the next profile's session by now.
+            if generation == seerrSyncGeneration { try? clearSeerrSession() }
             return .invalidated
         } catch {
             // Timeout / unreachable / cancellation: NOT a verdict on the cookie. Keep the entry + client configured, just don't mark connected.
             return .transientFailure
+        }
+    }
+
+    /// `syncSeerrSession` plus the AppState mapping every caller shares, applied only while the
+    /// profile it ran for is still the active one and no newer sync overtook it. A switch inside
+    /// the Seerr round trip (up to its 30 s timeout, Sodalite#122) otherwise landed the previous
+    /// profile's Seerr user, or its failure, on the profile switched to.
+    ///
+    /// `disconnectUnlessConnected` is false for the launch and outage passes, which only ever add
+    /// a connection they learned late.
+    func applySeerrSession(
+        forJellyfinUserID jellyfinUserID: String?,
+        jellyfinServerID: String?,
+        allowLegacyFallback: Bool = false,
+        disconnectUnlessConnected: Bool = true
+    ) async {
+        let profile = activeProfileRef()
+        if let jellyfinUserID, let jellyfinServerID,
+           profile != ProfileRef(serverID: jellyfinServerID, userID: jellyfinUserID) {
+            return
+        }
+        // The sync bumps the generation before its first await, so this is the value it runs under.
+        let generation = seerrSyncGeneration &+ 1
+        let outcome = await syncSeerrSession(
+            forJellyfinUserID: jellyfinUserID,
+            jellyfinServerID: jellyfinServerID,
+            allowLegacyFallback: allowLegacyFallback
+        )
+        guard generation == seerrSyncGeneration, isActiveProfile(profile) else { return }
+        if case .connected(let server, let user) = outcome {
+            appState?.setSeerrConnected(server: server, user: user)
+            scheduleRouteResolve()
+        } else if disconnectUnlessConnected {
+            appState?.disconnectSeerr()
         }
     }
 }

@@ -19,7 +19,7 @@ struct AppRouter: View {
     @State private var launchPickerServer: JellyfinServer?
 
     /// ContinuousClock (keeps counting through device sleep) instant of the last .background
-    /// entry; consumed on return to .active by maybeRequestProfileReprompt (issue #41).
+    /// entry; consumed on return to .active by consumeBackgroundInstant (issue #41).
     @State private var lastBackgroundedAt: ContinuousClock.Instant?
     /// Non-nil while the who's-watching cover is up: which server's profiles it offers and why it was
     /// raised (the periodic reprompt for the active server, or a switch to a server this device holds
@@ -71,6 +71,21 @@ struct AppRouter: View {
     /// profile picker here, or a `parentalGateHost()` surface such as the iOS Settings sheet.
     private var routerOwnsTheGate: Bool {
         profileCover == nil && dependencies.parentalGate.presenterStack.isEmpty
+    }
+
+    /// True while the who's-watching reprompt is up. A deep link or Continue Watching request waits
+    /// behind it and resolves for whoever it lets in: it used to drop the cover, and the link that
+    /// opened the app became a way past an entry-locked profile's only gate.
+    private var repromptHolds: Bool { profileCover?.context == .reprompt }
+
+    private struct PendingLink: Equatable {
+        let itemID: String?
+        let held: Bool
+    }
+
+    private struct PendingContinueWatching: Equatable {
+        let requested: Bool
+        let held: Bool
     }
 
     /// Refresh the pending-approval count and, on iOS, keep the app-icon badge + notifications in sync.
@@ -213,10 +228,11 @@ struct AppRouter: View {
             }
             await refreshSessionAfterOutage()
         }
-        .task(id: appState.pendingDeepLinkItemID) {
+        // Keyed on the hold too, so a link parked behind the reprompt resolves once it closes.
+        .task(id: PendingLink(itemID: appState.pendingDeepLinkItemID, held: repromptHolds)) {
             await resolvePendingDeepLink()
         }
-        .task(id: appState.requestContinueWatching) {
+        .task(id: PendingContinueWatching(requested: appState.requestContinueWatching, held: repromptHolds)) {
             await resolveContinueWatchingRequest()
         }
         // A switch to a server this device holds no resumable session for (Sodalite#74). Nothing was
@@ -240,12 +256,7 @@ struct AppRouter: View {
                 lastBackgroundedAt = ContinuousClock().now
             }
             guard scenePhase == .active else { return }
-            // Consume on every .active entry: a stale instant must never survive into a later task re-fire.
-            let backgroundedAt = lastBackgroundedAt
-            lastBackgroundedAt = nil
-            // Skip until the initial restore has run, so a cold launch does not re-prompt on top of it.
-            guard hasRestored else { return }
-            maybeRequestProfileReprompt(backgroundedAt: backgroundedAt)
+            consumeBackgroundInstant()
         }
         .task(id: appState.serverDidSwitch) {
             guard appState.serverDidSwitch > 0 else { return }
@@ -269,17 +280,11 @@ struct AppRouter: View {
                     // The probe carries the server's own name; re-stamp the caches so the switched-to identity is right on the next cold launch too.
                     dependencies.persistActiveUserName(user.name, userID: user.id, serverID: server.id)
                     // Restore the per-(server,user) Seerr session so Catalog reflects the new identity.
-                    let outcome = await dependencies.syncSeerrSession(
+                    await dependencies.applySeerrSession(
                         forJellyfinUserID: user.id,
                         jellyfinServerID: server.id
                     )
                     guard !Task.isCancelled else { return }
-                    if case .connected(let seerrServer, let seerrUser) = outcome {
-                        appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-                        dependencies.scheduleRouteResolve()
-                    } else {
-                        appState.disconnectSeerr()
-                    }
                     // Last, because it delays nothing the user is waiting for: the profiles of the
                     // server just switched to are a cache nobody has re-read since it was last
                     // active (Sodalite#90).
@@ -301,7 +306,7 @@ struct AppRouter: View {
                 }
             } catch {
                 // Cancellation is never a verdict on the target server: a superseded switch cancels this task and URLSession throws, which we must not misread as a transport failure and roll back the user's NEWER pick.
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled, !(error is CancellationError) else { return }
                 // Avoid rollback loops: if appState already holds the active server (just rolled back, probe still failing), let the failure stand for the next user action to surface.
                 if let previous = appState.activeServer,
                    previous.id != dependencies.activeServer?.id {
@@ -361,6 +366,9 @@ struct AppRouter: View {
                 onFinished: { profileCover = nil }
             )
             .themedPresentationBackground()
+            // Menu would close the reprompt as "continue as current" without the entry lock's PIN.
+            // The picker routes that press through its gated select instead.
+            .interactiveDismissDisabled(cover.context == .reprompt)
             // The AppRouter-level PIN cover can't stack on this cover (one cover per host view),
             // so the gate presents from inside while this one is up.
             .fullScreenCover(item: Binding(
@@ -387,6 +395,8 @@ struct AppRouter: View {
     /// Feeds the active user's first Resume item through the deep-link channel. Triggered by ContinueWatchingIntent; the intent stays trivial to respect tvOS-Siri's "no async work" voice-invocation policy.
     private func resolveContinueWatchingRequest() async {
         guard appState.requestContinueWatching else { return }
+        // Left armed: the task re-fires when the reprompt closes and asks for the profile it let in.
+        guard !holdForReprompt() else { return }
 
         // Cold-launch wait (Siri may hand control before restoreSession finishes), 8s cap so a fresh install / picker doesn't poll for the process lifetime and pop a sheet minutes later.
         let waitDeadline = Date().addingTimeInterval(8)
@@ -449,10 +459,12 @@ struct AppRouter: View {
             appState.isResolvingDeepLink = false
             return
         }
+        // The pending id stays: this task re-fires when the reprompt closes, for the profile it let in.
+        guard !holdForReprompt() else { return }
         // Dismiss any active player before the new sheet (TopShelf often fires over a backgrounded paused player, else its modal stays on top of the new cover). Two-step: (1) bump requestPlayerDismissal so detail views flip showPlayer (keeps the binding path consistent on return); (2) walk the modal chain to dismiss PlayerHostController directly, since binding-driven dismiss proved unreliable across scene-foreground.
-        // A deep link is deliberate navigation: drop the profile cover (continue as current profile,
-        // abandon a pending server switch) and cancel any PIN challenge started from it, else its
-        // continuation later runs a stale switch.
+        // A deep link is deliberate navigation: drop a server-switch cover (abandon the pending
+        // switch) and cancel any PIN challenge started from it, else its continuation later runs a
+        // stale switch. The reprompt never gets here, see holdForReprompt.
         if profileCover != nil {
             profileCover = nil
             if dependencies.parentalGate.activeRequest != nil {
@@ -479,14 +491,30 @@ struct AppRouter: View {
         appState.pendingDeepLinkItemID = nil
     }
 
-    /// Caller consumes lastBackgroundedAt on every .active entry (a player dismissal re-fires the
-    /// scenePhase task while still .active, and must not re-prompt); this only decides whether to
-    /// arm the cover.
+    /// Consumed on every .active entry (a player dismissal re-fires the scenePhase task while still
+    /// .active, and must not re-prompt), and by a deep link that got here first: the URL and the
+    /// phase change arrive in either order, and the link must not be resolved ahead of the reprompt
+    /// the same return to the app is due.
+    private func consumeBackgroundInstant() {
+        let backgroundedAt = lastBackgroundedAt
+        lastBackgroundedAt = nil
+        // Skip until the initial restore has run, so a cold launch does not re-prompt on top of it.
+        guard hasRestored else { return }
+        maybeRequestProfileReprompt(backgroundedAt: backgroundedAt)
+    }
+
+    /// Whether a deep link or Continue Watching request has to wait for the reprompt.
+    private func holdForReprompt() -> Bool {
+        if lastBackgroundedAt != nil { consumeBackgroundInstant() }
+        return repromptHolds
+    }
+
+    /// Only decides whether to arm the cover; `consumeBackgroundInstant` owns the instant.
     private func maybeRequestProfileReprompt(backgroundedAt: ContinuousClock.Instant?) {
         guard let backgroundedAt else { return }
-        // Never arm over a sibling cover (one fullScreenCover per host view) or a deep link in flight.
-        guard deepLinkPresentation == nil, !nowPlaying.isPresented, !showWhatsNew, profileCover == nil,
-              appState.pendingDeepLinkItemID == nil, !appState.isResolvingDeepLink
+        // Never arm over a sibling cover (one fullScreenCover per host view). A deep link in flight
+        // does not stop it, it waits behind it.
+        guard deepLinkPresentation == nil, !nowPlaying.isPresented, !showWhatsNew, profileCover == nil
         else { return }
         guard let server = appState.activeServer else { return }
         let should = ProfileRepromptPolicy.shouldReprompt(
@@ -579,15 +607,12 @@ struct AppRouter: View {
         // screen for a full thirty second timeout before the tab bar existed. Catalog already reacts
         // to the connection landing late, since it keys on `appState.isSeerrConnected`.
         Task { @MainActor in
-            let seerrOutcome = await dependencies.syncSeerrSession(
+            await dependencies.applySeerrSession(
                 forJellyfinUserID: appState.activeUser?.id,
                 jellyfinServerID: appState.activeServer?.id,
-                allowLegacyFallback: true
+                allowLegacyFallback: true,
+                disconnectUnlessConnected: false
             )
-            if case .connected(let seerrServer, let seerrUser) = seerrOutcome {
-                appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-                dependencies.scheduleRouteResolve()
-            }
         }
     }
 
@@ -604,16 +629,12 @@ struct AppRouter: View {
 
         // allowLegacyFallback matches the launch call: a pre-0.3.0 install whose first launch of the
         // day happened off the network must still get its Seerr session back here.
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: appState.activeUser?.id,
             jellyfinServerID: appState.activeServer?.id,
-            allowLegacyFallback: true
+            allowLegacyFallback: true,
+            disconnectUnlessConnected: false
         )
-        guard !Task.isCancelled else { return }
-        if case .connected(let seerrServer, let seerrUser) = outcome {
-            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-            dependencies.scheduleRouteResolve()
-        }
     }
 
     /// The first thing a restored session asks the server: who this token resolves to (the Policy
