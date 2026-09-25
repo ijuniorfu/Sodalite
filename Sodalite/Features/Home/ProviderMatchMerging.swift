@@ -12,4 +12,14 @@ enum ProviderMatchMerging {
             .sorted { $0.name < $1.name }
         return phase1 + extras
     }
+
+    /// Cross-type key for a library item's TMDB id, matching `SeerrMedia.stableKey`'s
+    /// `"movie-\(id)"` / `"tv-\(id)"` rule: TMDB reuses numeric ids across the movie and tv
+    /// namespaces, so a bare `Int` key let an unrelated show's watch-provider id match a library
+    /// movie, or one of two same-id items silently drop out of the phase 2 augment (Audit
+    /// 2026-09-25 BROWSE-5). Shared by both tmdbMap builds (FilteredGridView, the provider
+    /// precompute) so the two can't drift on which side of the movie/tv split an item lands.
+    nonisolated static func tmdbKey(type: ItemType, tmdbID: Int) -> String {
+        "\(type == .series ? "tv" : "movie")-\(tmdbID)"
+    }
 }

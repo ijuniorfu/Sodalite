@@ -64,8 +64,24 @@ struct DiagnosticLogView: View {
         #endif
     }()
 
+    /// Stable per-line id derived from `sequenceNumber`, not the array offset (Audit 2026-09-25
+    /// DIAG-8): once the 300-line ring starts evicting from the front, an offset-based id shifts by
+    /// one on every new line, and `lines.count` itself stops changing, so a view keyed on either one
+    /// stops noticing new lines arrive at all. `sequenceNumber` keeps climbing regardless, and a
+    /// line's distance from the newest end of the buffer is unaffected by eviction at the other end,
+    /// so the id stays fixed for a given line both while the buffer is still growing and once
+    /// eviction starts. Internal (not private) so it can be pinned directly in tests.
+    static func lineID(sequenceNumber: Int, lineCount: Int, offset: Int) -> Int {
+        sequenceNumber - lineCount + offset + 1
+    }
+
     private var lines: [LogLine] {
-        tap.lines.enumerated().map { LogLine(id: $0.offset, text: $0.element) }
+        tap.lines.enumerated().map {
+            LogLine(
+                id: Self.lineID(sequenceNumber: tap.sequenceNumber, lineCount: tap.lines.count, offset: $0.offset),
+                text: $0.element
+            )
+        }
     }
 
     private var blocks: [[LogLine]] {
@@ -106,7 +122,9 @@ struct DiagnosticLogView: View {
                 #endif
                 scrollToEnd(proxy)
             }
-            .onChange(of: tap.lines.count) { _, _ in scrollToEnd(proxy) }
+            // sequenceNumber, not lines.count: the count pins at 300 once the ring starts evicting,
+            // so this stopped firing for every line after the first full session (DIAG-8).
+            .onChange(of: tap.sequenceNumber) { _, _ in scrollToEnd(proxy) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .hidesNavigationBarChrome()

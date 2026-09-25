@@ -152,4 +152,53 @@ struct HomeForegroundRefreshTests {
 
         #expect(service.resumeCalls == 1, "a covered Home fanned out behind the cover")
     }
+
+    /// Audit 2026-09-25 BROWSE-1. A change learned about while Home is covered (a favorite, a
+    /// watched toggle, playback progress, a delete) only patches in place; `markDirty` records that
+    /// the shelf may now be structurally wrong so the gate forces a refetch on the next ask,
+    /// regardless of the age window, instead of being read as "fresh, leave it".
+    @Test("dirty forces a refetch even inside the freshness window")
+    func dirtyForcesRefetchInsideWindow() {
+        let now = Date()
+        let fresh = now.addingTimeInterval(-5)
+
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: fresh, covered: false, dirty: true, now: now)
+            == .refetch(ageSeconds: 5))
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: fresh, covered: false, dirty: false, now: now)
+            == .fresh(ageSeconds: 5))
+    }
+
+    /// Covered still outranks dirty: the one refresh a cover's dismissal delivers must not be spent
+    /// while something is still covering Home.
+    @Test("covered wins over dirty")
+    func coveredWinsOverDirty() {
+        let now = Date()
+        let fresh = now.addingTimeInterval(-5)
+
+        #expect(HomeViewModel.refreshDecision(lastLoadedAt: fresh, covered: true, dirty: true, now: now)
+            == .covered(ageSeconds: 5))
+    }
+
+    /// End to end on the view model: `markDirty` alone does not fetch (the patch already made the
+    /// tile right), the next `refreshIfStale` picks it up as a forced refetch, and it does not fire
+    /// twice for the same change.
+    @Test("markDirty is picked up by exactly the next refreshIfStale")
+    func markDirtyIsConsumedOnce() async {
+        let identity = makeIdentity()
+        defer { forget(identity) }
+
+        let service = CountingService(resumeItems: [JellyfinItem(seriesStub: "m1", name: "m1")])
+        let viewModel = makeViewModel(service: service, identity: identity)
+        await viewModel.loadContent()
+        #expect(service.resumeCalls == 1, "precondition: the first load fetched")
+
+        viewModel.markDirty()
+        #expect(service.resumeCalls == 1, "markDirty alone fetched instead of just recording the change")
+
+        await viewModel.refreshIfStale(trigger: .coverDismissed)
+        #expect(service.resumeCalls == 2, "the dismissal did not pick up the dirty flag")
+
+        await viewModel.refreshIfStale(trigger: .coverDismissed)
+        #expect(service.resumeCalls == 2, "the dirty flag was not cleared after being consumed")
+    }
 }

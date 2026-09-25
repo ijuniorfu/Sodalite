@@ -265,6 +265,16 @@ final class DetailViewModel {
             return
         }
         seasons = response.items
+        let survivingSeasonIDs = Set(seasons.map(\.id))
+
+        // The season Next Up was pointing at is gone: without this, Play kept the deleted episode
+        // as its target (prefetched PlaybackInfo included) and launched a file the server just
+        // removed (Audit 2026-09-25 BROWSE-7).
+        if let nextUpSeasonID = nextUpEpisode?.seasonId, !survivingSeasonIDs.contains(nextUpSeasonID) {
+            if currentEpisodeID == nextUpEpisode?.id { currentEpisodeID = nil }
+            if cachedPlaybackInfo?.itemID == nextUpEpisode?.id { cachedPlaybackInfo = nil }
+            nextUpEpisode = nil
+        }
 
         // Keep the selected season if it survived, else the first remaining.
         let survivingSelection = selectedSeasonID.flatMap { id in

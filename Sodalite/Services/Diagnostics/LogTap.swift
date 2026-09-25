@@ -43,6 +43,13 @@ final class LogTap: ObservableObject {
 
     @Published private(set) var lines: [String] = []
 
+    /// Count of every line ever appended, never reset except by `clear()`. `lines.count` pins at
+    /// `maxLines` once the ring starts evicting from the front, so a view keyed on it (row identity,
+    /// `onChange`) stops noticing new lines arrive at all (Audit 2026-09-25 DIAG-8). This keeps
+    /// climbing regardless, and a line's id derived from it (`sequenceNumber` minus its distance from
+    /// the end) stays stable across both plain growth and eviction: see DiagnosticLogView.
+    @Published private(set) var sequenceNumber = 0
+
     // 300: holds a full HLS-wrapper session start (init.mp4 dump + m3u8 bodies + per-request logs) through the eventual AVPlayer failure; the previous 80 rolled the init.mp4 summary off before the failure landed.
     private let maxLines = 300
 
@@ -74,6 +81,7 @@ final class LogTap: ObservableObject {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.lines.append(line)
+                self.sequenceNumber += 1
                 if self.lines.count > self.maxLines {
                     self.lines.removeFirst(self.lines.count - self.maxLines)
                 }
@@ -168,13 +176,27 @@ final class LogTap: ObservableObject {
                 FileManager.default.createFile(atPath: url.path, contents: nil)
             }
         }
-        LogTap.shared.note("[LogTap] file sink armed at \(url.path)")
+        // environmentLine on its own (SodaliteApp.init) is noted before fileSinkEnabled is set, so
+        // it never reached the file; carrying it here instead covers both the launch path and the
+        // mid-session toggle, so every persisted segment names the build that wrote it
+        // (Audit 2026-09-25 DIAG-5, the AetherPlayer#7 failure mode environmentLine exists to
+        // prevent).
+        LogTap.shared.note("[LogTap] file sink armed at \(url.path) | \(environmentLine)")
     }
 
     nonisolated private func appendToFile(_ line: String) {
-        guard let url = Self.fileSinkURL, let rotated = Self.rotatedFileSinkURL else { return }
-        Self.fileQueue.async {
-            Self.append(line, to: url, rotatingTo: rotated, segmentBytes: Self.fileSegmentBytes)
+        Self.appendPreformattedLinesToFileSink([line])
+    }
+
+    /// Writes already-stamped, already-redacted lines straight to the file sink, bypassing
+    /// `note(_:)`'s own stamp+redact pass (for lines that already carry both, e.g. imported Top
+    /// Shelf lines in `importShelfLines`). No-op when the sink is off.
+    nonisolated static func appendPreformattedLinesToFileSink(_ lines: [String]) {
+        guard fileSinkEnabled, let url = fileSinkURL, let rotated = rotatedFileSinkURL else { return }
+        fileQueue.async {
+            for line in lines {
+                append(line, to: url, rotatingTo: rotated, segmentBytes: fileSegmentBytes)
+            }
         }
     }
 
@@ -213,10 +235,17 @@ final class LogTap: ObservableObject {
         DispatchQueue.global(qos: .utility).async {
             let imported = file.drain()
             guard !imported.isEmpty else { return }
+            // Already stamped and redacted, so this skips note(_:) for the same re-stamping reason
+            // as the ring merge below, but that meant these lines never reached the persisted file
+            // either: once they rolled off the 300-line ring they were gone for good, in exactly the
+            // case (the extension runs while the app is backgrounded) the sink exists to hold
+            // (Audit 2026-09-25 DIAG-6).
+            Self.appendPreformattedLinesToFileSink(imported)
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
                     let tap = LogTap.shared
                     tap.lines = LogTap.merged(tap.lines, imported, limit: tap.maxLines)
+                    tap.sequenceNumber += imported.count
                 }
             }
         }
@@ -250,6 +279,7 @@ final class LogTap: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             MainActor.assumeIsolated {
                 self?.lines.removeAll()
+                self?.sequenceNumber = 0
             }
         }
     }

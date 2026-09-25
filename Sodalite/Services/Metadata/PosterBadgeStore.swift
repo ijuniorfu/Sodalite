@@ -79,9 +79,13 @@ final class PosterBadgeStore {
             await fetchBatch(Array(direct[start..<min(start + Self.batchSize, direct.count)]), userID: userID)
         }
         // Series go one at a time on purpose: a sample cannot be batched with another series', and
-        // the request limiter is strict FIFO without a priority lane (Sodalite#72), so a fan-out
-        // here would put a user's tap behind twenty background reads.
+        // this chain is what keeps a screenful of rows from firing off ten badge samples at once
+        // (the limiter's background lane, Sodalite#72/AsyncSemaphore.swift:9-19, only orders what's
+        // already queued). Re-checked every iteration: `.task(id:)` cancelling mid-chain (scroll
+        // away, profile switch, the setting turned off) must stop enqueueing new samples, not just
+        // skip writing the ones already in flight (Audit 2026-09-25 NETWORK-5).
         for id in series {
+            guard !Task.isCancelled, isEnabled() else { return }
             await enqueueSample(id, userID: userID)
         }
     }
@@ -111,7 +115,15 @@ final class PosterBadgeStore {
             await self?.sampleSeries(seriesID, userID: userID)
         }
         seriesTail = sample
-        await sample.value
+        // `sample` is unstructured and does not inherit this call's cancellation on its own
+        // (Audit 2026-09-25 NETWORK-5): without the handler, a `.task(id:)` cancelling here left
+        // this one sample (and, transitively via `previous`, the whole remaining chain) running to
+        // completion against the shared limiter.
+        await withTaskCancellationHandler {
+            await sample.value
+        } onCancel: {
+            sample.cancel()
+        }
     }
 
     private func sampleSeries(_ seriesID: String, userID: String) async {

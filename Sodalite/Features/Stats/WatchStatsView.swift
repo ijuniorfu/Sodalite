@@ -23,13 +23,23 @@ struct WatchStatsView: View {
             DetailRouterView(item: item)
         }
         .task {
-            guard viewModel == nil, let userID = appState.activeUser?.id else { return }
-            let vm = WatchStatsViewModel(
-                libraryService: dependencies.jellyfinLibraryService,
-                imageService: dependencies.jellyfinImageService,
-                userID: userID
-            )
-            viewModel = vm
+            guard let userID = appState.activeUser?.id else { return }
+            let vm: WatchStatsViewModel
+            if let existing = viewModel {
+                vm = existing
+            } else {
+                vm = WatchStatsViewModel(
+                    libraryService: dependencies.jellyfinLibraryService,
+                    imageService: dependencies.jellyfinImageService,
+                    userID: userID
+                )
+                viewModel = vm
+            }
+            // A cancel mid-scan (tvOS keeps this view's @State alive across a tab switch but still
+            // cancels and re-fires .task) leaves stats nil with no error, sticking the spinner
+            // forever on return. Rerun on the same view model instead of the one-shot guard this
+            // used to be (Audit 2026-09-25 DIAG-4).
+            guard vm.stats == nil, vm.errorMessage == nil else { return }
             await vm.loadStats()
         }
     }
