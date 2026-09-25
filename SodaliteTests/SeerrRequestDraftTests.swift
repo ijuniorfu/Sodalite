@@ -222,8 +222,92 @@ struct SeerrRequestDraftTests {
         #expect(call.serverID == 3)
         #expect(call.profileID == 8)
         #expect(call.rootFolder == "/tv-4k")
-        #expect(call.languageProfileID == 9)
+        #expect(call.languageProfileID == nil)
         #expect(call.tags == [1, 2])
+    }
+
+    // MARK: - Routing left to Seerr (audit 2026-09-25 CL-2)
+
+    private func resolvedOptions(_ config: ConfigSpy) async -> SeerrRequestOptions {
+        let options = SeerrRequestOptions()
+        await options.load(service: config, mediaType: .tv)
+        return options
+    }
+
+    private func defaultConfig() -> ConfigSpy {
+        let config = ConfigSpy()
+        config.servers = [SeerrServiceServer(
+            id: 3, name: "Sonarr", isDefault: true, is4k: false,
+            activeProfileId: 7, activeDirectory: "/tv", activeLanguageProfileId: 9
+        )]
+        config.sonarrDetailsToReturn = details()
+        return config
+    }
+
+    /// Any routing field Seerr receives is an override: it replaces the anime profile and folder, the
+    /// Override Rules and the tier's default server. Untouched defaults therefore stay out of the body.
+    @Test func untouchedDefaultsLeaveTheRoutingToSeerr() async {
+        let draft = SeerrRequestDraft(mediaType: .tv, tmdbID: 42, options: await resolvedOptions(defaultConfig()))
+        #expect(draft.options.profileID == 7)
+        draft.seasons = [season(1)]
+        draft.toggle(1)
+        let spy = CreateSpy()
+        _ = await draft.submit(service: spy)
+
+        let call = spy.calls[0]
+        #expect(call.serverID == nil)
+        #expect(call.profileID == nil)
+        #expect(call.rootFolder == nil)
+        #expect(call.languageProfileID == nil)
+    }
+
+    @Test func onlyWhatTheUserChangedIsSent() async {
+        let draft = SeerrRequestDraft(mediaType: .tv, tmdbID: 42, options: await resolvedOptions(defaultConfig()))
+        draft.options.profileID = 8
+        draft.seasons = [season(1)]
+        draft.toggle(1)
+        let spy = CreateSpy()
+        _ = await draft.submit(service: spy)
+
+        let call = spy.calls[0]
+        #expect(call.serverID == nil)
+        #expect(call.profileID == 8)
+        #expect(call.rootFolder == nil)
+    }
+
+    /// A stale configured profile would fail in Sonarr, so the validated fallback does go out.
+    @Test func aValidatedFallbackIsStillSent() async {
+        let config = defaultConfig()
+        config.servers = [SeerrServiceServer(
+            id: 3, name: "Sonarr", isDefault: true, is4k: false,
+            activeProfileId: 999, activeDirectory: "/tv", activeLanguageProfileId: 9
+        )]
+        config.sonarrDetailsToReturn = details(activeProfileID: 999)
+        let options = await resolvedOptions(config)
+        #expect(options.profileIDPayload == 7)
+        #expect(options.rootFolderPayload == nil)
+    }
+
+    /// The request goes out without `is4k`, so the 4K default listed first must not be the server whose
+    /// options are shown, or whose id is sent.
+    @Test func theFourKDefaultIsNotTheStandardRequestsServer() {
+        let uhd = SeerrServiceServer(id: 1, name: "4K", isDefault: true, is4k: true,
+                                     activeProfileId: 1, activeDirectory: "/4k", activeLanguageProfileId: nil)
+        let hd = SeerrServiceServer(id: 2, name: "HD", isDefault: true, is4k: false,
+                                    activeProfileId: 2, activeDirectory: "/hd", activeLanguageProfileId: nil)
+        #expect(SeerrRequestDefaults.chooseServer(from: [uhd, hd])?.id == 2)
+    }
+
+    /// Without a non-4K default Seerr would drop the request, so the server Sodalite fell back to is named.
+    @Test func aFallbackServerIsNamedInTheRequest() async {
+        let config = defaultConfig()
+        config.servers = [SeerrServiceServer(
+            id: 3, name: "Sonarr", isDefault: false, is4k: false,
+            activeProfileId: 7, activeDirectory: "/tv", activeLanguageProfileId: 9
+        )]
+        let options = await resolvedOptions(config)
+        #expect(options.serverIDPayload == 3)
+        #expect(options.profileIDPayload == nil)
     }
 
     /// Older Jellyseerr has no tags field, so "no tags" has to be absent, not an empty array.

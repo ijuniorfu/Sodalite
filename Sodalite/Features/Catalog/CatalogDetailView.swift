@@ -99,7 +99,8 @@ struct CatalogDetailView: View {
                 collection: collection,
                 serviceDetails: draft.options.details,
                 profileID: draft.options.profileID,
-                rootFolder: draft.options.rootFolder
+                rootFolder: draft.options.rootFolder,
+                implicitOptions: draft.options.implicit
             )
                 .detailCoverPush()
         }
