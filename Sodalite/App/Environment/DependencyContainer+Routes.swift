@@ -53,7 +53,7 @@ extension DependencyContainer {
             internalURL: server.internalURL,
             externalURL: server.externalURL,
             lastKnown: serverRouteStore.lastRoute(serverID: server.id),
-            probe: jellyfinProbe
+            probe: { [jellyfinProbe, id = server.id] in await jellyfinProbe($0, id) }
         ) else { return optimistic }
         serverRouteStore.setLastRoute(resolved.route, serverID: server.id)
         client.baseURL = resolved.url
@@ -72,7 +72,7 @@ extension DependencyContainer {
             internalURL: server.internalURL,
             externalURL: server.externalURL,
             lastKnown: serverRouteStore.lastRoute(serverID: server.id),
-            probe: jellyfinProbe
+            probe: { [jellyfinProbe, id = server.id] in await jellyfinProbe($0, id) }
         ) else { return }
         guard !Task.isCancelled else { return }
 
@@ -82,7 +82,7 @@ extension DependencyContainer {
         // an error before its first row landed. Paid only on the failure path, and only once.
         var isReachable = resolved.isReachable
         if !isReachable {
-            isReachable = await ServerProbe.jellyfin(resolved.url)
+            isReachable = await jellyfinProbe(resolved.url, server.id)
             guard !Task.isCancelled else { return }
         }
         publishReachability(url: resolved.url, isReachable: isReachable, server: server)

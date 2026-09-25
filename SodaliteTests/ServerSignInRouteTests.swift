@@ -22,7 +22,7 @@ struct ServerSignInRouteTests {
         try container.addServer(JellyfinServer(
             id: serverID, name: "Home", internalURL: internalURL, externalURL: externalURL
         ))
-        container.jellyfinProbe = { url in reachable.contains(url) }
+        container.jellyfinProbe = { url, _ in reachable.contains(url) }
         return container
     }
 
@@ -98,5 +98,43 @@ struct ServerSignInRouteTests {
     /// carry no token even from a client that has one.
     @Test func quickConnectAuthenticateCarriesNoToken() {
         #expect(!JellyfinEndpoint.quickConnectAuthenticate(secret: "s").requiresAuth)
+    }
+
+    /// Audit 2026-09-25 NETWORK-2: the probe is asked for THIS server, so a host at the LAN address
+    /// on another network that is some other server loses the route to the external slot.
+    @Test func theProbeIsAskedForThisServersIdentity() async throws {
+        let container = try container(answering: [])
+        let expectedID = serverID
+        let internalURL = internalURL, externalURL = externalURL
+        container.jellyfinProbe = { url, id in
+            url == externalURL || (url == internalURL && id != expectedID)
+        }
+        let server = try #require(container.listKnownServers().first)
+
+        let resolved = await container.resolveSignInRoute(
+            for: server, client: container.makeSignInClient(for: server))
+
+        #expect(resolved == externalURL)
+    }
+}
+
+/// Audit 2026-09-25 NETWORK-2: which `System/Info/Public` answers name the stored server.
+@Suite("A route probe checks who answered")
+struct ServerProbeIdentityTests {
+    private let id = "0f1e2d3c4b5a69788796a5b4c3d2e1f0"
+
+    @Test func theSameServerIsRecognised() {
+        #expect(ServerProbe.identifies(Data(#"{"Id":"0f1e2d3c4b5a69788796a5b4c3d2e1f0","ServerName":"Home"}"#.utf8), as: id))
+        #expect(ServerProbe.identifies(Data(#"{"Id":"0F1E2D3C-4B5A-6978-8796-A5B4C3D2E1F0"}"#.utf8), as: id))
+    }
+
+    @Test("another server, a page without an id, or no JSON at all is not this server", arguments: [
+        #"{"Id":"ffffffffffffffffffffffffffffffff"}"#,
+        #"{"ServerName":"Home"}"#,
+        "<html>Router login</html>",
+        "",
+    ])
+    func somethingElseIsNot(body: String) {
+        #expect(!ServerProbe.identifies(Data(body.utf8), as: id))
     }
 }

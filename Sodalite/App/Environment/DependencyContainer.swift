@@ -97,9 +97,11 @@ final class DependencyContainer {
     /// When each server was added and when its URL slots were last edited, which is what a removal
     /// tombstone and a URL edit have to outrank a stale republish with.
     let serverSyncMetadata: ServerSyncMetadataStore
-    /// How a Jellyfin address is asked whether it answers. A stored closure so the sign-in route
-    /// can be tested without a network; the app never replaces it.
-    var jellyfinProbe: @Sendable (URL) async -> Bool = { await ServerProbe.jellyfin($0) }
+    /// How a Jellyfin address is asked whether it answers AS the server with this id. A stored
+    /// closure so the sign-in route can be tested without a network; the app never replaces it.
+    var jellyfinProbe: @Sendable (URL, String) async -> Bool = {
+        await ServerProbe.jellyfin($0, expectedServerID: $1)
+    }
     var activeJellyfinRoute: ServerRoute?
     var activeSeerrRoute: ServerRoute?
     var routeResolveTask: Task<Void, Never>?
