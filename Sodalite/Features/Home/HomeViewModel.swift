@@ -343,8 +343,11 @@ final class HomeViewModel {
                 group.addTask { [weak self] in await self?.fetch(entry) ?? .empty }
             }
             for await result in group {
-                // Stale guard: a newer loadContent superseded this; drop the rest so we don't fight it for the rows array.
-                guard loadGeneration == myGen else { return }
+                // Stale guard: a newer loadContent superseded this; drop the rest so we don't fight it for the rows array. A `withTaskGroup` body returning does not cancel the remaining children on its own, so without cancelAll() every row fetch of the superseded generation keeps running to completion on the shared limiter (Audit 2026-09-25 BROWSE-2).
+                guard loadGeneration == myGen else {
+                    group.cancelAll()
+                    return
+                }
                 switch result {
                 case .media(let row):
                     if let idx = rows.firstIndex(where: { $0.id == row.id }) {
