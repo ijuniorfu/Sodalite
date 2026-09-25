@@ -15,7 +15,7 @@ struct ServerDiscoveryInfo: Sendable {
     let version: String
 }
 
-private struct DiscoveredServer: Sendable {
+private struct DiscoveredJellyfin: Sendable {
     let info: ServerDiscoveryInfo
     let url: URL
 }
@@ -30,17 +30,17 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
     func discoverServer(input: String) async -> ServerDiscoveryResult {
         let candidates = buildCandidateURLs(from: input)
         let started = ContinuousClock.now
+        let infoPath = JellyfinEndpoint.publicInfo.path
 
         let verdicts = await DiscoveryProbeRace.run(candidates: candidates) { [httpClient] url in
             await DiscoveryProbeRace.attempt(
                 label: "jellyfin",
                 url: url,
-                describe: { (found: DiscoveredServer) in "\(found.info.serverName) v\(found.info.version)" }
+                describe: { (found: DiscoveredJellyfin) in "\(found.info.serverName) v\(found.info.version)" }
             ) {
-                let endpoint = JellyfinEndpoint.publicInfo
                 let (data, response) = try await httpClient.requestData(
                     baseURL: url,
-                    endpoint: endpoint,
+                    endpoint: JellyfinEndpoint.publicInfo,
                     headers: ["Accept": "application/json"]
                 )
                 let serverInfo: JellyfinPublicServerInfo
@@ -55,9 +55,9 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
                     serverName: serverInfo.serverName ?? "Jellyfin",
                     version: serverInfo.version ?? ""
                 )
-                return DiscoveredServer(
+                return DiscoveredJellyfin(
                     info: info,
-                    url: Self.upgradedBaseURL(candidate: url, finalURL: response.url, endpointPath: endpoint.path)
+                    url: Self.upgradedBaseURL(candidate: url, finalURL: response.url, endpointPath: infoPath)
                 )
             }
         }
