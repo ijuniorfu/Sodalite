@@ -96,6 +96,47 @@ struct ProfilePINTests {
         #expect(container.pinLockout(for: .guardian) == nil)
     }
 
+    @Test("Profile doors share one budget for the Guardian PIN, the Guardian door keeps its own")
+    func guardianBudgetIsSharedAcrossProfileDoors() throws {
+        let container = try makeHousehold(["mum", "dad", "family"])
+        let mum = ProfileRef(serverID: "A", userID: "mum")
+        let dad = ProfileRef(serverID: "A", userID: "dad")
+
+        try container.saveGuardianPIN("9999")
+
+        for _ in 0..<3 { _ = container.verifyPIN("0000", for: .profile(mum)) }
+        #expect(container.verifyPIN("0001", for: .profile(dad)) == .wrong(remainingBeforeLockout: 1))
+        if case .lockedOut = container.verifyPIN("0002", for: .profile(dad)) {} else {
+            Issue.record("the fifth guess across two doors did not lock out")
+        }
+
+        // Every door without an own PIN is closed now, the right PIN included.
+        #expect(container.pinLockout(for: .profile(mum)) != nil)
+        if case .success = container.verifyPIN("9999", for: .profile(mum)) {
+            Issue.record("a profile door took the Guardian PIN past the shared lockout")
+        }
+        #expect(container.pinLockout(for: .guardian) == nil)
+        #expect(container.verifyPIN("9999", for: .guardian) == .success)
+    }
+
+    @Test("Past the shared lockout a profile door still takes its own PIN, never the Guardian PIN")
+    func ownPINSurvivesTheSharedLockout() throws {
+        let container = try makeHousehold(["family", "dad"])
+        let family = ProfileRef(serverID: "A", userID: "family")
+        let dad = ProfileRef(serverID: "A", userID: "dad")
+
+        try container.saveGuardianPIN("9999")
+        try container.saveOwnPIN("1111", for: family)
+
+        for _ in 0..<5 { _ = container.verifyPIN("0000", for: .profile(dad)) }
+
+        #expect(container.pinLockout(for: .profile(family)) == nil)
+        if case .success = container.verifyPIN("9999", for: .profile(family)) {
+            Issue.record("the Guardian PIN opened a profile door past the shared lockout")
+        }
+        #expect(container.verifyPIN("1111", for: .profile(family)) == .success)
+    }
+
     @Test("A PIN that already opens another door is refused")
     func collisionIsRefused() throws {
         let container = try makeHousehold(["family", "dad"])
