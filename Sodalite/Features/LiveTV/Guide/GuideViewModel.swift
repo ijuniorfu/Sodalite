@@ -99,6 +99,20 @@ final class GuideViewModel {
         await fetchChannels()
     }
 
+    /// The way back from a failed load (the error view's Retry and the app-wide reload signal). A first
+    /// page that failed leaves nothing worth keeping, so the whole load runs again, probes included; a
+    /// later page resumes the line-up where it stopped. A guide that loaded fine is left alone.
+    func recover() async {
+        guard loadError != nil else { return }
+        loadError = nil
+        if fetchedChannels.isEmpty {
+            didLoad = false
+            await load()
+        } else {
+            await fetchChannels()
+        }
+    }
+
     // MARK: - Time
 
     /// Re-derive the window from the current moment.

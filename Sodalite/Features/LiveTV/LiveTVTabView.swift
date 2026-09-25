@@ -4,6 +4,7 @@ struct LiveTVTabView: View {
     /// Whether this tab is the selected one. See TabRootView's call site.
     let isTabSelected: Bool
 
+    @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
     // Late-bound once the active user is known, then stable across re-renders (matches MusicHomeView);
@@ -34,6 +35,8 @@ struct LiveTVTabView: View {
     /// grid is what is left. Its remembered index path then does the rest.
     @State private var chromeFocusSuppressed = false
     @State private var chromeFocusRelease: Task<Void, Never>?
+    /// Last requestContentReload this view answered (same latch as TabRootView's).
+    @State private var lastHandledContentReload = 0
 
     private enum LiveTVSection { case overview, guide, recordings }
 
@@ -139,6 +142,16 @@ struct LiveTVTabView: View {
                 userID: userID)
             programsModel = LiveProgramsViewModel(
                 service: dependencies.jellyfinLiveTvService, userID: userID)
+        }
+        // The server is back within a running session (Sodalite#122): a guide whose load failed while it
+        // was away retries, and the Overview rows are asked again.
+        .task(id: appState.requestContentReload) {
+            let signal = appState.requestContentReload
+            guard signal > 0, signal != lastHandledContentReload else { return }
+            lastHandledContentReload = signal
+            await guideModel?.recover()
+            await channelListModel?.recover()
+            await programsModel?.refresh()
         }
         .onChange(of: isPlayerPresented) { wasPresented, isPresented in
             chromeFocusRelease?.cancel()

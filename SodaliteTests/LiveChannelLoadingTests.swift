@@ -59,9 +59,6 @@ private final class ChannelStub: JellyfinLiveTvServiceProtocol, @unchecked Senda
     private let lock = NSLock()
     private var gateArmed: Bool
     private var gate: CheckedContinuation<Void, Never>?
-    /// Thrown by the next default-filter page request, then cleared.
-    var nextDefaultPageError: Error?
-    private(set) var defaultPageRequests = 0
 
     init(gateFirstDefaultPage: Bool = false) {
         self.gateArmed = gateFirstDefaultPage
@@ -90,11 +87,6 @@ private final class ChannelStub: JellyfinLiveTvServiceProtocol, @unchecked Senda
                      filter: GuideFilter) async throws -> LiveTvChannelsResponse {
         if limit == 1 { return LiveTvChannelsResponse(items: [], totalRecordCount: 0) }
         if filter.favoritesOnly { return page("f", count: 2) }
-        defaultPageRequests += 1
-        if let error = nextDefaultPageError {
-            nextDefaultPageError = nil
-            throw error
-        }
         let hold = lock.withLock { () -> Bool in
             defer { gateArmed = false }
             return gateArmed
@@ -105,6 +97,85 @@ private final class ChannelStub: JellyfinLiveTvServiceProtocol, @unchecked Senda
             }
         }
         return page("d", count: 3, from: startIndex)
+    }
+
+    func getPrograms(channelIDs: [String], userID: String, start: Date, end: Date) async throws -> [JellyfinProgram] { [] }
+    func getGuideInfo() async throws -> JellyfinGuideInfo { JellyfinGuideInfo(startDate: nil, endDate: nil) }
+    func getRecommendedPrograms(userID: String, category: LiveProgramCategory, limit: Int) async throws -> [JellyfinProgram] { [] }
+    func setFavorite(userID: String, channelID: String, isFavorite: Bool) async throws {}
+    func getRecordings(userID: String, isInProgress: Bool?) async throws -> [JellyfinItem] { [] }
+    func getTimers() async throws -> [LiveTvTimer] { [] }
+    func getSeriesTimers() async throws -> [LiveTvSeriesTimer] { [] }
+    func createTimer(programID: String) async throws {}
+    func cancelTimer(timerID: String) async throws {}
+    func createSeriesTimer(programID: String) async throws {}
+    func cancelSeriesTimer(timerID: String) async throws {}
+}
+
+// MARK: - Audit 2026-09-25 LTV-3
+
+@MainActor
+struct LiveChannelRecoveryTests {
+
+    @Test func aFailedFirstPageCanBeRetriedInTheGuide() async {
+        let service = RecoveryStub()
+        service.failNext = true
+        let model = GuideViewModel(service: service, userID: "u",
+                                   timers: LiveTimerStore(service: service, userID: "u"), metrics: .tv)
+        await model.load()
+        #expect(model.loadError != nil)
+        #expect(model.channels.isEmpty)
+
+        await model.recover()
+        #expect(model.loadError == nil)
+        #expect(model.channels.count == 3)
+        #expect(model.channelsComplete)
+    }
+
+    @Test func aFailedFirstPageCanBeRetriedInTheChannelList() async {
+        let service = RecoveryStub()
+        service.failNext = true
+        let model = ChannelListViewModel(service: service, userID: "u",
+                                         timers: LiveTimerStore(service: service, userID: "u"))
+        await model.load()
+        #expect(model.loadError != nil)
+
+        await model.recover()
+        #expect(model.loadError == nil)
+        #expect(model.channels.count == 3)
+    }
+
+    /// The reload signal fires on every route change; a guide that is fine must not refetch or blank.
+    @Test func recoveringAHealthyGuideDoesNothing() async {
+        let service = RecoveryStub()
+        let model = GuideViewModel(service: service, userID: "u",
+                                   timers: LiveTimerStore(service: service, userID: "u"), metrics: .tv)
+        await model.load()
+        let requests = service.pageRequests
+        await model.recover()
+        #expect(service.pageRequests == requests)
+        #expect(model.channels.count == 3)
+    }
+}
+
+private final class RecoveryStub: JellyfinLiveTvServiceProtocol, @unchecked Sendable {
+    var failNext = false
+    private(set) var pageRequests = 0
+
+    func getChannels(userID: String, startIndex: Int, limit: Int,
+                     filter: GuideFilter) async throws -> LiveTvChannelsResponse {
+        if limit == 1 { return LiveTvChannelsResponse(items: [], totalRecordCount: 0) }
+        pageRequests += 1
+        if failNext {
+            failNext = false
+            throw URLError(.timedOut)
+        }
+        return LiveTvChannelsResponse(
+            items: (0..<3).map {
+                JellyfinChannel(id: "c\($0)", name: "c\($0)", channelNumber: nil,
+                                imageTags: nil, currentProgram: nil, userData: nil)
+            },
+            totalRecordCount: nil)
     }
 
     func getPrograms(channelIDs: [String], userID: String, start: Date, end: Date) async throws -> [JellyfinProgram] { [] }

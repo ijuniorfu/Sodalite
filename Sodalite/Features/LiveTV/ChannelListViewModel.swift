@@ -59,6 +59,18 @@ final class ChannelListViewModel {
         await fetchChannels()
     }
 
+    /// See GuideViewModel.recover().
+    func recover() async {
+        guard loadError != nil else { return }
+        loadError = nil
+        if fetchedChannels.isEmpty {
+            didLoad = false
+            await load()
+        } else {
+            await fetchChannels()
+        }
+    }
+
     private func probeRadio() async {
         var probe = GuideFilter.default
         probe.kind = .radio
