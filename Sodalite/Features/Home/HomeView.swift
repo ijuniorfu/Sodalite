@@ -115,18 +115,43 @@ struct HomeView: View {
             viewModel?.scheduleConfigReload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeFavoritesDidChange)) { _ in
-            Task { await viewModel?.loadContent() }
+            // While something covers Home (detail/player), mark it stale instead of reloading now:
+            // a fan-out landing on the shared limiter next to a player rebuilding its pipeline is the
+            // class of burst that starves a stream (Sodalite#12, Audit 2026-09-25 BROWSE-1). The
+            // `isCovered` observer above does the one reload once Home is the screen again.
+            Task { @MainActor in
+                if isCovered {
+                    viewModel?.markDirty()
+                } else {
+                    await viewModel?.loadContent()
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .homePlayedDidChange)) { _ in
-            Task { await viewModel?.loadContent() }
+            Task { @MainActor in
+                if isCovered {
+                    viewModel?.markDirty()
+                } else {
+                    await viewModel?.loadContent()
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
-            // Patch the tile progress in place from the payload (race-free), then reload for structural changes (reorder, finished drop-out), then re-apply so a stale cached re-fetch can't regress the bar (issue #24).
+            // Patch the tile progress in place from the payload (race-free). While covered, that
+            // patch is all this gets: the reload for structural changes (reorder, finished
+            // drop-out) waits for the cover to actually go, instead of running once per auto-advance
+            // right next to the player opening the next stream (Sodalite#12, Audit 2026-09-25
+            // BROWSE-1). Not covered, reload now and re-apply so a stale cached re-fetch can't
+            // regress the bar (issue #24).
             let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
             let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
             Task { @MainActor in
                 if let itemID, let ticks {
                     viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+                if isCovered {
+                    viewModel?.markDirty()
+                    return
                 }
                 await viewModel?.loadContent()
                 if let itemID, let ticks {
@@ -141,7 +166,13 @@ struct HomeView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeItemDidDelete)) { _ in
             // Reload so the deleted item drops out immediately instead of lingering until the next stale refresh.
-            Task { await viewModel?.loadContent() }
+            Task { @MainActor in
+                if isCovered {
+                    viewModel?.markDirty()
+                } else {
+                    await viewModel?.loadContent()
+                }
+            }
         }
         .onChange(of: appState.activeUser?.id) { _, newValue in
             // Profile switch: tear down the old VM so .onAppear rebuilds it with the new userID (else it keeps loading the previous profile's permissions/watch state).
