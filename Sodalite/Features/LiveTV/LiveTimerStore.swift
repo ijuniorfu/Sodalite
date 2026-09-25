@@ -19,6 +19,10 @@ final class LiveTimerStore {
     /// not cheaply diffable.
     private(set) var timerStateVersion = 0
 
+    /// Series rules cancelled here. A program snapshot that still names one (an Overview card or a guide
+    /// row nobody touched) carries dead ids, the rule's and the episode timer it spawned.
+    private var cancelledSeriesTimerIDs: Set<String> = []
+
     /// Transient record-toggle error for the guide's alert.
     var recordingError: String?
 
@@ -64,7 +68,9 @@ final class LiveTimerStore {
     /// snapshot. After a cancel the overlay holds (nil, ...) and must shadow the stale snapshot so
     /// the dead timer id is not resurrected.
     func effectiveTimerState(for program: JellyfinProgram) -> (timerId: String?, seriesTimerId: String?) {
-        timerState[program.id] ?? (program.timerId, program.seriesTimerId)
+        if let overlay = timerState[program.id] { return overlay }
+        if let series = program.seriesTimerId, cancelledSeriesTimerIDs.contains(series) { return (nil, nil) }
+        return (program.timerId, program.seriesTimerId)
     }
 
     // MARK: - Favorites
@@ -141,6 +147,7 @@ final class LiveTimerStore {
     }
 
     private func clearSeriesOverlay(seriesTimerID: String) {
+        cancelledSeriesTimerIDs.insert(seriesTimerID)
         for (programID, state) in timerState where state.seriesTimerId == seriesTimerID {
             timerState[programID] = (nil, nil)
         }

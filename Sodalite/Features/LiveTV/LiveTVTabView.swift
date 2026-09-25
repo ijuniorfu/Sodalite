@@ -177,9 +177,11 @@ struct LiveTVTabView: View {
         .onChange(of: section) { _, newValue in
             // Recordings can cancel timers/rules the overlay doesn't know; resync on the way back so
             // dots/actions match the server. Übersicht shares the model (and is the default landing), so resync it too.
+            // The Overview rows carry snapshots of their own, often for channels the guide never loaded.
             guard newValue == .guide || newValue == .overview,
                   let guideModel, let timers else { return }
-            Task { await timers.syncWithServer(knownPrograms: guideModel.allLoadedPrograms) }
+            let overviewPrograms = programsModel?.rows.values.flatMap { $0 } ?? []
+            Task { await timers.syncWithServer(knownPrograms: guideModel.allLoadedPrograms + overviewPrograms) }
         }
         .overlay {
             // Guard userID at the call site (mirrors MovieDetailView) so the live player never launches blank.
