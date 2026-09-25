@@ -43,6 +43,13 @@ final class LogTap: ObservableObject {
 
     @Published private(set) var lines: [String] = []
 
+    /// Count of every line ever appended, never reset except by `clear()`. `lines.count` pins at
+    /// `maxLines` once the ring starts evicting from the front, so a view keyed on it (row identity,
+    /// `onChange`) stops noticing new lines arrive at all (Audit 2026-09-25 DIAG-8). This keeps
+    /// climbing regardless, and a line's id derived from it (`sequenceNumber` minus its distance from
+    /// the end) stays stable across both plain growth and eviction: see DiagnosticLogView.
+    @Published private(set) var sequenceNumber = 0
+
     // 300: holds a full HLS-wrapper session start (init.mp4 dump + m3u8 bodies + per-request logs) through the eventual AVPlayer failure; the previous 80 rolled the init.mp4 summary off before the failure landed.
     private let maxLines = 300
 
@@ -74,6 +81,7 @@ final class LogTap: ObservableObject {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.lines.append(line)
+                self.sequenceNumber += 1
                 if self.lines.count > self.maxLines {
                     self.lines.removeFirst(self.lines.count - self.maxLines)
                 }
@@ -227,6 +235,7 @@ final class LogTap: ObservableObject {
                 MainActor.assumeIsolated {
                     let tap = LogTap.shared
                     tap.lines = LogTap.merged(tap.lines, imported, limit: tap.maxLines)
+                    tap.sequenceNumber += imported.count
                 }
             }
         }
@@ -260,6 +269,7 @@ final class LogTap: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             MainActor.assumeIsolated {
                 self?.lines.removeAll()
+                self?.sequenceNumber = 0
             }
         }
     }
