@@ -125,7 +125,7 @@ nonisolated enum ServerTrustDecision: Equatable {
 /// Attached to `HTTPClient`'s sessions, the route resolver's probe, the artwork fetch and the
 /// sidecar subtitle fetch. `EngineTLS.serverTrustEvaluator` reads the same store from the same
 /// fingerprint, so the app and the engine cannot disagree about one origin.
-nonisolated final class ServerTrustDelegate: NSObject, URLSessionDelegate, @unchecked Sendable {
+nonisolated final class ServerTrustDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
 
     /// The one instance every session attaches to.
     ///
@@ -213,6 +213,75 @@ nonisolated final class ServerTrustDelegate: NSObject, URLSessionDelegate, @unch
         case .defaultHandling:
             completionHandler(.performDefaultHandling, nil)
         }
+    }
+}
+
+// MARK: - Redirects
+
+/// Which credentials a redirect may carry, for every session this delegate is attached to.
+///
+/// URLSession follows a redirect with the caller's headers, and on this CFNetwork only `Authorization`
+/// is dropped across origins: `X-Emby-Token` (artwork) and Seerr's `Cookie: connect.sid` were
+/// measured arriving at a different host, and an https to http hop sends them in cleartext (audit
+/// NETWORK-3). The rule is the engine's `RedirectHeaderPolicy`: credentials only to the same host
+/// with no TLS downgrade, where a same-host http to https upgrade counts, and there they are put back
+/// on even when URLSession stripped them, so an `http://` address behind an upgrading proxy keeps
+/// its login (NETWORK-4).
+nonisolated enum RedirectPolicy {
+
+    static let credentialHeaders = [
+        "Authorization", "Cookie", "X-Emby-Token", "X-Emby-Authorization", "X-MediaBrowser-Token",
+    ]
+
+    /// The request to follow, or nil to refuse the hop (the 3xx is then the response).
+    static func redirect(_ proposed: URLRequest, from previous: URLRequest?) -> URLRequest? {
+        guard let from = previous?.url, let to = proposed.url else { return proposed }
+        let fromScheme = from.scheme?.lowercased(), toScheme = to.scheme?.lowercased()
+        if fromScheme == "https", toScheme == "http" { return nil }
+
+        var request = proposed
+        if credentialsAllowed(from: from, to: to) {
+            for name in credentialHeaders {
+                if let value = previous?.value(forHTTPHeaderField: name) {
+                    request.setValue(value, forHTTPHeaderField: name)
+                }
+            }
+        } else {
+            for name in credentialHeaders { request.setValue(nil, forHTTPHeaderField: name) }
+        }
+        return request
+    }
+
+    /// Same host, and either the same scheme and port or an http to https upgrade.
+    static func credentialsAllowed(from original: URL, to redirect: URL) -> Bool {
+        guard let fromHost = original.host?.lowercased(), let toHost = redirect.host?.lowercased(),
+              fromHost == toHost,
+              let fromScheme = original.scheme?.lowercased(), let toScheme = redirect.scheme?.lowercased()
+        else { return false }
+        if fromScheme == toScheme {
+            return effectivePort(original, scheme: fromScheme) == effectivePort(redirect, scheme: toScheme)
+        }
+        return fromScheme == "http" && toScheme == "https"
+    }
+
+    private static func effectivePort(_ url: URL, scheme: String) -> Int {
+        url.port ?? (scheme == "https" ? 443 : 80)
+    }
+}
+
+extension ServerTrustDelegate {
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+        let followed = RedirectPolicy.redirect(request, from: task.currentRequest ?? task.originalRequest)
+        if followed == nil {
+            LogTap.shared.note("[http] refused a redirect from https to http at \(request.url?.host() ?? "?")")
+        }
+        completionHandler(followed)
     }
 }
 
