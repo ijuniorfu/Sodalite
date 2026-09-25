@@ -671,13 +671,8 @@ final class DependencyContainer {
 
     /// Removes a server and all state scoped to it (token, password, remembered users + Seerr sessions). If it was active and others remain, promotes the most-recent survivor (restore path handles expired tokens); if none remain, clears the pointer + SharedSessionMirror so next launch lands in ServerDiscoveryView.
     func removeServer(id serverID: String) throws {
-        let allUsers = listRememberedUsers(serverID: serverID)
-        for remembered in allUsers {
-            forgetRememberedSeerr(
-                forJellyfinUserID: remembered.id,
-                jellyfinServerID: serverID
-            )
-            liveDirectStreamMemory.forgetAll(userID: remembered.id)
+        for remembered in listRememberedUsers(serverID: serverID) {
+            purgeUserCredentials(id: remembered.id, serverID: serverID)
         }
 
         deleteJellyfinPasswords(serverID: serverID)
@@ -1113,17 +1108,17 @@ final class DependencyContainer {
         cloudSync?.handleFullLogout()
 
         // Full logout: scrub every server's per-server entries, then the multi-server pointers + global active-user keys + client state + SharedSessionMirror.
+        // Own PINs go too: the Guardian PIN and the lock roles stay, so a profile signed in again
+        // falls back to the Guardian PIN, which is more locked, never less.
         for known in listKnownServers() {
             for remembered in listRememberedUsers(serverID: known.id) {
-                forgetRememberedSeerr(
-                    forJellyfinUserID: remembered.id,
-                    jellyfinServerID: known.id
-                )
+                purgeUserCredentials(id: remembered.id, serverID: known.id)
             }
             deleteJellyfinPasswords(serverID: known.id)
             try? keychainService.delete(for: KeychainKeys.accessToken(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.userID(serverID: known.id))
             try? keychainService.delete(for: KeychainKeys.rememberedUsers(serverID: known.id))
+            try? keychainService.delete(for: KeychainKeys.forgottenUsers(serverID: known.id))
         }
 
         try? keychainService.delete(for: KeychainKeys.knownServers)

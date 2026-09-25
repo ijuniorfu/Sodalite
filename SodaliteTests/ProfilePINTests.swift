@@ -197,4 +197,40 @@ struct ProfilePINTests {
         container.purgeUserCredentials(id: family.userID, serverID: family.serverID)
         #expect(!container.hasOwnPIN(family))
     }
+
+    @Test("Removing a server purges every one of its profiles, own PIN and live routes included")
+    func removingAServerPurgesItsProfiles() throws {
+        let container = try makeHousehold(["family", "dad"])
+        let family = ProfileRef(serverID: "A", userID: "family")
+        let upstream = URL(string: "http://iptv.example/live/user/pass/1.ts")!
+
+        try container.saveGuardianPIN("9999")
+        try container.saveOwnPIN("1111", for: family)
+        container.liveDirectStreamMemory.remember(upstream, userID: "family", channelID: "c1")
+
+        try container.removeServer(id: "A")
+
+        #expect(!container.hasOwnPIN(family))
+        #expect(container.liveDirectStreamMemory.upstream(userID: "family", channelID: "c1") == nil)
+        #expect(container.isGuardianPINSet())
+    }
+
+    @Test("Log Out purges every profile but keeps the Guardian PIN")
+    func logOutPurgesProfilesAndKeepsTheGuardianPIN() throws {
+        let container = try makeHousehold(["family", "dad"])
+        let family = ProfileRef(serverID: "A", userID: "family")
+        let upstream = URL(string: "http://iptv.example/live/user/pass/1.ts")!
+
+        try container.saveGuardianPIN("9999")
+        try container.saveOwnPIN("1111", for: family)
+        container.liveDirectStreamMemory.remember(upstream, userID: "family", channelID: "c1")
+        container.setForgottenUsers(["gone": .now], serverID: "A")
+
+        try container.clearSession()
+
+        #expect(!container.hasOwnPIN(family))
+        #expect(container.liveDirectStreamMemory.upstream(userID: "family", channelID: "c1") == nil)
+        #expect(container.listForgottenUsers(serverID: "A").isEmpty)
+        #expect(container.isGuardianPINSet())
+    }
 }
