@@ -359,6 +359,7 @@
 		48DFF7DDD0ED3316B3A206F1 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB11FC05D955CAA82390899 /* SearchView.swift */; };
 		490E78AFE6377A0F2828A7A9 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 58BD2D49CE8AB49360409981 /* OFL.txt */; };
 		493D35829F0FDD1EB88E0D86 /* ProfileShellLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF124E4A12D50287B1BDD93 /* ProfileShellLayout.swift */; };
+		49746B09308DB8E292DEB63F /* JellyfinUserPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47558746113F5BDB012FC574 /* JellyfinUserPolicyTests.swift */; };
 		49C558DE8D51AB38B6D12730 /* ProfilePickerOrderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C81387341EF393A20422D1A /* ProfilePickerOrderingTests.swift */; };
 		49E5D69EAC701738353C51E9 /* PendingRequestsNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F107F8B6AF976EDFD99B7792 /* PendingRequestsNotifier.swift */; };
 		49E87C6DD53780FE23243F69 /* SessionRestorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368B32F98097EE977BFBB373 /* SessionRestorer.swift */; };
@@ -1484,6 +1485,7 @@
 		4659373CDBBBC7FDC2FFBD79 /* LiveAudioSupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAudioSupportTests.swift; sourceTree = "<group>"; };
 		466C8906B6D1952207FC6730 /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		466FF1007CC23C8934BA9FD7 /* MusicHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicHomeView.swift; sourceTree = "<group>"; };
+		47558746113F5BDB012FC574 /* JellyfinUserPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinUserPolicyTests.swift; sourceTree = "<group>"; };
 		477BA4C25F579EBD37469D21 /* JellyfinAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinAuthService.swift; sourceTree = "<group>"; };
 		47FE0F3277010B44C039F05B /* ProviderMatchMergingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderMatchMergingTests.swift; sourceTree = "<group>"; };
 		484A27C5E575AFDDB1BD1404 /* ExpandableTextBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableTextBox.swift; sourceTree = "<group>"; };
@@ -2369,6 +2371,7 @@
 				FE555FE545E2C2CBAA6E6340 /* JellyfinSeasonFieldsTests.swift */,
 				175E298AC582C20244F3BBDC /* JellyfinServerDiscoveryTests.swift */,
 				2FCEE5A1416FF3B3900EE3B0 /* JellyfinServerDualURLPromptTests.swift */,
+				47558746113F5BDB012FC574 /* JellyfinUserPolicyTests.swift */,
 				13D4F586D7E43FDC42308F7F /* KeyboardTransportStateTests.swift */,
 				08F1B42554A240CCABBD9E36 /* LayoutMetricsTests.swift */,
 				F5C314F1E3B32FC980FB6F7A /* LegacySettingsRecordCompatTests.swift */,
@@ -4046,6 +4049,7 @@
 				B3A8359B648774E07E4A75F2 /* JellyfinSeasonFieldsTests.swift in Sources */,
 				2A678C49297037B428E6C120 /* JellyfinServerDiscoveryTests.swift in Sources */,
 				20B785459CBFD6E022E62724 /* JellyfinServerDualURLPromptTests.swift in Sources */,
+				49746B09308DB8E292DEB63F /* JellyfinUserPolicyTests.swift in Sources */,
 				F8BB863B478B81BFA7DA5750 /* KeyboardTransportStateTests.swift in Sources */,
 				7380BC683554274E4DA4C05E /* LayoutMetricsTests.swift in Sources */,
 				4695794C1C8AA6962FF7E382 /* LegacySettingsRecordCompatTests.swift in Sources */,

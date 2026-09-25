@@ -713,9 +713,14 @@ struct CatalogDetailView: View {
         switch media.mediaType {
         case .movie:
             do {
-                let item = try await resolveLibraryItem(userID: userID, types: [.movie])
-                guard let item else {
-                    // Unresolvable, not proven gone: leave Seerr's own status standing.
+                let item: JellyfinItem
+                switch try await resolveLibraryItem(userID: userID, types: [.movie]) {
+                case .found(let found): item = found
+                case .gone:
+                    titlePresence = .absent
+                    return
+                case .unresolved:
+                    // Not proven gone: leave Seerr's own status standing.
                     titlePresence = .unknown
                     return
                 }
@@ -726,8 +731,13 @@ struct CatalogDetailView: View {
             }
         case .tv:
             do {
-                let series = try await resolveLibraryItem(userID: userID, types: [.series])
-                guard let series else {
+                let series: JellyfinItem
+                switch try await resolveLibraryItem(userID: userID, types: [.series]) {
+                case .found(let found): series = found
+                case .gone:
+                    titlePresence = .absent
+                    return
+                case .unresolved:
                     titlePresence = .unknown
                     return
                 }
@@ -748,20 +758,27 @@ struct CatalogDetailView: View {
         }
     }
 
-    /// Jellyseerr's own `jellyfinMediaId` first: it is an exact link, written by the scan that decided this title is available. A 404 on it is real proof the item is gone, which no provider-id guess can give.
+    private enum LibraryLookup {
+        case found(JellyfinItem)
+        /// Proven deleted.
+        case gone
+        /// Not found, which is not the same as gone.
+        case unresolved
+    }
+
+    /// Jellyseerr's own `jellyfinMediaId` first: it is an exact link, written by the scan that decided this title is available. A 404 on it is real proof the item is gone, which no provider-id guess can give, but only for a user who could see it (`seesWholeLibrary`): a restricted profile gets the same 404 for an item outside its reach.
     /// Only when Seerr carries no link (Overseerr, or an unmatched title) does it fall back to the id-verified title search.
-    private func resolveLibraryItem(userID: String, types: [ItemType]) async throws -> JellyfinItem? {
+    private func resolveLibraryItem(userID: String, types: [ItemType]) async throws -> LibraryLookup {
         let service = dependencies.jellyfinItemService
         let info = movieDetail?.mediaInfo ?? tvDetail?.mediaInfo
         if let linkedID = info?.jellyfinMediaId, !linkedID.isEmpty {
             do {
-                return try await service.getItemDetail(userID: userID, itemID: linkedID)
+                return .found(try await service.getItemDetail(userID: userID, itemID: linkedID))
             } catch let error as APIError where error.isNotFound {
-                titlePresence = .absent
-                return nil
+                return appState.activeUser?.seesWholeLibrary == true ? .gone : .unresolved
             }
         }
-        return try await service.findByProviderIDs(
+        let match = try await service.findByProviderIDs(
             userID: userID,
             tmdbID: media.id,
             tvdbID: tvDetail?.externalIds?.tvdbId,
@@ -769,6 +786,7 @@ struct CatalogDetailView: View {
             includeItemTypes: types,
             searchTerm: tvDetail?.name ?? movieDetail?.title ?? media.displayTitle
         )
+        return match.map(LibraryLookup.found) ?? .unresolved
     }
 
     private func loadRecommendations() async {
