@@ -64,7 +64,8 @@ final class ASSRenderCoordinator {
         guard let header, !header.isEmpty else { return }
         activationGeneration += 1
         let generation = activationGeneration
-        let fontsDir = Self.fontsDirectory(itemID: itemID)
+        let fontsDir = ASSFontCache.directory(itemID: itemID)
+        ASSFontCache.prune(keeping: fontsDir)
         let fonts = player.fontAttachments
         if Self.allFontsPresent(fonts, in: fontsDir) {
             installRenderer(fontsDir: fontsDir)
@@ -188,18 +189,6 @@ final class ASSRenderCoordinator {
     }
 
     // MARK: - Fonts
-
-    private static func fontsDirectory(itemID: String) -> URL {
-        // lastPathComponent so a hostile server itemID can't escape the cache dir; it passes
-        // ".." through (resolves one level up when appended) so treat that like empty too.
-        let safeID = (itemID as NSString).lastPathComponent
-        let dirName = (safeID.isEmpty || safeID == "..") ? "item" : safeID
-        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("ass-fonts", isDirectory: true)
-            .appendingPathComponent(dirName, isDirectory: true)
-        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base
-    }
 
     private nonisolated static func allFontsPresent(_ fonts: [FontAttachment], in dir: URL) -> Bool {
         fonts.allSatisfy { font in

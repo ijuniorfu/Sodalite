@@ -1299,6 +1299,7 @@ final class PlayerViewModel {
         frameExtractor = nil
         Task { await extractorToClose?.shutdown() }
         deactivateASSRendering()
+        ASSFontCache.removeAll()
         cancellables.removeAll()
         outageWatchdog?.cancel()
         outageWatchdog = nil

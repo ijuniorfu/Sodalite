@@ -517,6 +517,7 @@
 		696FEA816EFA5D2B4F91BE98 /* SeerrGenreSlide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77AB1D740706702455E9FAB7 /* SeerrGenreSlide.swift */; };
 		699320F317B2D30B15D1695E /* ServerReachabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2B1DAF1660B5B86BAF6387 /* ServerReachabilityTests.swift */; };
 		69AD8DC57B1F03E32299C02A /* LiveTunerLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 692B7E4CD50725E7A3D82A62 /* LiveTunerLedger.swift */; };
+		69CBF4E37D9582D8BA66B254 /* ASSFontCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160817A76C557D7AED59C0BB /* ASSFontCacheTests.swift */; };
 		6A232B2FE8F3B12C35BA60FF /* PendingRequestsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E46636B059F74492348E235 /* PendingRequestsMonitor.swift */; };
 		6A25714547B7E15C8FF5D8EB /* ServerSignInRouteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7990387438FD9115549CB434 /* ServerSignInRouteTests.swift */; };
 		6A4A44C93AEC341C8506D53D /* VideoShuffleQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C8226BDDE726CBC0126E55 /* VideoShuffleQueue.swift */; };
@@ -568,6 +569,7 @@
 		739AEA99DFE24200A34461F6 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D594112B176D376D071761F2 /* APIError.swift */; };
 		7411950073C226E586F87216 /* ChangelogPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E67FC3E28D7F433060953B4 /* ChangelogPreferences.swift */; };
 		74199556CFD260B1277D591C /* ServerAddressEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C48991F0DF61EC9BFAC208 /* ServerAddressEntryView.swift */; };
+		742C8A9E9FB65FB8151FF880 /* ASSFontCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 826A27DB6C5D09ED982E7C49 /* ASSFontCache.swift */; };
 		74433C4D3F45512062C362B0 /* LivePlayerLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D48C0E2F7E3BC442ECDDB4 /* LivePlayerLauncher.swift */; };
 		747905DEE82B08A96EFD7B22 /* FocusableCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C631A6EC153641E1CAF0F5A3 /* FocusableCard.swift */; };
 		747EF3F4D70E9126DD8A284A /* TopShelfAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F6727C1A1F0FB1F1E2C3AA /* TopShelfAPI.swift */; };
@@ -577,6 +579,7 @@
 		756CFED6374061F9D316F5D4 /* CertificateTrustFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 614E28A7002618314BCD6123 /* CertificateTrustFailure.swift */; };
 		75C679F2F4217D355A1A934D /* PlaybackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4703CB0FED4DACCE7A447A6 /* PlaybackSettingsView.swift */; };
 		75F014CB9EEC83C90914BD49 /* MainQueueDefer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2009D3A6B35520280B2E8329 /* MainQueueDefer.swift */; };
+		760129B2ECE048C385D97265 /* ASSFontCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 826A27DB6C5D09ED982E7C49 /* ASSFontCache.swift */; };
 		76240562D4F654545BCFEBC6 /* SeerrMediaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04547B5AAA8453CDCBF40F1B /* SeerrMediaService.swift */; };
 		762E975FE795AA5C059679CF /* NowPlayingColumnAlignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF88DF2D226719A36470DB6 /* NowPlayingColumnAlignmentTests.swift */; };
 		7697F3AFA448A1EE03EC4225 /* MusicHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466FF1007CC23C8934BA9FD7 /* MusicHomeView.swift */; };
@@ -1352,6 +1355,7 @@
 		156BEF96DC9EC1E45C59CE8B /* LicensesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensesView.swift; sourceTree = "<group>"; };
 		15AEDC905956567B1DB3936F /* UserProfileImageURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileImageURLTests.swift; sourceTree = "<group>"; };
 		15D7F74A9A6EF41AB0AAD09C /* CloudSyncPayloadsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncPayloadsTests.swift; sourceTree = "<group>"; };
+		160817A76C557D7AED59C0BB /* ASSFontCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASSFontCacheTests.swift; sourceTree = "<group>"; };
 		167D405842453353CBD91CE9 /* ProfilePINSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePINSyncTests.swift; sourceTree = "<group>"; };
 		168C9C4EDD234AD97BFA1D96 /* HomeRowConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRowConfiguration.swift; sourceTree = "<group>"; };
 		175E298AC582C20244F3BBDC /* JellyfinServerDiscoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JellyfinServerDiscoveryTests.swift; sourceTree = "<group>"; };
@@ -1675,6 +1679,7 @@
 		805C6914767AC1469126A3BD /* PlayerReachabilityFace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerReachabilityFace.swift; sourceTree = "<group>"; };
 		813BABB8AB0ED10E6E5CAAA5 /* HomeRowIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRowIdentityTests.swift; sourceTree = "<group>"; };
 		81E6D9A823ADF28BFA536A81 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		826A27DB6C5D09ED982E7C49 /* ASSFontCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASSFontCache.swift; sourceTree = "<group>"; };
 		84A366A9666BD16A484E1F50 /* MediaDeletionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaDeletionSheet.swift; sourceTree = "<group>"; };
 		84FF85A82012DB16FC162782 /* ResumeBarRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeBarRenderer.swift; sourceTree = "<group>"; };
 		854F1BB00479515062667971 /* CloudSyncSettingsParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncSettingsParityTests.swift; sourceTree = "<group>"; };
@@ -2274,6 +2279,7 @@
 				78AB704604ABDC7957C436C7 /* AppearanceThemeTests.swift */,
 				B68B185438E9063FAD04C4DE /* AppTransportSecurityTests.swift */,
 				2871D3EBD7927D0CD8562D0B /* ArtworkTintTests.swift */,
+				160817A76C557D7AED59C0BB /* ASSFontCacheTests.swift */,
 				211588ABFA715B5616DFFD87 /* ASSOfferedCuesTests.swift */,
 				319871CEDEF5EBA6EFCF4C63 /* AuthDefaultProfilePinTests.swift */,
 				77633DFD5621FD5A146A1671 /* BackgroundMotionPolicyTests.swift */,
@@ -2947,6 +2953,7 @@
 		B0348A7A9D3065B5EC568E72 /* Subtitles */ = {
 			isa = PBXGroup;
 			children = (
+				826A27DB6C5D09ED982E7C49 /* ASSFontCache.swift */,
 				1B0AF18F7475A04D2A6EF1A2 /* ASSRenderCoordinator.swift */,
 				3558FABE54073F78BABEF9DD /* SRTParser.swift */,
 				91F4C7F76A85529DD15FB920 /* SubtitleOverlayView.swift */,
@@ -3457,6 +3464,7 @@
 			files = (
 				1F05ABE6B65D09D3CD84BF58 /* APIEndpoint.swift in Sources */,
 				739AEA99DFE24200A34461F6 /* APIError.swift in Sources */,
+				760129B2ECE048C385D97265 /* ASSFontCache.swift in Sources */,
 				35ACF8026C06CE26BD8652F3 /* ASSRenderCoordinator.swift in Sources */,
 				1EECB7865DE68E8408B8FC49 /* AccentAuroraBackground.swift in Sources */,
 				22EFDA502DA9F1A03824876C /* AccentColorPickerView.swift in Sources */,
@@ -3945,6 +3953,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				69CBF4E37D9582D8BA66B254 /* ASSFontCacheTests.swift in Sources */,
 				7A254B59BEF47B36EC4DB27A /* ASSOfferedCuesTests.swift in Sources */,
 				9FF25C07B11EDB08912D8631 /* AccentButtonContrastTests.swift in Sources */,
 				5AC69A653711AF54C14B2644 /* AccentChipLiftTests.swift in Sources */,
@@ -4232,6 +4241,7 @@
 			files = (
 				750EBD3ABF18891C6BE33F0E /* APIEndpoint.swift in Sources */,
 				B4520E43727C43F66C7C14B3 /* APIError.swift in Sources */,
+				742C8A9E9FB65FB8151FF880 /* ASSFontCache.swift in Sources */,
 				ECB34071C05CE3F826E912CF /* ASSRenderCoordinator.swift in Sources */,
 				F6FF181CEC42C2FF177329F7 /* AccentAuroraBackground.swift in Sources */,
 				CD73E798237BEF03F717BFC1 /* AccentColorPickerView.swift in Sources */,
