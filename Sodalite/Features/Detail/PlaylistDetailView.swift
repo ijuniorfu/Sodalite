@@ -101,6 +101,21 @@ struct PlaylistDetailView: View {
         vm.collectionItems.filter { CollectionPlaybackQueue.playableTypes.contains($0.type) }
     }
 
+    /// A playlist can hold the same item twice (an imported .m3u, or one built before the server's
+    /// own add-dedupe), so ForEach's id can't be the bare item id (`ParentId=` entries differ only
+    /// by `PlaylistItemId`, which the model doesn't carry). Disambiguates only a REPEATED id, by the
+    /// order it appears, so the common case (no duplicates) keeps pure content identity: an edit
+    /// elsewhere in the list doesn't reflow every row the way a position-qualified id would (Audit
+    /// 2026-09-25 BROWSE-8).
+    static func uniqueRowIDs(for items: [JellyfinItem]) -> [String] {
+        var seen: [String: Int] = [:]
+        return items.map { item in
+            let occurrence = seen[item.id, default: 0]
+            seen[item.id] = occurrence + 1
+            return occurrence == 0 ? item.id : "\(item.id)#\(occurrence)"
+        }
+    }
+
     private func contentView(vm: DetailViewModel) -> some View {
         ZStack {
             DetailBackdrop(
@@ -225,20 +240,23 @@ struct PlaylistDetailView: View {
 
     /// `correctsUpMove`: see CollectionDetailView, same rule.
     private func playlistList(vm: DetailViewModel, correctsUpMove: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        let items = videoItems(vm)
+        let rowIDs = Self.uniqueRowIDs(for: items)
+        return VStack(alignment: .leading, spacing: 16) {
             Text("detail.collection.items")
                 .font(.title3)
                 .fontWeight(.semibold)
                 .padding(.horizontal, metrics.rowInset)
 
             VStack(spacing: 12) {
-                ForEach(Array(videoItems(vm).enumerated()), id: \.element.id) { index, media in
+                ForEach(Array(zip(rowIDs, items.enumerated())), id: \.0) { rowID, indexed in
+                    let (index, media) = indexed
                     CollectionItemRow(
                         item: media,
                         imageURL: dependencies.jellyfinImageService.posterURL(for: media, maxWidth: ImageWidth.thumbnail),
                         onSelect: { selectedItem = media }
                     )
-                    .focused($focusedItemID, equals: media.id)
+                    .focused($focusedItemID, equals: rowID)
                     .onFocusMoveUp(active: correctsUpMove && index == 0) {
                         playButtonFocused = true
                     }
