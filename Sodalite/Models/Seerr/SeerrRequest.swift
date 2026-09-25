@@ -10,6 +10,14 @@ struct SeerrRequest: Codable, Sendable, Identifiable, Equatable {
     let media: SeerrRequestMedia?
     let seasons: [SeerrRequestSeason]?
     let requestedBy: SeerrUser?
+    /// The request's own Radarr/Sonarr routing. nil means "Seerr's default", which an edit has to send back
+    /// as nil: the PUT assigns these fields rather than merging them.
+    let serverId: Int?
+    let profileId: Int?
+    let rootFolder: String?
+    let languageProfileId: Int?
+    /// nil and [] differ on the server ([] is stored as "none", an explicit no-tags choice).
+    let tags: [Int]?
 
     /// Still in the pipeline as far as Jellyseerr is concerned. Declined, failed and completed requests are history: they keep their stale season entries forever (Jellyseerr never reverts them), so anything reading a pipeline state has to gate on this.
     var isOpen: Bool {
