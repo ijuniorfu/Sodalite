@@ -12,6 +12,8 @@ enum JellyfinEndpoint: APIEndpoint {
     /// /Users/Public it hides nobody (that one drops hidden, disabled, device- and network-restricted
     /// users), which is what makes it the one answer to "does this profile still exist".
     case allUsers
+    /// POST /Sessions/Logout: revokes the token the request is authenticated with, server-side.
+    case sessionLogout
 
     // Quick Connect
     case quickConnectInitiate
@@ -98,6 +100,8 @@ enum JellyfinEndpoint: APIEndpoint {
             "/Users/AuthenticateByName"
         case .currentUser:
             "/Users/Me"
+        case .sessionLogout:
+            "/Sessions/Logout"
         case .allUsers:
             "/Users"
         case .quickConnectInitiate:
@@ -206,7 +210,7 @@ enum JellyfinEndpoint: APIEndpoint {
     var method: HTTPMethod {
         switch self {
         case .authenticateByName, .quickConnectInitiate, .quickConnectAuthenticate, .markFavorite,
-             .markPlayed,
+             .markPlayed, .sessionLogout,
              .playbackInfo, .livePlaybackInfo,
              .sessionPlaying, .sessionProgress, .sessionStopped,
              .closeLiveStream,

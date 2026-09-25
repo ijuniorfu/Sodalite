@@ -133240,6 +133240,816 @@
         }
       }
     },
+    "profile.signOutEverywhere.action" : {
+      "comment" : "Profile card menu action and confirm button: revokes the profile's token on the server and removes it from every device that syncs it",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásit na všech zařízeních"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log ud på alle enheder"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf allen Geräten abmelden"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποσύνδεση από όλες τις συσκευές"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out on all devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar sesión en todos los dispositivos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirjaudu ulos kaikilla laitteilla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se déconnecter sur tous les appareils"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odjavi se na svim uređajima"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kijelentkezés minden eszközön"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esci su tutti i dispositivi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのデバイスでサインアウト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 기기에서 로그아웃"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg ut på alle enheter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uitloggen op alle apparaten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyloguj na wszystkich urządzeniach"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sair em todos os dispositivos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar sessão em todos os dispositivos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deconectează-te pe toate dispozitivele"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выйти на всех устройствах"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásiť na všetkých zariadeniach"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga ut på alla enheter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm cihazlarda çıkış yap"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вийти на всіх пристроях"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在所有设备上退出登录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在所有裝置上登出"
+          }
+        }
+      }
+    },
+    "profile.signOutEverywhere.confirm.message" : {
+      "comment" : "Body of the confirmation before signing a profile out on all devices",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profil bude odhlášen na každém Apple TV, iPhonu a iPadu, který ho sdílí, a bude se tam muset znovu přihlásit."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profilen logges ud på alle Apple TV, iPhone og iPad, der deler den, og skal logge ind igen der."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Profil wird auf jedem Apple TV, iPhone und iPad abgemeldet, das es teilt, und muss sich dort neu anmelden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το προφίλ αποσυνδέεται από κάθε Apple TV, iPhone και iPad που το μοιράζεται και πρέπει να συνδεθεί ξανά εκεί."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The profile is signed out on every Apple TV, iPhone and iPad that shares it and has to sign in again there."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se cerrará la sesión del perfil en todos los Apple TV, iPhone y iPad que lo compartan y tendrá que volver a iniciar sesión en ellos."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profiili kirjataan ulos jokaisella sitä jakavalla Apple TV:llä, iPhonella ja iPadilla, ja sen on kirjauduttava niillä uudelleen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le profil est déconnecté sur chaque Apple TV, iPhone et iPad qui le partage et devra s’y reconnecter."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profil se odjavljuje na svakom Apple TV-u, iPhoneu i iPadu koji ga dijeli i ondje se mora ponovno prijaviti."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A profil kijelentkezik minden Apple TV-n, iPhone-on és iPaden, amely megosztja, és ott újra be kell jelentkeznie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il profilo viene disconnesso da ogni Apple TV, iPhone e iPad che lo condivide e dovrà accedere di nuovo su ciascuno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このプロファイルを共有しているすべての Apple TV、iPhone、iPad でサインアウトされ、それぞれで再度サインインが必要になります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 프로필을 공유하는 모든 Apple TV, iPhone 및 iPad에서 로그아웃되며, 각 기기에서 다시 로그인해야 합니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profilen logges ut på hver Apple TV, iPhone og iPad som deler den, og må logge inn igjen der."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het profiel wordt uitgelogd op elke Apple TV, iPhone en iPad die het deelt en moet daar opnieuw inloggen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profil zostanie wylogowany na każdym Apple TV, iPhonie i iPadzie, który go współdzieli, i trzeba będzie zalogować się na nich ponownie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O perfil é desconectado em todos os Apple TV, iPhone e iPad que o compartilham e precisa entrar novamente neles."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sessão do perfil é terminada em todos os Apple TV, iPhone e iPad que o partilham e terá de iniciar sessão novamente neles."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profilul este deconectat pe fiecare Apple TV, iPhone și iPad care îl partajează și trebuie să se conecteze din nou acolo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профиль будет выведен из системы на всех Apple TV, iPhone и iPad, где он используется, и на них потребуется войти снова."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profil sa odhlási na každom Apple TV, iPhone a iPade, ktorý ho zdieľa, a bude sa tam musieť znova prihlásiť."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profilen loggas ut på varje Apple TV, iPhone och iPad som delar den och måste logga in igen där."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profilin oturumu, onu paylaşan her Apple TV, iPhone ve iPad'de kapatılır ve bu cihazlarda yeniden giriş yapılması gerekir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Профіль буде виведено з системи на кожному Apple TV, iPhone та iPad, де він використовується, і там потрібно буде увійти знову."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该配置文件将在所有共享它的 Apple TV、iPhone 和 iPad 上退出登录，需要在这些设备上重新登录。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此設定檔將在所有共用它的 Apple TV、iPhone 和 iPad 上登出，需要在這些裝置上重新登入。"
+          }
+        }
+      }
+    },
+    "profile.signOutEverywhere.confirm.title %@" : {
+      "comment" : "Title of the confirmation before signing a profile out on all devices; %@ is the profile name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásit %@ na všech zařízeních?"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log %@ ud på alle enheder?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ auf allen Geräten abmelden?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποσύνδεση του %@ από όλες τις συσκευές;"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out %@ on all devices?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Cerrar la sesión de %@ en todos los dispositivos?"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirjataanko %@ ulos kaikilla laitteilla?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déconnecter %@ sur tous les appareils ?"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odjaviti %@ na svim uređajima?"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kijelentkezteti a(z) %@ profilt minden eszközön?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnettere %@ su tutti i dispositivi?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのデバイスで%@をサインアウトしますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 기기에서 %@ 프로필을 로그아웃할까요?"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logge ut %@ på alle enheter?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ op alle apparaten uitloggen?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wylogować %@ na wszystkich urządzeniach?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconectar %@ em todos os dispositivos?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar a sessão de %@ em todos os dispositivos?"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deconectezi %@ pe toate dispozitivele?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выйти из профиля %@ на всех устройствах?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásiť %@ na všetkých zariadeniach?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logga ut %@ på alla enheter?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ için tüm cihazlarda oturum kapatılsın mı?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вийти з профілю %@ на всіх пристроях?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要在所有设备上退出 %@ 的登录吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要在所有裝置上登出 %@ 嗎？"
+          }
+        }
+      }
+    },
+    "profile.signOutEverywhere.failed.message" : {
+      "comment" : "Alert body when the server did not confirm the sign-out on all devices; the technical error follows on its own line",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server odhlášení nepotvrdil, proto nebylo nic odebráno. Zkuste to znovu, až bude server dostupný."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren bekræftede ikke udlogningen, så intet blev fjernet. Prøv igen, når serveren kan nås."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat die Abmeldung nicht bestätigt, daher wurde nichts entfernt. Versuche es erneut, wenn der Server erreichbar ist."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ο διακομιστής δεν επιβεβαίωσε την αποσύνδεση, οπότε δεν αφαιρέθηκε τίποτα. Δοκιμάστε ξανά όταν ο διακομιστής είναι προσβάσιμος."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server did not confirm the sign-out, so nothing was removed. Try again when the server is reachable."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor no confirmó el cierre de sesión, así que no se eliminó nada. Inténtalo de nuevo cuando el servidor esté disponible."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palvelin ei vahvistanut uloskirjautumista, joten mitään ei poistettu. Yritä uudelleen, kun palvelin on tavoitettavissa."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur n’a pas confirmé la déconnexion, rien n’a donc été supprimé. Réessayez lorsque le serveur est joignable."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poslužitelj nije potvrdio odjavu pa ništa nije uklonjeno. Pokušajte ponovno kad poslužitelj bude dostupan."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A szerver nem erősítette meg a kijelentkezést, ezért semmi sem lett eltávolítva. Próbáld újra, amikor a szerver elérhető."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server non ha confermato l’uscita, quindi non è stato rimosso nulla. Riprova quando il server è raggiungibile."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバーがサインアウトを確認しなかったため、何も削除されていません。サーバーに接続できるときにもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버가 로그아웃을 확인하지 않아 아무것도 제거되지 않았습니다. 서버에 연결할 수 있을 때 다시 시도하세요."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveren bekreftet ikke utloggingen, så ingenting ble fjernet. Prøv igjen når serveren er tilgjengelig."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De server heeft het uitloggen niet bevestigd, dus er is niets verwijderd. Probeer het opnieuw wanneer de server bereikbaar is."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serwer nie potwierdził wylogowania, więc nic nie zostało usunięte. Spróbuj ponownie, gdy serwer będzie dostępny."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor não confirmou a saída, então nada foi removido. Tente novamente quando o servidor estiver acessível."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor não confirmou o fim da sessão, por isso nada foi removido. Tente novamente quando o servidor estiver acessível."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverul nu a confirmat deconectarea, așa că nu s-a eliminat nimic. Încearcă din nou când serverul este accesibil."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не подтвердил выход, поэтому ничего не удалено. Повторите попытку, когда сервер будет доступен."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server odhlásenie nepotvrdil, preto sa nič neodstránilo. Skúste to znova, keď bude server dostupný."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servern bekräftade inte utloggningen, så inget togs bort. Försök igen när servern går att nå."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu çıkışı onaylamadı, bu yüzden hiçbir şey kaldırılmadı. Sunucuya erişilebildiğinde tekrar deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не підтвердив вихід, тому нічого не видалено. Спробуйте ще раз, коли сервер буде доступний."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器未确认退出登录，因此未移除任何内容。请在服务器可访问时重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器未確認登出，因此未移除任何內容。請在伺服器可連線時重試。"
+          }
+        }
+      }
+    },
+    "profile.signOutEverywhere.failed.title" : {
+      "comment" : "Alert title when signing a profile out on all devices failed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlášení na všech zařízeních selhalo"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunne ikke logge ud på alle enheder"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abmelden auf allen Geräten fehlgeschlagen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η αποσύνδεση από όλες τις συσκευές απέτυχε"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't sign out on all devices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo cerrar sesión en todos los dispositivos"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uloskirjautuminen kaikilla laitteilla epäonnistui"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de se déconnecter sur tous les appareils"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odjava na svim uređajima nije uspjela"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nem sikerült a kijelentkezés minden eszközön"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile uscire su tutti i dispositivi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのデバイスでサインアウトできませんでした"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 기기에서 로그아웃할 수 없습니다"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunne ikke logge ut på alle enheter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kon niet uitloggen op alle apparaten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się wylogować na wszystkich urządzeniach"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível sair em todos os dispositivos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível terminar sessão em todos os dispositivos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nu s-a putut face deconectarea pe toate dispozitivele"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось выйти на всех устройствах"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásenie na všetkých zariadeniach zlyhalo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunde inte logga ut på alla enheter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tüm cihazlarda çıkış yapılamadı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося вийти на всіх пристроях"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法在所有设备上退出登录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法在所有裝置上登出"
+          }
+        }
+      }
+    },
     "profile.switch.failed.title" : {
       "comment" : "Alert title when a profile switch fails",
       "extractionState" : "manual",

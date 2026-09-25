@@ -476,6 +476,8 @@ struct RememberedProfileCard: View {
     var removal: Removal = .forget
     let onSelect: () -> Void
     let onLongPress: () -> Void
+    /// Adds "Sign out on all devices" below the removal item; nil leaves the menu as it was.
+    var onSignOutEverywhere: (() -> Void)? = nil
 
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
@@ -504,6 +506,15 @@ struct RememberedProfileCard: View {
                                 String(localized: "profile.forget.confirm.short",
                                        defaultValue: "Remove profile"),
                                 systemImage: "trash"
+                            )
+                        }
+                    }
+                    if let onSignOutEverywhere {
+                        Button(role: .destructive, action: onSignOutEverywhere) {
+                            Label(
+                                String(localized: "profile.signOutEverywhere.action",
+                                       defaultValue: "Sign out on all devices"),
+                                systemImage: "person.crop.circle.badge.xmark"
                             )
                         }
                     }

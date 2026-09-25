@@ -9,6 +9,10 @@ struct ProfileSettingsView: View {
     @State private var rememberedUsers: [RememberedUser] = []
     @State private var navigateToAddProfile = false
     @State private var actionError: String?
+    @State private var pendingSignOutEverywhere: RememberedUser?
+    @State private var signOutEverywhereError: String?
+    /// Latches the action while the revocation is on its way to the server.
+    @State private var isSigningOutEverywhere = false
     /// tvOS doesn't auto-restore focus after nav pop; without this push, Menu escapes the nav stack and quits the app.
     @FocusState private var addProfileButtonFocused: Bool
 
@@ -54,6 +58,41 @@ struct ProfileSettingsView: View {
         ) { _ in
             Button(String(localized: "common.ok", defaultValue: "OK")) {
                 actionError = nil
+            }
+        } message: { message in
+            Text(message)
+        }
+        .alert(
+            signOutEverywhereTitle,
+            isPresented: Binding(
+                get: { pendingSignOutEverywhere != nil },
+                set: { if !$0 { pendingSignOutEverywhere = nil } }
+            ),
+            presenting: pendingSignOutEverywhere
+        ) { user in
+            Button(String(localized: "profile.signOutEverywhere.action",
+                          defaultValue: "Sign out on all devices"),
+                   role: .destructive) {
+                signOutEverywhere(user)
+            }
+            Button("common.cancel", role: .cancel) {}
+        } message: { _ in
+            Text(String(
+                localized: "profile.signOutEverywhere.confirm.message",
+                defaultValue: "The profile is signed out on every Apple TV, iPhone and iPad that shares it and has to sign in again there."
+            ))
+        }
+        .alert(
+            String(localized: "profile.signOutEverywhere.failed.title",
+                   defaultValue: "Couldn't sign out on all devices"),
+            isPresented: Binding(
+                get: { signOutEverywhereError != nil },
+                set: { if !$0 { signOutEverywhereError = nil } }
+            ),
+            presenting: signOutEverywhereError
+        ) { _ in
+            Button(String(localized: "common.ok", defaultValue: "OK")) {
+                signOutEverywhereError = nil
             }
         } message: { message in
             Text(message)
@@ -131,6 +170,10 @@ struct ProfileSettingsView: View {
                                     } else {
                                         forget(user)
                                     }
+                                },
+                                onSignOutEverywhere: {
+                                    guard !isSigningOutEverywhere else { return }
+                                    pendingSignOutEverywhere = user
                                 }
                             )
                         }
@@ -375,6 +418,36 @@ struct ProfileSettingsView: View {
             forJellyfinUserID: userID,
             jellyfinServerID: serverID
         )
+    }
+
+    private var signOutEverywhereTitle: String {
+        String(
+            format: String(
+                localized: "profile.signOutEverywhere.confirm.title %@",
+                defaultValue: "Sign out %@ on all devices?"
+            ),
+            pendingSignOutEverywhere?.name ?? ""
+        )
+    }
+
+    /// Behind the same entry gate as forget: this screen already costs the PIN from a protected profile.
+    private func signOutEverywhere(_ user: RememberedUser) {
+        guard let server = appState.activeServer, !isSigningOutEverywhere else { return }
+        isSigningOutEverywhere = true
+        Task {
+            defer { isSigningOutEverywhere = false }
+            do {
+                _ = try await dependencies.signOutEverywhere(user, server: server)
+                refresh()
+            } catch is CancellationError {
+                return
+            } catch {
+                signOutEverywhereError = String(
+                    localized: "profile.signOutEverywhere.failed.message",
+                    defaultValue: "The server did not confirm the sign-out, so nothing was removed. Try again when the server is reachable."
+                ) + "\n\n" + ErrorText.user(for: error)
+            }
+        }
     }
 
     private func forget(_ user: RememberedUser) {

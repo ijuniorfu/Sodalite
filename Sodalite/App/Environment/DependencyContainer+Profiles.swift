@@ -135,6 +135,46 @@ extension DependencyContainer {
         requestSessionReroute()
     }
 
+    /// What "Sign out on all devices" removed besides the server-side token.
+    enum SignOutEverywhereOutcome: Equatable {
+        /// Another profile's card; the session stays where it is.
+        case forgotten
+        /// The profile this session was signed in as; the session ended with it and AppRouter re-routes.
+        case endedActiveSession
+    }
+
+    /// Revokes a remembered profile's token on its server, then removes the profile through the
+    /// synced path, so the tombstone reaches every device sharing it and takes their copy of the
+    /// token and the stored password with it. Plain Log Out stays local: the token travels through
+    /// iCloud, so revoking it there would sign out the whole household.
+    ///
+    /// The revocation is the point, so only a 2xx or a 401 (the token is already dead) goes on to
+    /// remove anything; every other failure throws with this device unchanged and can be retried.
+    /// `revoke` runs on a client of its own carrying this profile's token, never on the live one.
+    func signOutEverywhere(
+        _ user: RememberedUser,
+        server: JellyfinServer,
+        revoke: (JellyfinClient) async throws -> Void = {
+            try await $0.request(endpoint: JellyfinEndpoint.sessionLogout)
+        }
+    ) async throws -> SignOutEverywhereOutcome {
+        let client = makeSignInClient(for: server)
+        client.accessToken = user.token
+        do {
+            try await revoke(client)
+        } catch APIError.unauthorized {
+            sessionNote("\(server.name) had already dropped the token of \(user.name).")
+        }
+        sessionNote("revoked the token of \(user.name) on \(server.name), removing the profile on every device.")
+
+        if isActiveProfile(ProfileRef(serverID: server.id, userID: user.id)) {
+            signOutOfActiveProfile()
+            return .endedActiveSession
+        }
+        try forgetUser(id: user.id, serverID: server.id)
+        return .forgotten
+    }
+
     /// Asks AppRouter to re-resolve where the session belongs, on the same signal a server switch
     /// raises: its probe reads whatever is (or is no longer) on this device and sets the picker and
     /// the authenticated flag in one update, which is what keeps the discovery screen from flashing
