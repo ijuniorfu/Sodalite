@@ -1698,7 +1698,8 @@ final class DependencyContainer {
         forJellyfinUserID jellyfinUserID: String?,
         jellyfinServerID: String?,
         allowLegacyFallback: Bool = false,
-        disconnectUnlessConnected: Bool = true
+        disconnectUnlessConnected: Bool = true,
+        keepsSessionOnTransientFailure: Bool = false
     ) async {
         let profile = activeProfileRef()
         if let jellyfinUserID, let jellyfinServerID,
@@ -1713,11 +1714,14 @@ final class DependencyContainer {
             allowLegacyFallback: allowLegacyFallback
         )
         guard generation == seerrSyncGeneration, isActiveProfile(profile) else { return }
-        if case .connected(let server, let user) = outcome {
+        switch outcome {
+        case .connected(let server, let user):
             appState?.setSeerrConnected(server: server, user: user)
             scheduleRouteResolve()
-        } else if disconnectUnlessConnected {
-            appState?.disconnectSeerr()
+        case .transientFailure where keepsSessionOnTransientFailure:
+            break
+        default:
+            if disconnectUnlessConnected { appState?.disconnectSeerr() }
         }
     }
 }

@@ -137,23 +137,12 @@ struct CatalogView: View {
         guard appState.isSeerrConnected, !isRevalidatingSeerr else { return }
         isRevalidatingSeerr = true
         defer { isRevalidatingSeerr = false }
-        let userID = appState.activeUser?.id
-        let serverID = appState.activeServer?.id
-        let outcome = await dependencies.syncSeerrSession(
-            forJellyfinUserID: userID,
-            jellyfinServerID: serverID,
-            allowLegacyFallback: true
+        await dependencies.applySeerrSession(
+            forJellyfinUserID: appState.activeUser?.id,
+            jellyfinServerID: appState.activeServer?.id,
+            allowLegacyFallback: true,
+            keepsSessionOnTransientFailure: true
         )
-        // A profile switch during the probe owns the Seerr state from here.
-        guard appState.activeUser?.id == userID, appState.activeServer?.id == serverID else { return }
-        switch outcome {
-        case .connected(let server, let user):
-            appState.setSeerrConnected(server: server, user: user)
-        case .invalidated, .notConfigured:
-            appState.disconnectSeerr()
-        case .transientFailure:
-            break
-        }
     }
 
     private var notConnectedState: some View {
