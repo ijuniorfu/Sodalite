@@ -644,7 +644,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     func deleteCloudDataAndDisable() async {
-        if engine == nil, preferences.isEnabled {
+        guard preferences.isEnabled else {
+            await deleteZoneWhileOff()
+            return
+        }
+        if engine == nil {
             if !startInFlight { start() }
             await startTask?.value
         }
@@ -655,6 +659,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             preferences.isEnabled = false
             teardownEngine()
             if case .active = status { status = .disabled }
+            observeWhileOff()
             LogTap.shared.note("[CloudSync] cloud data delete not sent, no engine (status \(status))")
             return
         }
@@ -680,15 +685,48 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             // of reporting success and leaving an unsaveable zone behind.
             teardownEngine()
             status = .error(CloudSyncRecovery.describe(failure))
+            observeWhileOff()
             LogTap.shared.note("[CloudSync] cloud data delete failed, local state kept: \(failure)")
             return
         }
+        finishCloudDataDeletion()
+        LogTap.shared.note("[CloudSync] cloud data deleted, sync disabled")
+    }
+
+    /// The delete asked for while sync is off. Starting the engine for it would first run the
+    /// adoption the zone is about to lose, uploads included, so the zone goes directly; the
+    /// confirmation is the consent. A failure has to reach the status row: "Off" alone read as done.
+    private func deleteZoneWhileOff() async {
+        status = .syncing
+        let container = CKContainer(identifier: Self.containerID)
+        do {
+            guard try await container.accountStatus() == .available else {
+                status = .noAccount
+                LogTap.shared.note("[CloudSync] cloud data delete not sent, no iCloud account")
+                return
+            }
+            do {
+                _ = try await container.privateCloudDatabase.deleteRecordZone(withID: Self.zoneID)
+            } catch let error as CKError where error.code == .zoneNotFound || error.code == .userDeletedZone {
+                LogTap.shared.note("[CloudSync] cloud data delete: no zone in iCloud")
+            }
+        } catch {
+            status = .error(CloudSyncRecovery.describe(error))
+            LogTap.shared.note("[CloudSync] cloud data delete failed while sync is off: \(error)")
+            return
+        }
+        // Switched on while the delete was out: that start owns the bookkeeping now.
+        guard !preferences.isEnabled else { return }
+        finishCloudDataDeletion()
+        LogTap.shared.note("[CloudSync] cloud data deleted while sync was off")
+    }
+
+    private func finishCloudDataDeletion() {
         preferences.resetForCloudDataDeletion()
         preferences.accountChangeLocked = false
         teardownEngine()
         statusLatch.clear()
         status = .disabled
-        LogTap.shared.note("[CloudSync] cloud data deleted, sync disabled")
     }
 
     /// Full local logout: stop syncing, keep cloud data intact (no multi-device
