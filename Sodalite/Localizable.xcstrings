@@ -152615,6 +152615,167 @@
         }
       }
     },
+    "settings.log.export.page.download" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stáhnout protokol"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hent log"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protokoll herunterladen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Λήψη καταγραφής"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download Log"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar registro"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lataa loki"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger le journal"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preuzmi zapis"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napló letöltése"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarica log"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログをダウンロード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로그 다운로드"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last ned logg"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logboek downloaden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobierz dziennik"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar log"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferir registo"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarcă jurnalul"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скачать журнал"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiahnuť denník"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ladda ner logg"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlüğü indir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завантажити журнал"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載記錄"
+          }
+        }
+      }
+    },
     "settings.log.export.page.expired.message" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -152782,157 +152943,318 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stáhnout soubor protokolu (%@)"
+            "value" : "Stáhnout trvalý protokol (%@)"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hent logfil (%@)"
+            "value" : "Hent vedvarende log (%@)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protokolldatei herunterladen (%@)"
+            "value" : "Dauerhaftes Protokoll herunterladen (%@)"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Λήψη αρχείου καταγραφής (%@)"
+            "value" : "Λήψη μόνιμης καταγραφής (%@)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Download Log File (%@)"
+            "value" : "Download Persistent Log (%@)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descargar archivo de registro (%@)"
+            "value" : "Descargar registro persistente (%@)"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lataa lokitiedosto (%@)"
+            "value" : "Lataa pysyvä loki (%@)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Télécharger le fichier journal (%@)"
+            "value" : "Télécharger le journal persistant (%@)"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preuzmi datoteku zapisa (%@)"
+            "value" : "Preuzmi trajni zapis (%@)"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Naplófájl letöltése (%@)"
+            "value" : "Állandó napló letöltése (%@)"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scarica file di log (%@)"
+            "value" : "Scarica log persistente (%@)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ログファイルをダウンロード（%@）"
+            "value" : "永続ログをダウンロード（%@）"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "로그 파일 다운로드(%@)"
+            "value" : "영구 로그 다운로드(%@)"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last ned loggfil (%@)"
+            "value" : "Last ned vedvarende logg (%@)"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logbestand downloaden (%@)"
+            "value" : "Permanent logboek downloaden (%@)"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pobierz plik dziennika (%@)"
+            "value" : "Pobierz trwały dziennik (%@)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Baixar arquivo de log (%@)"
+            "value" : "Baixar log persistente (%@)"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transferir ficheiro de registo (%@)"
+            "value" : "Transferir registo persistente (%@)"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Descarcă fișierul jurnal (%@)"
+            "value" : "Descarcă jurnalul persistent (%@)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скачать файл журнала (%@)"
+            "value" : "Скачать постоянный журнал (%@)"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stiahnuť súbor denníka (%@)"
+            "value" : "Stiahnuť trvalý denník (%@)"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ladda ner loggfil (%@)"
+            "value" : "Ladda ner beständig logg (%@)"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Günlük dosyasını indir (%@)"
+            "value" : "Kalıcı günlüğü indir (%@)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завантажити файл журналу (%@)"
+            "value" : "Завантажити постійний журнал (%@)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下载日志文件（%@）"
+            "value" : "下载持久日志（%@）"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下載記錄檔（%@）"
+            "value" : "下載持久記錄（%@）"
+          }
+        }
+      }
+    },
+    "settings.log.export.page.file.note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trvalý protokol je samostatný soubor. Obsahuje jen řádky zapsané, dokud byl zapnutý Trvalý protokol, i napříč spuštěními aplikace, a nemusí se shodovat s textem níže."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den vedvarende log er en separat fil. Den indeholder kun linjer skrevet, mens Vedvarende log var slået til, også på tværs af appstarter, og kan afvige fra teksten nedenfor."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das dauerhafte Protokoll ist eine eigene Datei. Es enthält nur Zeilen, die geschrieben wurden, während Dauerhaftes Protokoll eingeschaltet war, auch über App-Neustarts hinweg, und kann vom Text unten abweichen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η μόνιμη καταγραφή είναι ξεχωριστό αρχείο. Περιέχει μόνο γραμμές που γράφτηκαν όσο ήταν ενεργή η Μόνιμη καταγραφή, ακόμη και σε επανεκκινήσεις της εφαρμογής, και μπορεί να διαφέρει από το παρακάτω κείμενο."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The persistent log is a separate file. It only holds lines written while Persistent Log was on, across app launches, and can differ from the text below."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El registro persistente es un archivo aparte. Solo contiene las líneas escritas mientras Registro persistente estaba activado, también entre inicios de la app, y puede diferir del texto de abajo."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pysyvä loki on erillinen tiedosto. Se sisältää vain rivit, jotka kirjoitettiin Pysyvän lokin ollessa päällä, myös sovelluksen käynnistysten yli, ja voi poiketa alla olevasta tekstistä."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le journal persistant est un fichier distinct. Il ne contient que les lignes écrites pendant que Journal persistant était activé, y compris d’un lancement de l’app à l’autre, et peut différer du texte ci-dessous."
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trajni zapis zasebna je datoteka. Sadrži samo retke zapisane dok je Trajni zapis bio uključen, i između pokretanja aplikacije, te se može razlikovati od teksta ispod."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Az állandó napló külön fájl. Csak azokat a sorokat tartalmazza, amelyek az Állandó napló bekapcsolt állapotában íródtak, az alkalmazás újraindításain át is, és eltérhet az alábbi szövegtől."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il log persistente è un file separato. Contiene solo le righe scritte mentre Log persistente era attivo, anche tra un avvio e l’altro dell’app, e può differire dal testo qui sotto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永続ログは別のファイルです。永続ログがオンの間に書き込まれた行だけを、アプリの再起動をまたいで保持しており、下のテキストとは異なる場合があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영구 로그는 별도의 파일입니다. 영구 로그가 켜져 있는 동안 기록된 줄만 앱을 다시 실행해도 유지하며, 아래 텍스트와 다를 수 있습니다."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den vedvarende loggen er en egen fil. Den inneholder bare linjer skrevet mens Vedvarende logg var på, også på tvers av appstarter, og kan avvike fra teksten nedenfor."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het permanente logboek is een apart bestand. Het bevat alleen regels die zijn geschreven terwijl Permanent logboek aan stond, ook over app-starts heen, en kan afwijken van de tekst hieronder."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trwały dziennik to osobny plik. Zawiera tylko wiersze zapisane, gdy Trwały dziennik był włączony, także między uruchomieniami aplikacji, i może różnić się od tekstu poniżej."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O log persistente é um arquivo separado. Ele contém apenas as linhas gravadas enquanto Log persistente estava ativado, inclusive entre aberturas do app, e pode ser diferente do texto abaixo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O registo persistente é um ficheiro separado. Contém apenas as linhas escritas enquanto Registo persistente estava ativado, incluindo entre arranques da app, e pode ser diferente do texto abaixo."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jurnalul persistent este un fișier separat. Conține doar liniile scrise cât timp Jurnalul persistent era activat, inclusiv între lansările aplicației, și poate diferi de textul de mai jos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Постоянный журнал — отдельный файл. Он содержит только строки, записанные, пока был включён Постоянный журнал, в том числе между запусками приложения, и может отличаться от текста ниже."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trvalý denník je samostatný súbor. Obsahuje len riadky zapísané, kým bol zapnutý Trvalý denník, aj naprieč spusteniami aplikácie, a môže sa líšiť od textu nižšie."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den beständiga loggen är en separat fil. Den innehåller bara rader som skrevs medan Beständig logg var på, även mellan appstarter, och kan skilja sig från texten nedan."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalıcı günlük ayrı bir dosyadır. Yalnızca Kalıcı günlük açıkken yazılan satırları, uygulama yeniden başlatılsa da tutar ve aşağıdaki metinden farklı olabilir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Постійний журнал — окремий файл. Він містить лише рядки, записані, поки було ввімкнено Постійний журнал, зокрема між запусками застосунку, і може відрізнятися від тексту нижче."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持久日志是一个单独的文件。它只包含持久日志开启期间写入的行，可跨越应用的多次启动，可能与下方文本不同。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持久記錄是一個獨立的檔案。它只包含持久記錄開啟期間寫入的行，可跨越 App 的多次啟動，可能與下方文字不同。"
           }
         }
       }
@@ -153581,163 +153903,324 @@
         }
       }
     },
-    "settings.log.persist" : {
+    "settings.log.persist.off" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trvalý soubor protokolu"
+            "value" : "Trvalý protokol: Vyp."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vedvarende logfil"
+            "value" : "Vedvarende log: Fra"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dauerhafte Protokolldatei"
+            "value" : "Dauerhaftes Protokoll: Aus"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Μόνιμο αρχείο καταγραφής"
+            "value" : "Μόνιμη καταγραφή: Όχι"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Persistent log file"
+            "value" : "Persistent Log: Off"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Archivo de registro persistente"
+            "value" : "Registro persistente: No"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pysyvä lokitiedosto"
+            "value" : "Pysyvä loki: Pois"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fichier journal persistant"
+            "value" : "Journal persistant : Non"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trajna datoteka zapisa"
+            "value" : "Trajni zapis: Isključeno"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Állandó naplófájl"
+            "value" : "Állandó napló: Ki"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "File di log persistente"
+            "value" : "Log persistente: No"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "永続ログファイル"
+            "value" : "永続ログ：オフ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "영구 로그 파일"
+            "value" : "영구 로그: 끔"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vedvarende loggfil"
+            "value" : "Vedvarende logg: Av"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permanent logbestand"
+            "value" : "Permanent logboek: Uit"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trwały plik dziennika"
+            "value" : "Trwały dziennik: Wył."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arquivo de log persistente"
+            "value" : "Log persistente: Desativado"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ficheiro de registo persistente"
+            "value" : "Registo persistente: Desativado"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fișier jurnal persistent"
+            "value" : "Jurnal persistent: Dezactivat"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Постоянный файл журнала"
+            "value" : "Постоянный журнал: Выкл."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trvalý súbor denníka"
+            "value" : "Trvalý denník: Vyp."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beständig loggfil"
+            "value" : "Beständig logg: Av"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kalıcı günlük dosyası"
+            "value" : "Kalıcı günlük: Kapalı"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Постійний файл журналу"
+            "value" : "Постійний журнал: Вимк."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "持久日志文件"
+            "value" : "持久日志：关"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "持久記錄檔"
+            "value" : "持久記錄：關"
+          }
+        }
+      }
+    },
+    "settings.log.persist.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trvalý protokol: Zap."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vedvarende log: Til"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dauerhaftes Protokoll: An"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Μόνιμη καταγραφή: Ναι"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Persistent Log: On"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registro persistente: Sí"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pysyvä loki: Päällä"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journal persistant : Oui"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trajni zapis: Uključeno"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Állandó napló: Be"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log persistente: Sì"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永続ログ：オン"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영구 로그: 켬"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vedvarende logg: På"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanent logboek: Aan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trwały dziennik: Wł."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log persistente: Ativado"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registo persistente: Ativado"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jurnal persistent: Activat"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Постоянный журнал: Вкл."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trvalý denník: Zap."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beständig logg: På"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalıcı günlük: Açık"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Постійний журнал: Увімк."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持久日志：开"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持久記錄：開"
           }
         }
       }
@@ -153748,157 +154231,157 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sdílet soubor protokolu"
+            "value" : "Sdílet trvalý protokol"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Del logfil"
+            "value" : "Del vedvarende log"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protokolldatei teilen"
+            "value" : "Dauerhaftes Protokoll teilen"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Κοινοποίηση αρχείου καταγραφής"
+            "value" : "Κοινοποίηση μόνιμης καταγραφής"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share Log File"
+            "value" : "Share Persistent Log"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Compartir archivo de registro"
+            "value" : "Compartir registro persistente"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jaa lokitiedosto"
+            "value" : "Jaa pysyvä loki"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Partager le fichier journal"
+            "value" : "Partager le journal persistant"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Podijeli datoteku zapisa"
+            "value" : "Podijeli trajni zapis"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Naplófájl megosztása"
+            "value" : "Állandó napló megosztása"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Condividi file di log"
+            "value" : "Condividi log persistente"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ログファイルを共有"
+            "value" : "永続ログを共有"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "로그 파일 공유"
+            "value" : "영구 로그 공유"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Del loggfil"
+            "value" : "Del vedvarende logg"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logbestand delen"
+            "value" : "Permanent logboek delen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Udostępnij plik dziennika"
+            "value" : "Udostępnij trwały dziennik"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Compartilhar arquivo de log"
+            "value" : "Compartilhar log persistente"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Partilhar ficheiro de registo"
+            "value" : "Partilhar registo persistente"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Partajează fișierul jurnal"
+            "value" : "Partajează jurnalul persistent"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поделиться файлом журнала"
+            "value" : "Поделиться постоянным журналом"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zdieľať súbor denníka"
+            "value" : "Zdieľať trvalý denník"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dela loggfil"
+            "value" : "Dela beständig logg"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Günlük dosyasını paylaş"
+            "value" : "Kalıcı günlüğü paylaş"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поділитися файлом журналу"
+            "value" : "Поділитися постійним журналом"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "共享日志文件"
+            "value" : "共享持久日志"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分享記錄檔"
+            "value" : "分享持久記錄"
           }
         }
       }

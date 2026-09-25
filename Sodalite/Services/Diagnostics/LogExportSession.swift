@@ -119,7 +119,11 @@ nonisolated struct LogExportSession: Sendable {
     /// never wrote. The buffer above is this launch only; this is what reaches back across restarts.
     let persistedLog: PersistedLogFile?
 
-    static let persistedLogName = "sodalite-log.txt"
+    /// Two names because they are two different files, and a reporter who downloads the one after
+    /// reading the other must be able to tell them apart (Sodalite#164: both used to arrive as
+    /// `sodalite-log.txt`, and the one the page offered to download was not the one it showed).
+    static let persistedLogName = "sodalite-persistent-log.txt"
+    static let sessionLogName = "sodalite-session-log.txt"
 
     var expiresAt: Date { capturedAt.addingTimeInterval(lifetime) }
 
@@ -183,6 +187,7 @@ nonisolated struct LogExportSession: Sendable {
     private enum Route {
         case page
         case text
+        case download
         case file
     }
 
@@ -203,9 +208,18 @@ nonisolated struct LogExportSession: Sendable {
         switch route {
         case .page:
             let file = persistedLog.map { (path: "/\(token)/\(Self.persistedLogName)", length: $0.length) }
-            return .html(200, "OK", LogExportPage.render(document: document, token: token, persistedLog: file))
+            return .html(200, "OK", LogExportPage.render(
+                document: document,
+                token: token,
+                download: "/\(token)/\(Self.sessionLogName)",
+                persistedLog: file
+            ))
         case .text:
             return .text(200, "OK", document)
+        case .download:
+            var response = LogExportResponse.text(200, "OK", document)
+            response.downloadName = Self.sessionLogName
+            return response
         case .file:
             guard let persistedLog, let persistedLogHeader else {
                 return .text(404, "Not Found", "Not Found")
@@ -238,6 +252,7 @@ nonisolated struct LogExportSession: Sendable {
         switch path {
         case "/\(token)", "/\(token)/": .page
         case "/\(token)/log.txt": .text
+        case "/\(token)/\(Self.sessionLogName)": .download
         case "/\(token)/\(Self.persistedLogName)": .file
         default: nil
         }

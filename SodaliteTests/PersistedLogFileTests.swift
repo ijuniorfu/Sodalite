@@ -141,6 +141,11 @@ struct PersistedLogFileTests {
         let with = Self.session(file: PersistedLogFile(url: url))
         let pageWith = String(decoding: with.response(to: Self.get("/\(with.token)"), now: Self.capture).body, as: UTF8.self)
         #expect(pageWith.contains("href=\"/\(with.token)/\(LogExportSession.persistedLogName)\" download"))
+        #expect(
+            pageWith.contains(String(localized: "settings.log.export.page.file.note")),
+            "the persistent file is a different log than the page shows and says so (Sodalite#164)"
+        )
+        #expect(!pageWithout.contains(String(localized: "settings.log.export.page.file.note")))
     }
 
     @Test("the file route is a 404 when there is no file")
@@ -171,7 +176,7 @@ struct PersistedLogFileTests {
         let body = String(wire[split.upperBound...])
 
         #expect(response.status == 200)
-        #expect(headers.contains("Content-Disposition: attachment; filename=\"sodalite-log.txt\""))
+        #expect(headers.contains("Content-Disposition: attachment; filename=\"sodalite-persistent-log.txt\""))
         #expect(headers.contains("Content-Length: \(Data(body.utf8).count)"))
         #expect(body.hasPrefix("Sodalite 1.0 (42) - tvOS 26.6 - AppleTV14,1\nPersistent log, "))
         #expect(body.hasSuffix("\n\n" + contents))

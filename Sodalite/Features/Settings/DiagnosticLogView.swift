@@ -242,9 +242,11 @@ struct DiagnosticLogView: View {
 
         // AE#597: the buffer above is this launch only, which is the wrong shape for anything
         // with an hour between its cause and its symptom. Always enabled: it is most worth
-        // turning on when there is nothing on screen yet.
+        // turning on when there is nothing on screen yet. The state is in the title, not only in the
+        // icon: Sodalite#164 came with a file holding nine "armed" lines from 32 seconds of pressing
+        // this, from someone who could not tell whether it was on.
         LogActionButton(
-            titleKey: "settings.log.persist",
+            titleKey: persistsLog ? "settings.log.persist.on" : "settings.log.persist.off",
             systemImage: persistsLog ? "externaldrive.fill.badge.checkmark" : "externaldrive",
             isEnabled: true,
             fillsWidth: fillsWidth

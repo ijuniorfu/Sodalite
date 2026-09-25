@@ -98,10 +98,39 @@ struct LogExportSessionTests {
         #expect(Self.body(response) == session.document)
     }
 
+    /// Sodalite#164: the page's only download used to be the persistent file, which holds only what was
+    /// written while its switch was on, so a reporter downloaded nine "armed" lines instead of the log on
+    /// screen. The page's own text is a download of its own now.
+    @Test("the download path serves the document as an attachment")
+    func downloadPathServesDocumentAsAttachment() throws {
+        let session = Self.session()
+        let response = session.response(
+            to: Self.get("/\(session.token)/\(LogExportSession.sessionLogName)"),
+            now: Self.capture
+        )
+        let wire = String(decoding: response.serialized, as: UTF8.self)
+        let head = try #require(wire.range(of: "\r\n\r\n"))
+        let headers = String(wire[wire.startIndex ..< head.lowerBound])
+
+        #expect(response.status == 200)
+        #expect(Self.body(response) == session.document)
+        #expect(headers.contains("Content-Disposition: attachment; filename=\"\(LogExportSession.sessionLogName)\""))
+    }
+
+    @Test("the page offers its own text as a download, under a name the persistent file does not share")
+    func pageOffersDocumentDownload() {
+        let session = Self.session()
+        let page = Self.body(session.response(to: Self.get("/\(session.token)"), now: Self.capture))
+
+        #expect(page.contains("href=\"/\(session.token)/\(LogExportSession.sessionLogName)\" download"))
+        #expect(LogExportSession.sessionLogName != LogExportSession.persistedLogName)
+    }
+
     @Test("everything that is not the token is a 404", arguments: [
         "/",
         "/favicon.ico",
         "/log.txt",
+        "/\(LogExportSession.sessionLogName)",
         "/0123456789abcdef",
         "/../../etc/passwd",
     ])
