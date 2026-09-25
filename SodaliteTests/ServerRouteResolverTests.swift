@@ -108,4 +108,25 @@ struct ServerRouteResolverTests {
         store.setLastRoute(.internal, serverID: "s1")
         #expect(store.lastRoute(serverID: "s1") == .internal)
     }
+
+    /// Audit NETWORK-2, Seerr half: off the home network a LAN answer cannot be told apart from a
+    /// stranger's, so the internal slot drops out and the cookie goes only to the external address.
+    @Test("Seerr's internal slot needs Jellyfin's verified home network")
+    func seerrInternalSlotNeedsVerifiedHomeNetwork() {
+        let away = ServerRouteResolver.seerrSlots(
+            internalURL: internalURL, externalURL: externalURL, onVerifiedHomeNetwork: false)
+        #expect(away.internalURL == nil)
+        #expect(away.externalURL == externalURL)
+
+        let home = ServerRouteResolver.seerrSlots(
+            internalURL: internalURL, externalURL: externalURL, onVerifiedHomeNetwork: true)
+        #expect(home.internalURL == internalURL)
+        #expect(home.externalURL == externalURL)
+
+        // A single slot is the only address there is, verified or not.
+        let lanOnly = ServerRouteResolver.seerrSlots(
+            internalURL: internalURL, externalURL: nil, onVerifiedHomeNetwork: false)
+        #expect(lanOnly.internalURL == internalURL)
+        #expect(lanOnly.externalURL == nil)
+    }
 }

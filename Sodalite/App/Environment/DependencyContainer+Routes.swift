@@ -63,6 +63,7 @@ extension DependencyContainer {
     private func resolveJellyfinRoute() async {
         guard let server = activeServer else {
             activeJellyfinRoute = nil
+            isOnVerifiedHomeNetwork = false
             // Nothing to be reachable or not: a signed-out session must not keep the last server's
             // verdict standing behind the login screen.
             appState?.serverReachability = .unknown
@@ -86,6 +87,7 @@ extension DependencyContainer {
             guard !Task.isCancelled else { return }
         }
         publishReachability(url: resolved.url, isReachable: isReachable, server: server)
+        isOnVerifiedHomeNetwork = resolved.route == .internal && isReachable
 
         serverRouteStore.setLastRoute(resolved.route, serverID: server.id)
         activeJellyfinRoute = resolved.route
@@ -101,9 +103,14 @@ extension DependencyContainer {
             activeSeerrRoute = nil
             return
         }
-        guard let resolved = await ServerRouteResolver.resolve(
+        let slots = ServerRouteResolver.seerrSlots(
             internalURL: server.internalURL,
             externalURL: server.externalURL,
+            onVerifiedHomeNetwork: isOnVerifiedHomeNetwork
+        )
+        guard let resolved = await ServerRouteResolver.resolve(
+            internalURL: slots.internalURL,
+            externalURL: slots.externalURL,
             lastKnown: serverRouteStore.lastRoute(serverID: seerrRouteKey(server.id)),
             probe: { await ServerProbe.seerr($0) }
         ) else { return }

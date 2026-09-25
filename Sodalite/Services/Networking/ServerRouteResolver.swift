@@ -56,6 +56,23 @@ enum ServerRouteResolver {
             )
         }
     }
+
+    /// The slots a Seerr route may choose between.
+    ///
+    /// Seerr has no endpoint that names one installation (`api/v1/status` reports a version), so an
+    /// answer at its LAN address cannot be checked the way a Jellyfin one is, and on another network
+    /// whatever sits there would win the route and be sent the session cookie (audit NETWORK-2). Its
+    /// internal slot is therefore trusted only while Jellyfin's identity-checked internal address
+    /// answers: that is the proof of being on the home network. A single slot is left alone, there
+    /// is no choice to make.
+    static func seerrSlots(
+        internalURL: URL?, externalURL: URL?, onVerifiedHomeNetwork: Bool
+    ) -> (internalURL: URL?, externalURL: URL?) {
+        guard internalURL != nil, externalURL != nil, !onVerifiedHomeNetwork else {
+            return (internalURL, externalURL)
+        }
+        return (nil, externalURL)
+    }
 }
 
 /// Reachability probes against unauthenticated status endpoints. Per-request ephemeral session,

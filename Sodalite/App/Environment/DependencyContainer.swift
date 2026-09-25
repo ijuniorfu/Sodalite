@@ -108,6 +108,9 @@ final class DependencyContainer {
         await ServerProbe.jellyfin($0, expectedServerID: $1)
     }
     var activeJellyfinRoute: ServerRoute?
+    /// Jellyfin's internal address answered its identity probe in the last resolve, which is what
+    /// lets Seerr use its own internal address (`ServerRouteResolver.seerrSlots`).
+    var isOnVerifiedHomeNetwork = false
     var activeSeerrRoute: ServerRoute?
     var routeResolveTask: Task<Void, Never>?
     /// One re-measure at a time after a transport failure, and the moment it last ran (Sodalite#126).
