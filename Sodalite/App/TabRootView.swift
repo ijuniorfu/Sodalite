@@ -166,8 +166,8 @@ struct TabRootView: View {
         #if os(iOS)
         .sheet(isPresented: $showSettings) {
             SettingsView(onClose: { showSettings = false })
-                .id(settingsEpoch)
                 .themedPresentationBackground()
+                .id(settingsEpoch)
                 // Settings is the one surface that raises the Guardian-PIN from above the router,
                 // and a cover cannot stack on this sheet. It hosts the prompt itself instead.
                 .parentalGateHost(Self.settingsGateHost)
