@@ -18,24 +18,28 @@ protocol SeerrDiscoverServiceProtocol: Sendable {
 
 extension SeerrDiscoverServiceProtocol {
     /// Fans out the first `pageCount` pages of both movie + TV watch-provider endpoints for `(providerID, region)` into one TMDB-id set; shared by every smart streaming-provider tile. Per-call errors are swallowed (empty union contribution) so one failed page doesn't poison the resolve; "failed" vs "really empty" is indistinguishable and fine here.
+    ///
+    /// Keys carry the same `"movie-\(id)"` / `"tv-\(id)"` prefix as `SeerrMedia.stableKey`: TMDB
+    /// reuses numeric ids across the movie and tv namespaces, so a bare `Int` union let a library
+    /// movie collide with an unrelated show's id (Audit 2026-09-25 BROWSE-5).
     func collectWatchProviderTmdbIDs(
         providerID: Int,
         region: String,
         pageCount: Int = 5
-    ) async -> Set<Int> {
-        await withTaskGroup(of: Set<Int>.self) { group in
+    ) async -> Set<String> {
+        await withTaskGroup(of: Set<String>.self) { group in
             for page in 1...pageCount {
                 group.addTask {
                     let movies = (try? await self.moviesByWatchProvider(
                         providerID: providerID, region: region, page: page
-                    ))?.results.map(\.id) ?? []
+                    ))?.results.map { ProviderMatchMerging.tmdbKey(type: .movie, tmdbID: $0.id) } ?? []
                     let tv = (try? await self.tvByWatchProvider(
                         providerID: providerID, region: region, page: page
-                    ))?.results.map(\.id) ?? []
+                    ))?.results.map { ProviderMatchMerging.tmdbKey(type: .series, tmdbID: $0.id) } ?? []
                     return Set(movies + tv)
                 }
             }
-            var union: Set<Int> = []
+            var union: Set<String> = []
             for await ids in group { union.formUnion(ids) }
             return union
         }

@@ -27,9 +27,11 @@ extension HomeViewModel {
             userID: userID, query: allItemsQuery
         ).items, !Task.isCancelled else { return }
 
-        var tmdbMap: [Int: JellyfinItem] = [:]
+        var tmdbMap: [String: JellyfinItem] = [:]
         for item in allItems {
-            if let id = item.tmdbID { tmdbMap[id] = item }
+            if let id = item.tmdbID {
+                tmdbMap[ProviderMatchMerging.tmdbKey(type: item.type, tmdbID: id)] = item
+            }
         }
         // Snapshot into a Sendable struct: CatalogProvider is MainActor-isolated, so it can't cross into the detached task directly.
         let providerInfos: [ProviderResolveInfo] = CatalogProviders.networks.map {
@@ -192,7 +194,7 @@ extension HomeViewModel {
     private static func resolveProviderItems(
         info: ProviderResolveInfo,
         region: String,
-        tmdbMap: [Int: JellyfinItem],
+        tmdbMap: [String: JellyfinItem],
         libraryService: JellyfinLibraryServiceProtocol,
         discoverService: SeerrDiscoverServiceProtocol?,
         userID: String

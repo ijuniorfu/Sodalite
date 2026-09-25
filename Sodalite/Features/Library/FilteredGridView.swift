@@ -404,9 +404,11 @@ struct FilteredGridView: View {
         studioItems = phase1
         totalRecordCount = phase1Response.totalRecordCount
 
-        var tmdbMap: [Int: JellyfinItem] = [:]
+        var tmdbMap: [String: JellyfinItem] = [:]
         for item in allItems ?? [] {
-            if let id = item.tmdbID { tmdbMap[id] = item }
+            if let id = item.tmdbID {
+                tmdbMap[ProviderMatchMerging.tmdbKey(type: item.type, tmdbID: id)] = item
+            }
         }
 
         // No cache yet: surface the studio match while the watch-provider phase runs.
@@ -499,7 +501,7 @@ struct FilteredGridView: View {
     private func refreshWatchProviderAugment(
         providerID: Int,
         region: String,
-        tmdbMap: [Int: JellyfinItem],
+        tmdbMap: [String: JellyfinItem],
         generation: Int,
         isWatchFiltered: Bool
     ) async {
