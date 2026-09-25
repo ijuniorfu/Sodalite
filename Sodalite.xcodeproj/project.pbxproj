@@ -348,6 +348,7 @@
 		459C0F637B0778E0067D6FCD /* PosterBadgeEnrichment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309E61267DD57F84D370456E /* PosterBadgeEnrichment.swift */; };
 		45A9E601A7F5BE0E379B4173 /* SeerrEpisodeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77412030533E48E44E837CAC /* SeerrEpisodeCard.swift */; };
 		46103C78CD81689F46A6724B /* LiveRailChromeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C22420A548F6C0072EBCC1 /* LiveRailChromeTests.swift */; };
+		468B22E1EFCF84F499141858 /* PlayerSessionTeardownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A695C1E39263E5D9C3C48A /* PlayerSessionTeardownTests.swift */; };
 		4695794C1C8AA6962FF7E382 /* LegacySettingsRecordCompatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C314F1E3B32FC980FB6F7A /* LegacySettingsRecordCompatTests.swift */; };
 		46A7988A5B20B7F35E16F6F6 /* SodaliteIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F52845EFD489AE02A52FF2 /* SodaliteIntents.swift */; };
 		46B31ACF5E8768417EDBDC42 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB11FC05D955CAA82390899 /* SearchView.swift */; };
@@ -1808,6 +1809,7 @@
 		B23273C4A686EC0F9C4C981D /* FilterCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterCache.swift; sourceTree = "<group>"; };
 		B33D2CF971F109B9D2B1578D /* StatsSectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSectionTests.swift; sourceTree = "<group>"; };
 		B358C258474B9350188F12C6 /* DeepLinkRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkRoute.swift; sourceTree = "<group>"; };
+		B3A695C1E39263E5D9C3C48A /* PlayerSessionTeardownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSessionTeardownTests.swift; sourceTree = "<group>"; };
 		B3FA4BC221395E91F05930AF /* HomeConfigReloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConfigReloadTests.swift; sourceTree = "<group>"; };
 		B4AB0E8D4D9D9CE9852E8DF8 /* DetailSecondaryInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailSecondaryInfo.swift; sourceTree = "<group>"; };
 		B4EA68436188AB69B632A259 /* RemoteSubtitleInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSubtitleInfo.swift; sourceTree = "<group>"; };
@@ -2430,6 +2432,7 @@
 				DE6F5DDE2F05B9FB53D03697 /* PlayerLoadingIndicatorTests.swift */,
 				1F36981949B7D048B208609F /* PlayerLockProgressTests.swift */,
 				D30C08C3C3A7FCD33C4C46A7 /* PlayerReachabilityFaceTests.swift */,
+				B3A695C1E39263E5D9C3C48A /* PlayerSessionTeardownTests.swift */,
 				7BC0FFB550FE99D21023289B /* PlayerThemeBoundaryTests.swift */,
 				F7AFC9D69550F3562E83D486 /* PlayerTouchInputTests.swift */,
 				D1A07AA09138D51EDE17FE24 /* PosterBadgeStoreTests.swift */,
@@ -4106,6 +4109,7 @@
 				DCC1D2F675DC3C00E8171120 /* PlayerLoadingIndicatorTests.swift in Sources */,
 				7EE1CF274830D9DAE1E66F1E /* PlayerLockProgressTests.swift in Sources */,
 				2DCB06F2CE5AE3E5911FC7C3 /* PlayerReachabilityFaceTests.swift in Sources */,
+				468B22E1EFCF84F499141858 /* PlayerSessionTeardownTests.swift in Sources */,
 				B943A2C97149DDAB3DC39FA1 /* PlayerThemeBoundaryTests.swift in Sources */,
 				8B4A55B1019A82FFDB20CB1F /* PlayerTouchInputTests.swift in Sources */,
 				949E87BD002C5B02FC56F29E /* PosterBadgeStoreTests.swift in Sources */,

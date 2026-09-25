@@ -611,6 +611,10 @@ final class PlayerViewModel {
     /// so a teardown racing an in-flight load (incl. next-episode / season-picker tasks, not loadTask
     /// and thus uncancellable) still bails before or stops right after `player.load()`.
     var isTearingDown = false
+    /// Once-per-session gate for `stopPlayback()`: a Back reaches it twice (dismissPlayer, then
+    /// viewWillDisappear), and the second pass reads a playhead `player.stop()` already zeroed.
+    /// Separate from `isTearingDown`, which other paths latch too. Reset by `startPlayback`.
+    var didStopPlayback = false
     var hasReportedStart = false
     var hasStartedPlaying = false
     /// Resume position, used as minimum for progress reports so Jellyfin doesn't reset progress on early stop.
@@ -922,6 +926,7 @@ final class PlayerViewModel {
 
     func startPlayback() async {
         isTearingDown = false
+        didStopPlayback = false
         hostLoadActive = true
         clearError()
         // Cleared before the load, not after it: an auto-advance swaps `item` first, and a source left
@@ -1253,6 +1258,8 @@ final class PlayerViewModel {
     /// (default 30s timeout would leave the player up on a slow CDN, DrHurt #12). Session endpoints
     /// opt into a 90s timeout so the position write survives a slow origin.
     func stopPlayback() {
+        guard !didStopPlayback else { return }
+        didStopPlayback = true
         // Latch teardown + cancel the in-flight launch (re-checked after every await in startPlayback;
         // cancel throws CancellationError out of player.load()) so a back-press-during-load can't resume
         // into player.load() after the player.stop() below.
@@ -1305,23 +1312,28 @@ final class PlayerViewModel {
         // on PlaybackStopped too: an untracked closer is one the next tune of the same channel can
         // overtake, and the id names the channel rather than this stream (#70).
         let sessionToKill = playSessionID
+        // No start went out (Back before PlaybackInfo answered, or a load that failed), so the server
+        // has no session to close, and a stop here would write position 0 over the resume point.
+        let sendsStopReport = hasReportedStart
         let reportWork: @Sendable () async -> Void = {
-            do {
-                try await svc.reportPlaybackStopped(stopReport)
-                await MainActor.run {
-                    NotificationCenter.default.post(
-                        name: .playbackProgressDidChange,
-                        object: nil,
-                        userInfo: [
-                            PlaybackProgressKey.itemID: stopReport.itemId,
-                            PlaybackProgressKey.positionTicks: stopReport.positionTicks
-                        ]
-                    )
+            if sendsStopReport {
+                do {
+                    try await svc.reportPlaybackStopped(stopReport)
+                    await MainActor.run {
+                        NotificationCenter.default.post(
+                            name: .playbackProgressDidChange,
+                            object: nil,
+                            userInfo: [
+                                PlaybackProgressKey.itemID: stopReport.itemId,
+                                PlaybackProgressKey.positionTicks: stopReport.positionTicks
+                            ]
+                        )
+                    }
+                } catch {
+                    #if DEBUG
+                    print("[SessionReport] Stop FAILED: \(error)")
+                    #endif
                 }
-            } catch {
-                #if DEBUG
-                print("[SessionReport] Stop FAILED: \(error)")
-                #endif
             }
             // Explicit transcode kill independent of the stop report: orphaned live transcodes write an
             // endlessly growing stream.ts and fill the server disk (DELETE /Videos/ActiveEncodings, no-op when idle).
