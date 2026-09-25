@@ -167,9 +167,18 @@ final class LogTap: ObservableObject {
     }
 
     nonisolated private func appendToFile(_ line: String) {
-        guard let url = Self.fileSinkURL, let rotated = Self.rotatedFileSinkURL else { return }
-        Self.fileQueue.async {
-            Self.append(line, to: url, rotatingTo: rotated, segmentBytes: Self.fileSegmentBytes)
+        Self.appendPreformattedLinesToFileSink([line])
+    }
+
+    /// Writes already-stamped, already-redacted lines straight to the file sink, bypassing
+    /// `note(_:)`'s own stamp+redact pass (for lines that already carry both, e.g. imported Top
+    /// Shelf lines in `importShelfLines`). No-op when the sink is off.
+    nonisolated static func appendPreformattedLinesToFileSink(_ lines: [String]) {
+        guard fileSinkEnabled, let url = fileSinkURL, let rotated = rotatedFileSinkURL else { return }
+        fileQueue.async {
+            for line in lines {
+                append(line, to: url, rotatingTo: rotated, segmentBytes: fileSegmentBytes)
+            }
         }
     }
 
@@ -208,6 +217,12 @@ final class LogTap: ObservableObject {
         DispatchQueue.global(qos: .utility).async {
             let imported = file.drain()
             guard !imported.isEmpty else { return }
+            // Already stamped and redacted, so this skips note(_:) for the same re-stamping reason
+            // as the ring merge below, but that meant these lines never reached the persisted file
+            // either: once they rolled off the 300-line ring they were gone for good, in exactly the
+            // case (the extension runs while the app is backgrounded) the sink exists to hold
+            // (Audit 2026-09-25 DIAG-6).
+            Self.appendPreformattedLinesToFileSink(imported)
             DispatchQueue.main.async {
                 MainActor.assumeIsolated {
                     let tap = LogTap.shared
