@@ -374,17 +374,11 @@ struct LaunchProfilePickerView: View {
 
     private func restoreSeerrForProfile(userID: String, serverID: String) async {
         // allowLegacyFallback mirrors AppRouter launch-restore: a pre-0.3.0 install on the picker has only the legacy global Seerr entry, else it never bridges to a scoped copy here.
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID,
             allowLegacyFallback: true
         )
-        if case .connected(let server, let user) = outcome {
-            appState.setSeerrConnected(server: server, user: user)
-            dependencies.scheduleRouteResolve()
-        } else {
-            appState.disconnectSeerr()
-        }
     }
 
     /// The profile the active session points at. `AppState.activeUser` may not be populated at the

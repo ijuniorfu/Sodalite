@@ -379,15 +379,9 @@ struct LoginView: View {
 
     /// Restores the just-authed profile's Seerr session from keychain (or wipes it). Mirrors ProfileSettingsView.restoreSeerrForSwitchedProfile.
     private func syncSeerrToActiveProfile(userID: String, serverID: String) async {
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID
         )
-        if case .connected(let server, let user) = outcome {
-            appState.setSeerrConnected(server: server, user: user)
-            dependencies.scheduleRouteResolve()
-        } else {
-            appState.disconnectSeerr()
-        }
     }
 }

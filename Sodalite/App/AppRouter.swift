@@ -269,17 +269,11 @@ struct AppRouter: View {
                     // The probe carries the server's own name; re-stamp the caches so the switched-to identity is right on the next cold launch too.
                     dependencies.persistActiveUserName(user.name, userID: user.id, serverID: server.id)
                     // Restore the per-(server,user) Seerr session so Catalog reflects the new identity.
-                    let outcome = await dependencies.syncSeerrSession(
+                    await dependencies.applySeerrSession(
                         forJellyfinUserID: user.id,
                         jellyfinServerID: server.id
                     )
                     guard !Task.isCancelled else { return }
-                    if case .connected(let seerrServer, let seerrUser) = outcome {
-                        appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-                        dependencies.scheduleRouteResolve()
-                    } else {
-                        appState.disconnectSeerr()
-                    }
                     // Last, because it delays nothing the user is waiting for: the profiles of the
                     // server just switched to are a cache nobody has re-read since it was last
                     // active (Sodalite#90).
@@ -301,7 +295,7 @@ struct AppRouter: View {
                 }
             } catch {
                 // Cancellation is never a verdict on the target server: a superseded switch cancels this task and URLSession throws, which we must not misread as a transport failure and roll back the user's NEWER pick.
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled, !(error is CancellationError) else { return }
                 // Avoid rollback loops: if appState already holds the active server (just rolled back, probe still failing), let the failure stand for the next user action to surface.
                 if let previous = appState.activeServer,
                    previous.id != dependencies.activeServer?.id {
@@ -579,15 +573,12 @@ struct AppRouter: View {
         // screen for a full thirty second timeout before the tab bar existed. Catalog already reacts
         // to the connection landing late, since it keys on `appState.isSeerrConnected`.
         Task { @MainActor in
-            let seerrOutcome = await dependencies.syncSeerrSession(
+            await dependencies.applySeerrSession(
                 forJellyfinUserID: appState.activeUser?.id,
                 jellyfinServerID: appState.activeServer?.id,
-                allowLegacyFallback: true
+                allowLegacyFallback: true,
+                disconnectUnlessConnected: false
             )
-            if case .connected(let seerrServer, let seerrUser) = seerrOutcome {
-                appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-                dependencies.scheduleRouteResolve()
-            }
         }
     }
 
@@ -604,16 +595,12 @@ struct AppRouter: View {
 
         // allowLegacyFallback matches the launch call: a pre-0.3.0 install whose first launch of the
         // day happened off the network must still get its Seerr session back here.
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: appState.activeUser?.id,
             jellyfinServerID: appState.activeServer?.id,
-            allowLegacyFallback: true
+            allowLegacyFallback: true,
+            disconnectUnlessConnected: false
         )
-        guard !Task.isCancelled else { return }
-        if case .connected(let seerrServer, let seerrUser) = outcome {
-            appState.setSeerrConnected(server: seerrServer, user: seerrUser)
-            dependencies.scheduleRouteResolve()
-        }
     }
 
     /// The first thing a restored session asks the server: who this token resolves to (the Policy
