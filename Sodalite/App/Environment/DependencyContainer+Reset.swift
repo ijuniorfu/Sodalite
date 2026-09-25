@@ -43,6 +43,7 @@ extension DependencyContainer {
         // Per-profile stores are cached in memory like every other store here; without this the next
         // edit in a cached profile writes its pre-reset values back into the wiped domain.
         profileSettings.resetAll()
+        profileSettings.device.reloadFromStore()
 
         // And the objects already in memory are what this session reads. They parsed their values at
         // launch and persist on write, so a wiped domain alone would leave the app wearing the old
@@ -58,6 +59,12 @@ extension DependencyContainer {
 
         FilterCache.shared.clearAll()
         ImageCache.shared.clear()
+
+        // The bridges SodaliteApp keys on a value change: one that already held its default does
+        // not fire, and the extension would read the wiped group domain against the app's value.
+        TopShelfEnabled.write(profileSettings.device.showTopShelfRow)
+        TopShelfArtwork.write(rawValue: profileSettings.device.topShelfImage.rawValue)
+        TopShelfRefresher.invalidate()
 
         sessionNote("reset: done.")
     }
