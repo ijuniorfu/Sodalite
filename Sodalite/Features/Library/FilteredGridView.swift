@@ -332,6 +332,16 @@ struct FilteredGridView: View {
     /// Phase-1 (studio match), kept separate from `items` so the augment refresh rebuilds the merged grid without re-running the studio query.
     @State private var studioItems: [JellyfinItem] = []
 
+    /// The resolved TMDB watch-provider augment (phase 2), reused on a reappear instead of
+    /// re-running the 10 000-item scan (Sodalite#68, the biggest request the app makes) and the
+    /// ~10 Seerr calls that built it (Audit 2026-09-25 BROWSE-6). A NavigationStack push/pop through
+    /// this grid's own navigationDestination re-fires `.task(id: reloadKey)` with an unchanged key
+    /// (the same quirk HomeView.swift:24 documents against), and the augment does not change between
+    /// two detail visits, or across a sort change: only the watch filter narrows it.
+    @State private var cachedPhase2Items: [JellyfinItem] = []
+    /// The watch filter `cachedPhase2Items` was resolved under; nil until the first resolve lands.
+    @State private var phase2CacheFilter: WatchStatusFilter?
+
     /// Anything that invalidates the loaded page set: both a filter flip and a sort change need the
     /// same reset (grid, pagination cursor, end marker) before the keyed task refetches.
     private struct ReloadKey: Equatable {
@@ -347,6 +357,16 @@ struct FilteredGridView: View {
         hidesAudioPlaylists ? items.filter { !$0.isAudioPlaylist } : items
     }
 
+    /// Whether a load can skip the 10 000-item scan and the Seerr watch-provider calls and reuse
+    /// what the last full load resolved into `cachedPhase2Items` (Audit 2026-09-25 BROWSE-6): only
+    /// for a smart-provider tile (the two-phase augment only exists there), and only when the cached
+    /// resolve belongs to the SAME watch filter, since the filter narrows both phases server-side.
+    static func canReuseCachedPhase2(
+        smartProviderID: Int?, cacheFilter: WatchStatusFilter?, currentFilter: WatchStatusFilter
+    ) -> Bool {
+        smartProviderID != nil && cacheFilter == currentFilter
+    }
+
     private func loadItems() async {
         guard let userID = appState.activeUser?.id else { return }
         loadGeneration += 1
@@ -359,6 +379,12 @@ struct FilteredGridView: View {
         }
         let isWatchFiltered = watchFilter != .all
 
+        // A reappear with an already-resolved augment for this filter: skip the scan below and the
+        // Seerr calls behind refreshWatchProviderAugment entirely (BROWSE-6).
+        let reusePhase2 = Self.canReuseCachedPhase2(
+            smartProviderID: smartProviderID, cacheFilter: phase2CacheFilter, currentFilter: watchFilter
+        )
+
         // nil = fetch failed/cancelled, distinct from "server empty": a failure must never replace the grid or persist into FilterCache as a valid empty (that poisoned the cache and killed instant-paint until the next pre-warm).
         async let studioMatchTask: JellyfinItemsResponse? = { [effectiveQuery] in
             try? await dependencies.jellyfinLibraryService.getItems(
@@ -367,7 +393,7 @@ struct FilteredGridView: View {
         }()
 
         async let allLibraryTask: [JellyfinItem]? = { [watchFilterValue = watchFilter.jellyfinFilter] in
-            guard smartProviderID != nil else { return [] }
+            guard smartProviderID != nil, !reusePhase2 else { return [] }
             // Fetch the whole library in one shot, not per-id AnyProviderIdEquals lookups: robust against Jellyfin version quirks and amortised across every TMDB id.
             var allQuery = ItemQuery(
                 includeItemTypes: [.movie, .series],
@@ -417,8 +443,14 @@ struct FilteredGridView: View {
             isLoading = false
         }
 
-        // Always refresh (stale-while-revalidate): the fresh list replaces the cache so titles rotated off the service drop out.
+        // Always refresh (stale-while-revalidate): the fresh list replaces the cache so titles rotated off the service drop out. Except on a reappear (BROWSE-6): the studio query above still ran fresh (a watched toggle under Unwatched, say), but the augment reuses what the last full load resolved.
         if let providerID = smartProviderID, let region = smartProviderRegion {
+            if reusePhase2 {
+                let merged = ProviderMatchMerging.merge(phase1: phase1, phase2: cachedPhase2Items)
+                if items.map(\.id) != merged.map(\.id) { items = merged }
+                isLoading = false
+                return
+            }
             // tmdbMap's 10k scan failed: the augment would resolve against an empty map and shrink to studio-only. Skip the refresh.
             guard allItems != nil else {
                 isLoading = false
@@ -520,6 +552,8 @@ struct FilteredGridView: View {
         }
 
         let phase2Items = providerTmdbIDs.compactMap { tmdbMap[$0] }
+        cachedPhase2Items = phase2Items
+        phase2CacheFilter = watchFilter
         let merged = ProviderMatchMerging.merge(phase1: studioItems, phase2: phase2Items)
         if items.map(\.id) != merged.map(\.id) {
             items = merged
