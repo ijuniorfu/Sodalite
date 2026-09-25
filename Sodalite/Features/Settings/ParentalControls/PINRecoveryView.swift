@@ -105,16 +105,11 @@ struct PINRecoveryView: View {
         guard let user = selected, let server = selectedServer else { return }
         isValidating = true
         defer { isValidating = false }
-        // login() is a pure REST call; does not mutate the stored session or its token. The borrowed
-        // baseURL goes back on EVERY exit, success included: JellyfinClient is process-wide and holds
-        // the active session's access token, so a client left pointing at the recovery server sends
-        // that token there on every request after this, and only a relaunch or a profile switch
-        // points it home again.
-        let previousBaseURL = dependencies.jellyfinClient.baseURL
-        defer { dependencies.jellyfinClient.baseURL = previousBaseURL }
-        dependencies.jellyfinClient.baseURL = dependencies.preferredURL(for: server)
+        // login() is a pure REST call on a client of its own: the live one holds the active session's
+        // token and must never point at the recovery server, not even for the length of this call.
+        let client = dependencies.makeSignInClient(for: server)
         do {
-            _ = try await dependencies.jellyfinAuthService.login(
+            _ = try await JellyfinAuthService(client: client).login(
                 username: user.name, password: password
             )
             onRecovered()

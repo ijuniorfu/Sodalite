@@ -468,7 +468,8 @@ enum JellyfinEndpoint: APIEndpoint {
 
     var requiresAuth: Bool {
         switch self {
-        case .publicInfo, .publicUsers, .authenticateByName, .quickConnectInitiate, .quickConnectCheck:
+        case .publicInfo, .publicUsers, .authenticateByName, .quickConnectInitiate, .quickConnectCheck,
+             .quickConnectAuthenticate:
             false
         default:
             true

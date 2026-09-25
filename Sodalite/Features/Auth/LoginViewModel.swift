@@ -16,6 +16,8 @@ final class LoginViewModel {
     var authResult: (server: JellyfinServer, user: JellyfinUser, token: String, savedPassword: String?)?
 
     let server: JellyfinServer
+    /// This sign-in's own client (see `DependencyContainer.makeSignInClient`); never the live one.
+    let signInClient: JellyfinClient
 
     private let authService: JellyfinAuthServiceProtocol
     private let keychainService: KeychainServiceProtocol
@@ -31,7 +33,9 @@ final class LoginViewModel {
         dependencies: DependencyContainer
     ) {
         self.server = server
-        self.authService = dependencies.jellyfinAuthService
+        let signInClient = dependencies.makeSignInClient(for: server)
+        self.signInClient = signInClient
+        self.authService = JellyfinAuthService(client: signInClient)
         self.keychainService = dependencies.keychainService
         self.dependencies = dependencies
         self.preSelectedUser = preSelectedUser
@@ -39,7 +43,6 @@ final class LoginViewModel {
         if let preSelectedUser {
             self.username = preSelectedUser.name
         }
-        dependencies.jellyfinClient.baseURL = dependencies.preferredURL(for: server)
     }
 
     func login() async {

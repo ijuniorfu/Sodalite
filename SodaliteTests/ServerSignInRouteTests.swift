@@ -32,10 +32,11 @@ struct ServerSignInRouteTests {
         container.serverRouteStore.setLastRoute(.internal, serverID: serverID)
         let server = try #require(container.listKnownServers().first)
 
-        let resolved = await container.resolveSignInRoute(for: server)
+        let client = container.makeSignInClient(for: server)
+        let resolved = await container.resolveSignInRoute(for: server, client: client)
 
         #expect(resolved == externalURL)
-        #expect(container.jellyfinClient.baseURL == externalURL)
+        #expect(client.baseURL == externalURL)
     }
 
     /// At home the LAN address still wins, so the fix does not push every sign-in through the proxy.
@@ -44,10 +45,11 @@ struct ServerSignInRouteTests {
         container.serverRouteStore.setLastRoute(.external, serverID: serverID)
         let server = try #require(container.listKnownServers().first)
 
-        let resolved = await container.resolveSignInRoute(for: server)
+        let client = container.makeSignInClient(for: server)
+        let resolved = await container.resolveSignInRoute(for: server, client: client)
 
         #expect(resolved == internalURL)
-        #expect(container.jellyfinClient.baseURL == internalURL)
+        #expect(client.baseURL == internalURL)
     }
 
     /// The route learned here is what the session that follows starts on, so it has to be recorded.
@@ -55,7 +57,7 @@ struct ServerSignInRouteTests {
         let container = try container(answering: [externalURL])
         let server = try #require(container.listKnownServers().first)
 
-        await container.resolveSignInRoute(for: server)
+        await container.resolveSignInRoute(for: server, client: container.makeSignInClient(for: server))
 
         #expect(container.serverRouteStore.lastRoute(serverID: serverID) == .external)
     }
@@ -67,8 +69,34 @@ struct ServerSignInRouteTests {
         container.serverRouteStore.setLastRoute(.external, serverID: serverID)
         let server = try #require(container.listKnownServers().first)
 
-        let resolved = await container.resolveSignInRoute(for: server)
+        let resolved = await container.resolveSignInRoute(
+            for: server, client: container.makeSignInClient(for: server))
 
         #expect(resolved == externalURL)
+    }
+
+    /// Audit 2026-09-25 SESSION-1. Signing in to a second server borrowed the live client and
+    /// repointed it while it still held the active session's token, so every background request
+    /// (and Quick Connect's authenticate call) carried server A's token to server B.
+    @Test func signingInNeverTouchesTheLiveSession() async throws {
+        let container = try container(answering: [externalURL])
+        let active = URL(string: "https://a.example.org")!
+        container.jellyfinClient.baseURL = active
+        container.jellyfinClient.accessToken = "token-of-server-a-0123456789"
+        let server = try #require(container.listKnownServers().first)
+
+        let client = container.makeSignInClient(for: server)
+        await container.resolveSignInRoute(for: server, client: client)
+
+        #expect(container.jellyfinClient.baseURL == active)
+        #expect(container.jellyfinClient.accessToken == "token-of-server-a-0123456789")
+        #expect(client.accessToken == nil)
+        #expect(client.baseURL == externalURL)
+    }
+
+    /// Quick Connect's authenticate call runs before there is a session on that server, so it must
+    /// carry no token even from a client that has one.
+    @Test func quickConnectAuthenticateCarriesNoToken() {
+        #expect(!JellyfinEndpoint.quickConnectAuthenticate(secret: "s").requiresAuth)
     }
 }
