@@ -927,6 +927,12 @@ final class PlayerViewModel {
     func startPlayback() async {
         isTearingDown = false
         didStopPlayback = false
+        // Everything a previous attempt on this view model armed (a retry, an item recovery): its sinks
+        // would double every handler, and a carried-over start flag would swallow this session's start.
+        cancellables.removeAll()
+        hasLiveEdgeObservers = false
+        stopProgressReporting()
+        hasReportedStart = false
         hostLoadActive = true
         clearError()
         // Cleared before the load, not after it: an auto-advance swaps `item` first, and a source left
@@ -1288,6 +1294,8 @@ final class PlayerViewModel {
         Task { await extractorToClose?.shutdown() }
         deactivateASSRendering()
         cancellables.removeAll()
+        outageWatchdog?.cancel()
+        outageWatchdog = nil
         // Capture position BEFORE stopping: player.stop() resets currentTime to 0. Completion-aware,
         // so leaving by hand during the credits files the episode as watched instead of parking it on
         // the Continue Watching shelf with a nearly full bar.
