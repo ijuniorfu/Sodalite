@@ -322,6 +322,7 @@ struct CatalogCollectionView: View {
     /// per movie too. Sequential rather than fanned out: a collection is a handful of titles, and a burst of parallel
     /// POSTs against a remote instance buys nothing but a contended request pool.
     private func submitMissing() async {
+        guard !isSubmitting else { return }
         let targets = missingParts
         guard !targets.isEmpty else { return }
 
