@@ -117,15 +117,20 @@ extension PlayerViewModel {
 
     func startProgressReporting() {
         progressTimer?.cancel()
-        progressTimer = Task {
+        progressTimer = nil
+        // Every caller reaches this across an await (reportStart), and stopPlayback may have run in
+        // that gap: a timer armed now would outlive the session and keep rewriting its position.
+        guard !isTearingDown else { return }
+        progressTimer = Task { [weak self] in
             // Wait for the first time update, then report so short views track.
-            try? await Task.sleep(for: .seconds(2))
-            guard !Task.isCancelled else { return }
-            await reportProgress()
+            var delay: Duration = .seconds(2)
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(10))
+                try? await Task.sleep(for: delay)
+                delay = .seconds(10)
                 guard !Task.isCancelled else { return }
-                await reportProgress()
+                // Re-resolved per tick, so the timer never keeps a dismissed view model alive.
+                guard let self, !self.isTearingDown else { return }
+                await self.reportProgress()
             }
         }
     }

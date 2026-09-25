@@ -6,7 +6,7 @@ import Foundation
 /// second pass reads a playhead `player.stop()` already zeroed. Both reports reach Jellyfin, so the
 /// raw one could land after the completion-aware one and put a finished episode back on the Continue
 /// Watching shelf. A stop for a session whose start never went out writes 0 over the resume point.
-/// Audit 2026-09-25 PLAYER-CORE-3/4.
+/// Audit 2026-09-25 PLAYER-CORE-2/3/4.
 @MainActor
 struct PlayerSessionTeardownTests {
 
@@ -84,6 +84,15 @@ struct PlayerSessionTeardownTests {
         await settle(service, kills: 2)
 
         #expect(service.stoppedReports.map(\.playSessionId) == ["ps-1", "ps-2"])
+    }
+
+    /// Back during the `reportStart` round trip: the tail of startPlayback resumes after the stop and
+    /// would otherwise arm a timer nothing ever cancels.
+    @Test func progressReportingIsNotArmedAfterTeardown() throws {
+        let vm = try makeViewModel(RecordingPlaybackService())
+        vm.stopPlayback()
+        vm.startProgressReporting()
+        #expect(vm.progressTimer == nil)
     }
 }
 
