@@ -97,9 +97,11 @@ final class DependencyContainer {
     /// When each server was added and when its URL slots were last edited, which is what a removal
     /// tombstone and a URL edit have to outrank a stale republish with.
     let serverSyncMetadata: ServerSyncMetadataStore
-    /// How a Jellyfin address is asked whether it answers. A stored closure so the sign-in route
-    /// can be tested without a network; the app never replaces it.
-    var jellyfinProbe: @Sendable (URL) async -> Bool = { await ServerProbe.jellyfin($0) }
+    /// How a Jellyfin address is asked whether it answers AS the server with this id. A stored
+    /// closure so the sign-in route can be tested without a network; the app never replaces it.
+    var jellyfinProbe: @Sendable (URL, String) async -> Bool = {
+        await ServerProbe.jellyfin($0, expectedServerID: $1)
+    }
     var activeJellyfinRoute: ServerRoute?
     var activeSeerrRoute: ServerRoute?
     var routeResolveTask: Task<Void, Never>?
@@ -244,6 +246,11 @@ final class DependencyContainer {
         (httpClient as? HTTPClient)?.onServerDidNotServe = { [weak self] in
             Task { @MainActor in self?.noteServerDidNotServe() }
         }
+
+        // Every credential the session holds is named to both log redactors as it arrives, so a line
+        // carrying it in an encoding no key matcher knows still loses it (audit DIAG-1).
+        jellyfinClient.onAccessTokenSet = { LogSecrets.register($0) }
+        seerrClient.onSessionCookieSet = { LogSecrets.registerCookie($0) }
 
         // Last, because the closures capture self and the migration reads the keychain through it.
         profileSettings.activeKey = { [weak self] in self?.appState?.profileKey }

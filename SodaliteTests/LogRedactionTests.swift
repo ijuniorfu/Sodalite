@@ -207,3 +207,114 @@ struct LogRedactionTests {
         #expect(LogRedaction.redact("[x] url=\(url) ok") == "[x] url=\(url) ok")
     }
 }
+
+/// Audit 2026-09-25 DIAG-1 / DIAG-3: shapes the pre-7.17.0 copy let through. Each one was measured
+/// leaking a secret through both redaction passes, the engine's and this one.
+@Suite("Diagnostic log credential stripping, hostile shapes")
+struct LogRedactionHostileShapeTests {
+
+    private let secret = "SECRETabc123def"
+
+    @Test("an origin URL percent-encoded into a relay query loses its token and keeps the rest")
+    func percentEncodedRelayOrigin() {
+        let line = LogRedaction.redact(
+            "[HLSLocalServer] GET /deadbeef/aether-origin-relay?origin=https%3A%2F%2Fjf%2Eexample%2Ecom" +
+            "%3A8920%2FVideos%2Fabc%2Fmaster%2Em3u8%3FMediaSourceId%3Dx%26api%5Fkey%3D\(secret)%26Tag%3D7 HTTP/1.1 fd=12")
+        #expect(!line.contains(secret))
+        #expect(line.contains("%26Tag%3D7 HTTP/1.1 fd=12"))
+        #expect(line.contains("jf%2Eexample%2Ecom"))
+    }
+
+    @Test("a key or separator under one or two encoding layers is still a key", arguments: [
+        "api%5Fkey%3D", "ApiKey%3D", "api_key%3D", "api_key%253D", "api%255Fkey%253D", "X-Emby-Token%3A%20",
+    ])
+    func encodedKeys(prefix: String) {
+        let line = LogRedaction.redact("p?u=http%3A%2F%2Fh%2Fx%3F\(prefix)\(secret)%26x%3D1")
+        #expect(!line.contains(secret))
+    }
+
+    @Test("a tokenized URL nested inside another query value loses its token")
+    func nestedURL() {
+        let line = LogRedaction.redact("[Image] fetch failed https://s/Img?ImageUrl=http://h/x?api_key%3D\(secret)%26a%3Db")
+        #expect(!line.contains(secret))
+        #expect(line.contains("%26a%3Db"))
+    }
+
+    @Test("a JSON member is stripped inside its quotes", arguments: [
+        #"{"AccessToken":"SECRETabc123def"}"#,
+        #"{"api_key":"SECRETabc123def"}"#,
+        #"{"password":"SECRETabc123def"}"#,
+        #"{"Username":"bob","Pw":"SECRETabc123def"}"#,
+        #"{"token" : "SECRETabc123def"}"#,
+        "{'AccessToken': 'SECRETabc123def'}",
+    ])
+    func jsonMember(line: String) {
+        let redacted = LogRedaction.redact(line)
+        #expect(!redacted.contains(secret))
+        #expect(redacted.contains("<redacted>"))
+    }
+
+    @Test("the user name next to a JSON password survives")
+    func jsonKeepsUserName() {
+        let line = LogRedaction.redact(#"{"Username":"bob","Pw":"SECRETabc123def"}"#)
+        #expect(line == #"{"Username":"bob","Pw":"<redacted>"}"#)
+    }
+
+    @Test("a bearer token is stripped, prose about one is not")
+    func bearer() {
+        let line = LogRedaction.redact("Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.SECRETabc123def.sig")
+        #expect(!line.contains(secret))
+        #expect(line.hasPrefix("Authorization: Bearer "))
+        let prose = "[auth] a bearer token was sent"
+        #expect(LogRedaction.redact(prose) == prose)
+    }
+
+    @Test("a decoded Seerr cookie goes whole, not only its s: prefix")
+    func decodedConnectSID() {
+        let line = LogRedaction.redact("Cookie: connect.sid=s:\(secret).sigpart; Path=/")
+        #expect(line == "Cookie: connect.sid=<redacted>; Path=/")
+    }
+
+    @Test("a raw @ inside a password does not leave the rest of it readable")
+    func userInfoWithRawAt() {
+        let line = LogRedaction.redact("[x] url=http://bob:p@\(secret)@host/x ok")
+        #expect(line == "[x] url=http://bob:<redacted>@host/x ok")
+    }
+
+    @Test("a tab separates a header value like a space")
+    func tabSeparatedHeader() {
+        #expect(!LogRedaction.redact("X-Emby-Token:\t\(secret)").contains(secret))
+        #expect(!LogRedaction.redact("api_key\t=\(secret)").contains(secret))
+    }
+
+    /// The engine redacts first and this copy runs second. `>` ends a value, so without the
+    /// placeholder skip every engine redaction came out as `<redacted>>`.
+    @Test("a second pass leaves the first pass's placeholders alone", arguments: [
+        "a?api_key=SECRETabc123def&b=1",
+        #"Authorization: MediaBrowser Client="Sodalite", Token="SECRETabc123def""#,
+        "p?u=h%3Fapi%5Fkey%3DSECRETabc123def%26x%3D1",
+        "X-Emby-Token: SECRETabc123def sent",
+    ])
+    func idempotent(line: String) {
+        let once = LogRedaction.redact(line)
+        #expect(!once.contains(secret))
+        #expect(LogRedaction.redact(once) == once)
+        #expect(!once.contains("<redacted>>"))
+    }
+
+    @Test("a registered value goes raw and percent-encoded, wherever it sits")
+    func registeredSecret() {
+        let value = "Zq7/Registered+Value"
+        #expect(LogRedaction.register(value))
+        defer { LogRedaction.unregister(value) }
+        let encoded = value.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
+        let line = LogRedaction.redact("[x] seg=\(value) q=\(encoded) done")
+        #expect(line == "[x] seg=<redacted> q=<redacted> done")
+    }
+
+    @Test("a value too short to match literally is refused")
+    func shortSecretRefused() {
+        #expect(!LogRedaction.register("abc"))
+    }
+}
+

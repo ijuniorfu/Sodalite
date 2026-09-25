@@ -28,10 +28,11 @@ extension PlayerViewModel {
         if !didAttemptLiveFallback,
            let memory = directStreamMemory,
            let remembered = memory.upstream(userID: userID, channelID: item.id) {
+            LogSecrets.registerUpstreamCredentials(in: remembered)
             let reader = HLSLiveIngestReader(playlistURL: remembered)
             do {
                 liveRoute = .direct
-                LogTap.shared.note("[LiveDirect] route=direct source=remembered upstream=\(remembered.absoluteString)")
+                LogTap.shared.note("[LiveDirect] route=direct source=remembered upstream=\(LogSecrets.upstreamDescription(remembered))")
                 // No tuner was opened, so there is nothing to release and no transcode to correlate. The
                 // synthesized ids exist purely so the Jellyfin session reports still form one session.
                 try await startDirectIngest(
@@ -101,6 +102,9 @@ extension PlayerViewModel {
                 transcodingURL: source.transcodingUrl, sourcePath: source.path,
                 audioNeedsServerReencode: audioDecision.requiresServerReencode)
             if !didAttemptLiveFallback, case .eligible(let upstream) = eligibility {
+                // An IPTV provider's path can carry the account password with nothing to name it, and
+                // the engine logs this URL's segments too (audit DIAG-2).
+                LogSecrets.registerUpstreamCredentials(in: upstream)
                 // Reader created here so its terminalError is reachable in the catch fallback log.
                 let reader = HLSLiveIngestReader(playlistURL: upstream)
                 do {
@@ -302,7 +306,7 @@ extension PlayerViewModel {
             }
         }
         liveRoute = .direct
-        LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
+        LogTap.shared.note("[LiveDirect] route=direct upstream=\(LogSecrets.upstreamDescription(upstream))")
         try await startDirectIngest(
             reader: reader,
             playSessionID: info.playSessionId,

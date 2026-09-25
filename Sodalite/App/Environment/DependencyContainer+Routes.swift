@@ -18,8 +18,23 @@ extension DependencyContainer {
         await resolveSeerrRoute()
     }
 
-    /// Points the client at whichever of a server's addresses answers, for a server that is not the
-    /// active one yet.
+    /// A client of its own for signing in to `server`: no token, and an address the live session
+    /// never sees.
+    ///
+    /// The sign-in flow used to borrow the live `jellyfinClient` and repoint it, while it still held
+    /// the active session's token. Adding a second server therefore sent that token to it with every
+    /// background request (and with Quick Connect's authenticate call, every time), a cancelled add
+    /// left the session talking to the wrong server, and a restore landing mid-login moved the
+    /// client back so the password typed for one server was posted to the other (audit SESSION-1).
+    /// Only `saveSession` / `switchToUser` write the live client.
+    func makeSignInClient(for server: JellyfinServer) -> JellyfinClient {
+        let client = JellyfinClient(httpClient: httpClient)
+        client.baseURL = preferredURL(for: server)
+        return client
+    }
+
+    /// Points a sign-in client at whichever of a server's addresses answers, for a server that is
+    /// not the active one yet.
     ///
     /// Signing in happens before there IS an active server, so `resolveJellyfinRoute` bails out and
     /// the whole sign-in flow ran on `preferredURL(for:)` alone: the last route that worked, or the
@@ -31,17 +46,17 @@ extension DependencyContainer {
     /// URL is set first regardless, so a screen that draws before this lands is not left pointing
     /// at nothing, and an unreachable server still gets an address to fail against and report.
     @discardableResult
-    func resolveSignInRoute(for server: JellyfinServer) async -> URL {
+    func resolveSignInRoute(for server: JellyfinServer, client: JellyfinClient) async -> URL {
         let optimistic = preferredURL(for: server)
-        jellyfinClient.baseURL = optimistic
+        client.baseURL = optimistic
         guard let resolved = await ServerRouteResolver.resolve(
             internalURL: server.internalURL,
             externalURL: server.externalURL,
             lastKnown: serverRouteStore.lastRoute(serverID: server.id),
-            probe: jellyfinProbe
+            probe: { [jellyfinProbe, id = server.id] in await jellyfinProbe($0, id) }
         ) else { return optimistic }
         serverRouteStore.setLastRoute(resolved.route, serverID: server.id)
-        jellyfinClient.baseURL = resolved.url
+        client.baseURL = resolved.url
         return resolved.url
     }
 
@@ -57,7 +72,7 @@ extension DependencyContainer {
             internalURL: server.internalURL,
             externalURL: server.externalURL,
             lastKnown: serverRouteStore.lastRoute(serverID: server.id),
-            probe: jellyfinProbe
+            probe: { [jellyfinProbe, id = server.id] in await jellyfinProbe($0, id) }
         ) else { return }
         guard !Task.isCancelled else { return }
 
@@ -67,7 +82,7 @@ extension DependencyContainer {
         // an error before its first row landed. Paid only on the failure path, and only once.
         var isReachable = resolved.isReachable
         if !isReachable {
-            isReachable = await ServerProbe.jellyfin(resolved.url)
+            isReachable = await jellyfinProbe(resolved.url, server.id)
             guard !Task.isCancelled else { return }
         }
         publishReachability(url: resolved.url, isReachable: isReachable, server: server)
