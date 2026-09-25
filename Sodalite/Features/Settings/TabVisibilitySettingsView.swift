@@ -19,6 +19,10 @@ struct TabVisibilitySettingsView: View {
     /// which takes this screen's navigation stack with it and drops the viewer back on Home mid-edit.
     @State private var draftNavigationStyle: AppearancePreferences.NavigationStyle?
 
+    /// The profile the drafts were read from. `appearance` resolves the ACTIVE profile when it is
+    /// written, so a commit after a profile switch would hand these drafts to the next profile.
+    @State private var draftProfile: ProfileKey?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
@@ -76,6 +80,11 @@ struct TabVisibilitySettingsView: View {
         // Suppress the floating tvOS nav-title; the inline header below is the screen's own.
         .hidesNavigationBarChrome()
         .onAppear {
+            if draftProfile != dependencies.activeProfileKey {
+                draftProfile = dependencies.activeProfileKey
+                draft = nil
+                draftNavigationStyle = nil
+            }
             if draft == nil { draft = appearance.hiddenTabs }
             if draftNavigationStyle == nil { draftNavigationStyle = appearance.navigationStyle }
         }
@@ -116,6 +125,7 @@ struct TabVisibilitySettingsView: View {
     }
 
     private func commit() {
+        guard draftProfile == dependencies.activeProfileKey else { return }
         if let draftNavigationStyle, draftNavigationStyle != appearance.navigationStyle {
             appearance.navigationStyle = draftNavigationStyle
         }
