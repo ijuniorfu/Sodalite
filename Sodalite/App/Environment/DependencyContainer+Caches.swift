@@ -8,8 +8,11 @@ struct CacheFootprint: Equatable, Sendable {
     let serverResponses: Int
     /// Artwork on disk. The decoded copies in memory are not in here; see the note in the extension.
     let artwork: Int
+    /// Fonts an ASS track embedded (`ASSFontCache`). No row of its own: the player drops them when
+    /// a session ends, so outside one this is zero, but a leftover set must still arm the button.
+    var subtitleFonts: Int = 0
 
-    var total: Int { feedAndLists + serverResponses + artwork }
+    var total: Int { feedAndLists + serverResponses + artwork + subtitleFonts }
     var isEmpty: Bool { total == 0 }
 }
 
@@ -32,6 +35,7 @@ struct CacheFootprint: Equatable, Sendable {
 /// - Artwork, `sodalite-image-cache`. The decoded images in `ImageCache` ride along when clearing
 ///   but carry no figure: they sit in an `NSCache`, which reports its limit and never its contents.
 ///   A number that cannot be read is better left off the screen than guessed at.
+/// - Subtitle fonts, `ASSFontCache` under `Library/Caches/ass-fonts`. Summed over its files.
 ///
 /// `CachedDataTests` walks the sources for every `URLCache(… diskPath:)` and fails if one is not
 /// named in this file. A cache added later and wired into neither would make both the figure and
@@ -43,7 +47,8 @@ extension DependencyContainer {
         CacheFootprint(
             feedAndLists: FilterCache.shared.diskUsage(),
             serverResponses: (httpClient as? HTTPClient)?.cacheDiskUsage ?? 0,
-            artwork: ImageFetch.cacheDiskUsage
+            artwork: ImageFetch.cacheDiskUsage,
+            subtitleFonts: ASSFontCache.diskUsage()
         )
     }
 
@@ -55,6 +60,7 @@ extension DependencyContainer {
         seerrHTTPClient.clearCache()
         ImageFetch.clearCache()
         ImageCache.shared.clear()
+        ASSFontCache.removeAll()
         sessionNote("caches: cleared on request from Settings.")
     }
 }

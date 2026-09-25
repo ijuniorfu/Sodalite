@@ -208,6 +208,10 @@ final class MusicPlaybackCoordinator {
     /// Cancel any in-flight load and load the current track. Single entry point for every transport
     /// action so loads are strictly serialized; see `loadTask`.
     private func startLoadingCurrent() {
+        // The previous track's ids until PlaybackInfo answers for this one; a stop reported in that
+        // window would pair the new item with the old session and the old playhead.
+        currentMediaSourceId = nil
+        playSessionId = nil
         loadTask?.cancel()
         loadGeneration += 1
         let generation = loadGeneration

@@ -159,7 +159,9 @@ struct PlayerTrackDropdownList: View {
                 }
                 ScrollViewReader { proxy in
                     ScrollView {
-                        VStack(spacing: 0) {
+                        // Lazy: a chapter or episode row loads its image on appear, and an eager
+                        // stack mounted all of them at once, queueing every still of the file.
+                        LazyVStack(spacing: 0) {
                             ForEach(scrollIndexed, id: \.offset) { idx, item in
                                 dropdownRow(item: item, hasImages: hasImages, rowHeight: rowHeight)
                                     .id(idx)
@@ -259,7 +261,8 @@ struct PlayerTrackDropdownList: View {
 // MARK: - Chapter Thumbnail View
 
 /// Loads a chapter thumbnail on appear (server chapter image, else FrameExtractor still),
-/// gray placeholder until ready. Lazy, so only visible rows load; both caches make repeats cheap.
+/// gray placeholder until ready. The list is lazy, so only mounted rows load; both caches make
+/// repeats cheap.
 private struct ChapterThumbnailView: View {
     let index: Int
     let load: @Sendable (Int) async -> CGImage?

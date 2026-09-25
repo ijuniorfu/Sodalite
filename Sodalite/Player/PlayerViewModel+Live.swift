@@ -210,7 +210,7 @@ extension PlayerViewModel {
             // worse than a tuner we forgot to close is a tuner we were never given a handle for.
             LogTap.shared.note("[Live] PlaybackInfo answered without a live stream id, nothing to close later")
         }
-        if Task.isCancelled {
+        if Task.isCancelled || isTearingDown {
             if let stranded = source?.liveStreamId {
                 releaseTuner(stranded, reason: "tune cancelled while the tuner was opening")
             }
@@ -1004,8 +1004,20 @@ extension PlayerViewModel {
         }
         hasReportedStart = false
         releaseLiveTunerIfNeeded()
+        // Not loadTask, so stopPlayback cannot cancel this: a Back during the stop report or the new
+        // tune has to be read off the latch, or the tune plays on behind a dismissed player.
+        guard !isTearingDown else { return }
         do {
             try await loadLiveStream()
+            if isTearingDown {
+                player.stop()
+                releaseLiveTunerIfNeeded()
+                if let fresh = playSessionID, fresh != deadSession {
+                    let svc = playbackService
+                    Task.detached { try? await svc.stopActiveEncodings(playSessionID: fresh) }
+                }
+                return
+            }
             await reportStart()
         } catch is CancellationError {
             // Superseded by a newer load; nothing to clean up.

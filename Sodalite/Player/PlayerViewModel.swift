@@ -493,6 +493,9 @@ final class PlayerViewModel {
     /// Session-scoped frame extractor (static stream URL); built in startPlayback, shut down in
     /// stopPlayback. Shared by `scrubPreview` and `chapterThumbnail(forIndex:)`.
     @ObservationIgnored private var frameExtractor: FrameExtractor?
+    /// The extractor supersedes its in-flight decode on every new request, so the chapter rows that
+    /// mount together take turns instead (see `SerialRequestQueue`).
+    @ObservationIgnored private let chapterStillQueue = SerialRequestQueue()
 
     /// A chapter still. Prefers the Jellyfin-rendered chapter image (when `imageTag` is set, post
     /// "Chapter image extraction" task): pre-rendered, cheap, reliable. Falls back to decoding the
@@ -512,7 +515,10 @@ final class PlayerViewModel {
             return image
         }
         guard let frameExtractor else { return nil }
-        return await frameExtractor.thumbnail(at: chapter.startSeconds, maxWidth: 320)
+        let seconds = chapter.startSeconds
+        return await chapterStillQueue.run {
+            await frameExtractor.thumbnail(at: seconds, maxWidth: 320)
+        }
     }
 
     /// Fetches + decodes a server chapter image via the shared `ImageCache` (memory-only). Auth rides
@@ -611,6 +617,10 @@ final class PlayerViewModel {
     /// so a teardown racing an in-flight load (incl. next-episode / season-picker tasks, not loadTask
     /// and thus uncancellable) still bails before or stops right after `player.load()`.
     var isTearingDown = false
+    /// Once-per-session gate for `stopPlayback()`: a Back reaches it twice (dismissPlayer, then
+    /// viewWillDisappear), and the second pass reads a playhead `player.stop()` already zeroed.
+    /// Separate from `isTearingDown`, which other paths latch too. Reset by `startPlayback`.
+    var didStopPlayback = false
     var hasReportedStart = false
     var hasStartedPlaying = false
     /// Resume position, used as minimum for progress reports so Jellyfin doesn't reset progress on early stop.
@@ -922,6 +932,13 @@ final class PlayerViewModel {
 
     func startPlayback() async {
         isTearingDown = false
+        didStopPlayback = false
+        // Everything a previous attempt on this view model armed (a retry, an item recovery): its sinks
+        // would double every handler, and a carried-over start flag would swallow this session's start.
+        cancellables.removeAll()
+        hasLiveEdgeObservers = false
+        stopProgressReporting()
+        hasReportedStart = false
         hostLoadActive = true
         clearError()
         // Cleared before the load, not after it: an auto-advance swaps `item` first, and a source left
@@ -1253,6 +1270,8 @@ final class PlayerViewModel {
     /// (default 30s timeout would leave the player up on a slow CDN, DrHurt #12). Session endpoints
     /// opt into a 90s timeout so the position write survives a slow origin.
     func stopPlayback() {
+        guard !didStopPlayback else { return }
+        didStopPlayback = true
         // Latch teardown + cancel the in-flight launch (re-checked after every await in startPlayback;
         // cancel throws CancellationError out of player.load()) so a back-press-during-load can't resume
         // into player.load() after the player.stop() below.
@@ -1280,7 +1299,10 @@ final class PlayerViewModel {
         frameExtractor = nil
         Task { await extractorToClose?.shutdown() }
         deactivateASSRendering()
+        ASSFontCache.removeAll()
         cancellables.removeAll()
+        outageWatchdog?.cancel()
+        outageWatchdog = nil
         // Capture position BEFORE stopping: player.stop() resets currentTime to 0. Completion-aware,
         // so leaving by hand during the credits files the episode as watched instead of parking it on
         // the Continue Watching shelf with a nearly full bar.
@@ -1305,23 +1327,28 @@ final class PlayerViewModel {
         // on PlaybackStopped too: an untracked closer is one the next tune of the same channel can
         // overtake, and the id names the channel rather than this stream (#70).
         let sessionToKill = playSessionID
+        // No start went out (Back before PlaybackInfo answered, or a load that failed), so the server
+        // has no session to close, and a stop here would write position 0 over the resume point.
+        let sendsStopReport = hasReportedStart
         let reportWork: @Sendable () async -> Void = {
-            do {
-                try await svc.reportPlaybackStopped(stopReport)
-                await MainActor.run {
-                    NotificationCenter.default.post(
-                        name: .playbackProgressDidChange,
-                        object: nil,
-                        userInfo: [
-                            PlaybackProgressKey.itemID: stopReport.itemId,
-                            PlaybackProgressKey.positionTicks: stopReport.positionTicks
-                        ]
-                    )
+            if sendsStopReport {
+                do {
+                    try await svc.reportPlaybackStopped(stopReport)
+                    await MainActor.run {
+                        NotificationCenter.default.post(
+                            name: .playbackProgressDidChange,
+                            object: nil,
+                            userInfo: [
+                                PlaybackProgressKey.itemID: stopReport.itemId,
+                                PlaybackProgressKey.positionTicks: stopReport.positionTicks
+                            ]
+                        )
+                    }
+                } catch {
+                    #if DEBUG
+                    print("[SessionReport] Stop FAILED: \(error)")
+                    #endif
                 }
-            } catch {
-                #if DEBUG
-                print("[SessionReport] Stop FAILED: \(error)")
-                #endif
             }
             // Explicit transcode kill independent of the stop report: orphaned live transcodes write an
             // endlessly growing stream.ts and fill the server disk (DELETE /Videos/ActiveEncodings, no-op when idle).

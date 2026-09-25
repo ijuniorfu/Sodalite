@@ -32,12 +32,13 @@ enum SRTParser {
 
             guard !text.isEmpty else { continue }
 
-            let cleanText = text.replacingOccurrences(
-
-                of: "<[^>]+>",
-                with: "",
-                options: .regularExpression
-            )
+            // `{\...}` is an ASS override block: Jellyfin's ASS-to-SRT conversion (ffmpeg srtenc) keeps
+            // `{\an8}` and friends for non-bottom placement. A brace without the backslash is text.
+            let cleanText = text
+                .replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                .replacingOccurrences(of: #"\{\\[^}]*\}"#, with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !cleanText.isEmpty else { continue }
 
             cues.append(SubtitleCue(
                 id: cues.count,
