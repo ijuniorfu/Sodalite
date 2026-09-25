@@ -11,15 +11,17 @@ struct DiagnosticLogSequenceTests {
 
     @Test("a line's id stays the same before and after the ring starts evicting")
     func idIsStableAcrossEviction() {
-        // Before eviction: buffer still growing, count == sequenceNumber. A line 3 from the end.
-        let idWhileGrowing = DiagnosticLogView.lineID(sequenceNumber: 250, lineCount: 250, offset: 246)
+        // Before eviction: buffer still growing (count == sequenceNumber). The 241st line ever
+        // appended sits at offset 240 (0-based).
+        let idWhileGrowing = DiagnosticLogView.lineID(sequenceNumber: 250, lineCount: 250, offset: 240)
 
-        // The ring is now full (300) and has evicted 10 more off the front since; the SAME physical
-        // line (still 3 from the end, sequenceNumber advanced by the 10 new appends) sits at a
-        // different array offset, but should resolve to the same id.
-        let idAfterEviction = DiagnosticLogView.lineID(sequenceNumber: 260, lineCount: 300, offset: 296)
+        // 60 more lines land; once the ring passed 300 it evicted 10 from the front (310 appended,
+        // 300 - 10 kept). The SAME physical line (still the 241st ever appended) now sits 10
+        // positions earlier, but should resolve to the same id.
+        let idAfterEviction = DiagnosticLogView.lineID(sequenceNumber: 310, lineCount: 300, offset: 230)
 
         #expect(idWhileGrowing == idAfterEviction)
+        #expect(idWhileGrowing == 241, "the id should equal the line's own append rank")
     }
 
     @Test("ids are unique and increasing across one buffer snapshot")
