@@ -23,7 +23,7 @@ final class GuideViewModel {
     /// What the grid renders: the fetched set narrowed by the search text.
     private(set) var channels: [JellyfinChannel] = []
     private(set) var programsByChannel: [String: [JellyfinProgram]] = [:]
-    private(set) var isLoadingChannels = false
+    var isLoadingChannels: Bool { fetchingGeneration != nil }
     private(set) var channelsComplete = false
     private(set) var loadError: String?
     /// Drives whether the Radio chip is offered at all.
@@ -53,6 +53,10 @@ final class GuideViewModel {
     private var fetchedChannels: [JellyfinChannel] = []
     private var requestedProgramChannelIDs: Set<String> = []
     private var loadGeneration = 0
+    /// The generation whose fetch loop is running. Re-entry is refused per generation only: a filter
+    /// switch mid-paging has to start its own loop while the old one is still suspended in its request,
+    /// which then finds itself outdated and quits.
+    private var fetchingGeneration: Int?
     private var didLoad = false
     /// The server's EPG horizon, kept because every later axis rebuild has to honour it too.
     private var guideEnd: Date?
@@ -159,10 +163,10 @@ final class GuideViewModel {
     /// Fetch every page for the active filter, appending progressively so the first page renders
     /// while the rest arrives.
     private func fetchChannels() async {
-        guard !isLoadingChannels else { return }
-        isLoadingChannels = true
-        defer { isLoadingChannels = false }
         let generation = loadGeneration
+        guard fetchingGeneration != generation else { return }
+        fetchingGeneration = generation
+        defer { if fetchingGeneration == generation { fetchingGeneration = nil } }
         var startIndex = fetchedChannels.count
         while !channelsComplete, startIndex < Self.channelHardCap {
             do {

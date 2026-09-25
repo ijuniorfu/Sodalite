@@ -9,7 +9,7 @@ final class ChannelListViewModel {
 
     private(set) var channels: [JellyfinChannel] = []
     private(set) var programsByChannel: [String: [JellyfinProgram]] = [:]
-    private(set) var isLoading = false
+    var isLoading: Bool { fetchingGeneration != nil }
     private(set) var loadError: String?
     private(set) var hasRadioChannels = false
     private(set) var filter: GuideFilter = .default
@@ -22,6 +22,8 @@ final class ChannelListViewModel {
     private var fetchedChannels: [JellyfinChannel] = []
     private var requestedProgramChannelIDs: Set<String> = []
     private var loadGeneration = 0
+    /// See GuideViewModel.fetchingGeneration: a filter switch or refresh mid-paging starts its own loop.
+    private var fetchingGeneration: Int?
     private var didLoad = false
     /// The list's own window: two days, the same horizon the grid uses.
     private let windowStart = Date()
@@ -82,10 +84,10 @@ final class ChannelListViewModel {
     }
 
     private func fetchChannels() async {
-        guard !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
         let generation = loadGeneration
+        guard fetchingGeneration != generation else { return }
+        fetchingGeneration = generation
+        defer { if fetchingGeneration == generation { fetchingGeneration = nil } }
         var startIndex = fetchedChannels.count
         var complete = false
         while !complete, startIndex < GuideViewModel.channelHardCap {
