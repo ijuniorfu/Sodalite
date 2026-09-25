@@ -445,6 +445,7 @@ struct SettingsView: View {
 
     private func finishLogout() {
         try? dependencies.clearSession()
+        dependencies.clearSessionResidue()
         appState.logout()
     }
 

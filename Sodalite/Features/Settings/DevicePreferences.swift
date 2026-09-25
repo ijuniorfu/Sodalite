@@ -101,6 +101,26 @@ final class DevicePreferences {
             .flatMap(AppearancePreferences.ContinueWatchingImage.init(rawValue:)) ?? .thumb
     }
 
+    /// Reads every value again, for a factory reset that wiped the store underneath this object:
+    /// it parsed its values once at launch. Assigned only where they differ, so observers see what
+    /// changed (the Top Shelf bridge is keyed on `showTopShelfRow`) and a wiped key stays wiped.
+    func reloadFromStore() {
+        let stored = DevicePreferences(keyspace: store)
+        func update<Value: Equatable>(_ path: ReferenceWritableKeyPath<DevicePreferences, Value>) {
+            if self[keyPath: path] != stored[keyPath: path] { self[keyPath: path] = stored[keyPath: path] }
+        }
+        update(\.showStatsForNerds)
+        update(\.showEngineDiagnostics)
+        update(\.preferLosslessAudioBridge)
+        update(\.playerRotationLocked)
+        update(\.networkBufferDepth)
+        update(\.liveBufferDepth)
+        update(\.liveTeletextPage)
+        update(\.forceDolbyVisionOnNonDVDisplay)
+        update(\.showTopShelfRow)
+        update(\.topShelfImage)
+    }
+
     convenience init(store defaults: UserDefaults = .standard) {
         self.init(keyspace: PreferenceKeyspace(defaults: defaults, scope: nil))
     }

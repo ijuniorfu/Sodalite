@@ -65,4 +65,27 @@ struct DevicePreferencesSplitTests {
         #expect(device.networkBufferDepth == .unlimited)
         #expect(!device.preferLosslessAudioBridge)
     }
+
+    /// Audit 2026-09-25 CS-6: a reset wipes the store, and the object in memory kept the old values
+    /// until a relaunch, so the player ran on the old buffers and the Top Shelf switch disagreed.
+    @Test func aReloadAfterAWipeLandsOnTheDefaults() {
+        let suite = "deviceSplit.reload"
+        let defaults = scratch("reload")
+        let device = DevicePreferences(store: defaults)
+        let virgin = DevicePreferences(store: scratch("reloadVirgin"))
+        device.showTopShelfRow = false
+        device.networkBufferDepth = .maximum
+        device.preferLosslessAudioBridge = true
+        device.forceDolbyVisionOnNonDVDisplay = true
+        device.showStatsForNerds = true
+
+        defaults.removePersistentDomain(forName: suite)
+        device.reloadFromStore()
+
+        #expect(device.showTopShelfRow == virgin.showTopShelfRow)
+        #expect(device.networkBufferDepth == virgin.networkBufferDepth)
+        #expect(device.preferLosslessAudioBridge == virgin.preferLosslessAudioBridge)
+        #expect(device.forceDolbyVisionOnNonDVDisplay == virgin.forceDolbyVisionOnNonDVDisplay)
+        #expect(device.showStatsForNerds == virgin.showStatsForNerds)
+    }
 }

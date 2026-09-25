@@ -129,6 +129,16 @@ final class LogTap: ObservableObject {
         }
     }
 
+    /// A factory reset: the sink stops and both files go. On the file queue, so a line already
+    /// queued lands before the removal and none after it (appends never create the file).
+    nonisolated static func discardPersistedLog() {
+        fileSinkEnabled = false
+        let urls = persistedLogURLs
+        fileQueue.async {
+            for url in urls { try? FileManager.default.removeItem(at: url) }
+        }
+    }
+
     nonisolated static var fileSinkURL: URL? {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
             .appendingPathComponent("sodalite-log.txt")
