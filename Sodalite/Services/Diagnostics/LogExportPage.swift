@@ -13,11 +13,15 @@ import Foundation
 /// modern API is the optimization.
 nonisolated enum LogExportPage {
 
+    /// `download` is the text below as a file, the download a reader expects from this page.
     /// `persistedLog` is the file sink's file when there is one: a link and not inline, because it runs to
-    /// 32 MB and a phone that renders that into a `pre` stops responding.
+    /// 32 MB and a phone that renders that into a `pre` stops responding. It is a different log (only
+    /// what was written while the switch was on, across launches), so it is labelled as one and says so
+    /// underneath: Sodalite#164 was a reporter who took it for the page's own download.
     static func render(
         document: String,
         token: String,
+        download: String,
         persistedLog: (path: String, length: Int)? = nil
     ) -> String {
         """
@@ -34,10 +38,11 @@ nonisolated enum LogExportPage {
         <h1>\(escape(String(localized: "settings.log.title")))</h1>
         <div class="actions">
         <button id="copy" type="button">\(escape(String(localized: "settings.log.export.page.copy")))</button>
+        <a class="button" href="\(escape(download))" download>\(escape(String(localized: "settings.log.export.page.download")))</a>
         <a class="button" href="/\(token)/log.txt">\(escape(String(localized: "settings.log.export.page.text")))</a>
         \(persistedLogLink(persistedLog))</div>
         <p id="status" role="status" aria-live="polite"></p>
-        <p class="note">\(escape(String(localized: "settings.log.export.page.note")))</p>
+        \(persistedLogNote(persistedLog))        <p class="note">\(escape(String(localized: "settings.log.export.page.note")))</p>
         <pre id="log">\(escape(document))</pre>
         </main>
         <script>\(script)</script>
@@ -51,6 +56,11 @@ nonisolated enum LogExportPage {
         let size = ByteCountFormatter.string(fromByteCount: Int64(file.length), countStyle: .file)
         let title = String(format: String(localized: "settings.log.export.page.file"), size)
         return "<a class=\"button\" href=\"\(escape(file.path))\" download>\(escape(title))</a>\n"
+    }
+
+    private static func persistedLogNote(_ file: (path: String, length: Int)?) -> String {
+        guard file != nil else { return "" }
+        return "<p class=\"note\">\(escape(String(localized: "settings.log.export.page.file.note")))</p>\n"
     }
 
     /// Only reachable by a connection already in flight when the deadline passed: the listener closes
