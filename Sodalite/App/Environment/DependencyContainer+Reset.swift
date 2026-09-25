@@ -5,8 +5,8 @@ import Foundation
 /// signing out of a server is no reason to lose a theme. A reset keeps nothing (Sodalite#76).
 extension DependencyContainer {
 
-    /// Clears every credential, server and preference on this device, and leaves iCloud sync off
-    /// until someone turns it on again.
+    /// Clears every credential, server, preference, cache and log on this device, and leaves iCloud
+    /// sync off until someone turns it on again.
     ///
     /// `deleteCloudCopy` also removes the copy in iCloud. Without it the zone still describes the
     /// same servers, and turning sync back on (Settings, or "Load from iCloud" on the first screen)
@@ -25,11 +25,14 @@ extension DependencyContainer {
 
         // Servers, tokens, profiles, passwords, Seerr, and cloud sync off on this device.
         try? clearSession()
+        clearSessionResidue()
         // clearSession scrubs session state; a reset owes nothing to anything. The Guardian PIN, its
         // throttle, the remembered live routes and whatever a later key adds all sit in the same
         // keychain service, so take the service rather than a list that would fall behind.
         try? keychainService.deleteAll()
         SharedSessionMirror.clearAll()
+        LogTap.discardPersistedLog()
+        Self.clearGroupCaches(keeping: [])
 
         // Preferences live in two places at once. The domain is what the next launch reads.
         if let bundleID = Bundle.main.bundleIdentifier {
@@ -57,9 +60,6 @@ extension DependencyContainer {
             sessionNote("reset: no scratch suite for the factory stores, preferences land on defaults at the next launch.")
         }
 
-        FilterCache.shared.clearAll()
-        ImageCache.shared.clear()
-
         // The bridges SodaliteApp keys on a value change: one that already held its default does
         // not fire, and the extension would read the wiped group domain against the app's value.
         TopShelfEnabled.write(profileSettings.device.showTopShelfRow)
@@ -67,6 +67,32 @@ extension DependencyContainer {
         TopShelfRefresher.invalidate()
 
         sessionNote("reset: done.")
+    }
+
+    /// What a session leaves on disk outside the keychain. Jellyfin carries the access token in the
+    /// query of every image and stream URL, and the response and artwork caches are keyed by those
+    /// URLs; `URLCache.shared` is what the Top Shelf pre-render fills. The group container holds the
+    /// shelf's items and rendered artwork. Log Out and a reset both run this; the shelf's own log is
+    /// diagnostics, not session data, and only a reset takes it.
+    func clearSessionResidue() {
+        clearCachedData()
+        URLCache.shared.removeAllCachedResponses()
+        Self.clearGroupCaches(keeping: [ShelfLogFile.fileName])
+        sessionNote("session caches cleared: responses, artwork, shared URL cache, Top Shelf files.")
+    }
+
+    /// The group container's `Library/Caches`, the only place besides Preferences the extension
+    /// can write on tvOS, so everything it keeps is in here.
+    nonisolated static func clearGroupCaches(
+        in directory: URL? = TopShelfCachePolicy.directory(),
+        keeping kept: Set<String>
+    ) {
+        guard let directory,
+              let entries = try? FileManager.default.contentsOfDirectory(atPath: directory.path)
+        else { return }
+        for entry in entries where !kept.contains(entry) {
+            try? FileManager.default.removeItem(at: directory.appendingPathComponent(entry))
+        }
     }
 
     /// Shared with the TopShelf extension; see TopShelfCachePolicy.appGroup.
