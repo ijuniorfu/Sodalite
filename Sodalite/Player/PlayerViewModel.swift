@@ -493,6 +493,9 @@ final class PlayerViewModel {
     /// Session-scoped frame extractor (static stream URL); built in startPlayback, shut down in
     /// stopPlayback. Shared by `scrubPreview` and `chapterThumbnail(forIndex:)`.
     @ObservationIgnored private var frameExtractor: FrameExtractor?
+    /// The extractor supersedes its in-flight decode on every new request, so the chapter rows that
+    /// mount together take turns instead (see `SerialRequestQueue`).
+    @ObservationIgnored private let chapterStillQueue = SerialRequestQueue()
 
     /// A chapter still. Prefers the Jellyfin-rendered chapter image (when `imageTag` is set, post
     /// "Chapter image extraction" task): pre-rendered, cheap, reliable. Falls back to decoding the
@@ -512,7 +515,10 @@ final class PlayerViewModel {
             return image
         }
         guard let frameExtractor else { return nil }
-        return await frameExtractor.thumbnail(at: chapter.startSeconds, maxWidth: 320)
+        let seconds = chapter.startSeconds
+        return await chapterStillQueue.run {
+            await frameExtractor.thumbnail(at: seconds, maxWidth: 320)
+        }
     }
 
     /// Fetches + decodes a server chapter image via the shared `ImageCache` (memory-only). Auth rides
