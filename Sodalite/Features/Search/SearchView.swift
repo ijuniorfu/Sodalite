@@ -296,7 +296,10 @@ struct SearchView: View {
 
             RowScrollView(leading: leadingInset, trailing: 50, vertical: 20) {
                 LazyHStack(spacing: 30) {
-                    ForEach(items) { media in
+                    // stableKey not id: Seerr's multi-search mixes movies and shows, and the bare
+                    // TMDB id collides across the two namespaces (Audit 2026-09-25 BROWSE-8), the
+                    // same reason PersonDetailView's filmography row keys on it.
+                    ForEach(items, id: \.stableKey) { media in
                         FocusableCard {
                             destination = .catalog(media)
                         } content: { isFocused in

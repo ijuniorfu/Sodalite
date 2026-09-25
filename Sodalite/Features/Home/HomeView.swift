@@ -21,9 +21,6 @@ struct HomeView: View {
     /// Debounce for the focus-left-rows → scroll-to-top, cancelled/respawned on focus change; without it transient nils between row transitions trigger spurious scroll-to-top snaps.
     @State private var scrollResetTask: Task<Void, Never>?
 
-    /// Last serverDidSwitch this view reacted to. .task(id:) re-fires with the same id on every reappear; without the latch each reappear would wipe FilterCache and reload the whole feed.
-    @State private var lastHandledServerSwitch = 0
-
     /// Same latch for requestContentReload, and for the same reason: without it every reappear would
     /// reload the whole feed on a signal that was already answered.
     @State private var lastHandledContentReload = 0
@@ -118,18 +115,43 @@ struct HomeView: View {
             viewModel?.scheduleConfigReload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeFavoritesDidChange)) { _ in
-            Task { await viewModel?.loadContent() }
+            // While something covers Home (detail/player), mark it stale instead of reloading now:
+            // a fan-out landing on the shared limiter next to a player rebuilding its pipeline is the
+            // class of burst that starves a stream (Sodalite#12, Audit 2026-09-25 BROWSE-1). The
+            // `isCovered` observer above does the one reload once Home is the screen again.
+            Task { @MainActor in
+                if isCovered {
+                    viewModel?.markDirty()
+                } else {
+                    await viewModel?.loadContent()
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .homePlayedDidChange)) { _ in
-            Task { await viewModel?.loadContent() }
+            Task { @MainActor in
+                if isCovered {
+                    viewModel?.markDirty()
+                } else {
+                    await viewModel?.loadContent()
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .playbackProgressDidChange)) { note in
-            // Patch the tile progress in place from the payload (race-free), then reload for structural changes (reorder, finished drop-out), then re-apply so a stale cached re-fetch can't regress the bar (issue #24).
+            // Patch the tile progress in place from the payload (race-free). While covered, that
+            // patch is all this gets: the reload for structural changes (reorder, finished
+            // drop-out) waits for the cover to actually go, instead of running once per auto-advance
+            // right next to the player opening the next stream (Sodalite#12, Audit 2026-09-25
+            // BROWSE-1). Not covered, reload now and re-apply so a stale cached re-fetch can't
+            // regress the bar (issue #24).
             let itemID = note.userInfo?[PlaybackProgressKey.itemID] as? String
             let ticks = note.userInfo?[PlaybackProgressKey.positionTicks] as? Int64
             Task { @MainActor in
                 if let itemID, let ticks {
                     viewModel?.applyPlaybackPosition(itemID: itemID, ticks: ticks)
+                }
+                if isCovered {
+                    viewModel?.markDirty()
+                    return
                 }
                 await viewModel?.loadContent()
                 if let itemID, let ticks {
@@ -144,7 +166,13 @@ struct HomeView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .homeItemDidDelete)) { _ in
             // Reload so the deleted item drops out immediately instead of lingering until the next stale refresh.
-            Task { await viewModel?.loadContent() }
+            Task { @MainActor in
+                if isCovered {
+                    viewModel?.markDirty()
+                } else {
+                    await viewModel?.loadContent()
+                }
+            }
         }
         .onChange(of: appState.activeUser?.id) { _, newValue in
             // Profile switch: tear down the old VM so .onAppear rebuilds it with the new userID (else it keeps loading the previous profile's permissions/watch state).
@@ -161,21 +189,12 @@ struct HomeView: View {
             )
             Task { await viewModel?.loadContent() }
         }
-        .task(id: appState.serverDidSwitch) {
-            // Value 0 is the initial state; no switch has occurred yet.
-            let signal = appState.serverDidSwitch
-            guard signal > 0, signal != lastHandledServerSwitch else { return }
-            lastHandledServerSwitch = signal
-            // Roll the latch back if cancelled mid-reload so the reappear re-fire finishes the job instead of being guarded away.
-            defer {
-                if Task.isCancelled, lastHandledServerSwitch == signal {
-                    lastHandledServerSwitch = 0
-                }
-            }
-            // FilterCache needs no handling here: its entries are scoped per identity, so the
-            // rows this reload fetches and the tile grids on disk cannot cross sessions.
-            await viewModel?.reloadAfterServerSwitch()
-        }
+        // No serverDidSwitch handler here: TabRootView is `.id(appState.activeServer?.id)`, so a
+        // switch tears this whole view down and `.onAppear` above builds a fresh view model on the
+        // destination identity, hydrated from its own cached feed (Audit 2026-09-25 BROWSE-3). A
+        // handler here duplicated that first load and, on iOS where Settings stays a sheet over a
+        // live Home, could fire against the outgoing view model before AppRouter's probe repointed
+        // `activeServer`.
         // A cause outside Home has made its last failure obsolete (the Local Network permission came
         // back, Sodalite#92). Home is still showing the error it hit while that was off, and only a
         // reload can retire it.

@@ -15,6 +15,7 @@ struct ProgramInfoPopover: View {
     var onToggleSeriesRecord: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.appState) private var appState
     @Environment(\.horizontalSizeClass) private var hSizeClass
     /// Local mirror for snappy feedback; the view model is source of truth and persists.
     @State private var isFavorite: Bool = false
@@ -120,8 +121,10 @@ struct ProgramInfoPopover: View {
             isFavorite.toggle()
             onToggleFavorite?()
         }
-        // Record affordances only for future / currently airing programs.
-        if let end = program.endDate, end > now, !program.isSynthesized {
+        // Record affordances only for future / currently airing programs, and only for a profile the
+        // server lets manage recordings (it refuses the rest, after the button already flipped).
+        if let end = program.endDate, end > now, !program.isSynthesized,
+           appState.activeUser?.canManageLiveTv == true {
             PopoverActionButton(
                 title: isRecording ? "livetv.cancelRecording" : "livetv.record",
                 systemImage: isRecording ? "stop.circle" : "record.circle",

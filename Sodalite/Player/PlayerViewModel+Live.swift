@@ -28,10 +28,11 @@ extension PlayerViewModel {
         if !didAttemptLiveFallback,
            let memory = directStreamMemory,
            let remembered = memory.upstream(userID: userID, channelID: item.id) {
+            LogSecrets.registerUpstreamCredentials(in: remembered)
             let reader = HLSLiveIngestReader(playlistURL: remembered)
             do {
                 liveRoute = .direct
-                LogTap.shared.note("[LiveDirect] route=direct source=remembered upstream=\(remembered.absoluteString)")
+                LogTap.shared.note("[LiveDirect] route=direct source=remembered upstream=\(LogSecrets.upstreamDescription(remembered))")
                 // No tuner was opened, so there is nothing to release and no transcode to correlate. The
                 // synthesized ids exist purely so the Jellyfin session reports still form one session.
                 try await startDirectIngest(
@@ -101,6 +102,9 @@ extension PlayerViewModel {
                 transcodingURL: source.transcodingUrl, sourcePath: source.path,
                 audioNeedsServerReencode: audioDecision.requiresServerReencode)
             if !didAttemptLiveFallback, case .eligible(let upstream) = eligibility {
+                // An IPTV provider's path can carry the account password with nothing to name it, and
+                // the engine logs this URL's segments too (audit DIAG-2).
+                LogSecrets.registerUpstreamCredentials(in: upstream)
                 // Reader created here so its terminalError is reachable in the catch fallback log.
                 let reader = HLSLiveIngestReader(playlistURL: upstream)
                 do {
@@ -206,7 +210,7 @@ extension PlayerViewModel {
             // worse than a tuner we forgot to close is a tuner we were never given a handle for.
             LogTap.shared.note("[Live] PlaybackInfo answered without a live stream id, nothing to close later")
         }
-        if Task.isCancelled {
+        if Task.isCancelled || isTearingDown {
             if let stranded = source?.liveStreamId {
                 releaseTuner(stranded, reason: "tune cancelled while the tuner was opening")
             }
@@ -302,7 +306,7 @@ extension PlayerViewModel {
             }
         }
         liveRoute = .direct
-        LogTap.shared.note("[LiveDirect] route=direct upstream=\(upstream.absoluteString)")
+        LogTap.shared.note("[LiveDirect] route=direct upstream=\(LogSecrets.upstreamDescription(upstream))")
         try await startDirectIngest(
             reader: reader,
             playSessionID: info.playSessionId,
@@ -1000,8 +1004,20 @@ extension PlayerViewModel {
         }
         hasReportedStart = false
         releaseLiveTunerIfNeeded()
+        // Not loadTask, so stopPlayback cannot cancel this: a Back during the stop report or the new
+        // tune has to be read off the latch, or the tune plays on behind a dismissed player.
+        guard !isTearingDown else { return }
         do {
             try await loadLiveStream()
+            if isTearingDown {
+                player.stop()
+                releaseLiveTunerIfNeeded()
+                if let fresh = playSessionID, fresh != deadSession {
+                    let svc = playbackService
+                    Task.detached { try? await svc.stopActiveEncodings(playSessionID: fresh) }
+                }
+                return
+            }
             await reportStart()
         } catch is CancellationError {
             // Superseded by a newer load; nothing to clean up.

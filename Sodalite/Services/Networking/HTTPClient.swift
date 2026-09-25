@@ -231,7 +231,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         }
     }
 
-    private func buildRequest(
+    func buildRequest(
         baseURL: URL,
         endpoint: APIEndpoint,
         headers: [String: String]
@@ -245,11 +245,7 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         } else {
             components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: true)
         }
-        components?.queryItems = endpoint.queryItems
-        // URLComponents leaves "+" literal, but ASP.NET (Jellyfin) / Express (Seerr) decode it as space ("Disney+"→"Disney "). Spaces are already %20 here, so any remaining "+" is a real plus, escape to %2B.
-        let encodedQuery = components?.percentEncodedQuery
-        components?.percentEncodedQuery = encodedQuery?
-            .replacingOccurrences(of: "+", with: "%2B")
+        components?.percentEncodedQueryItems = Self.percentEncoded(endpoint.queryItems)
 
         guard let url = components?.url, !Self.navigatesUpward(url) else {
             throw APIError.invalidURL
@@ -270,6 +266,26 @@ final class HTTPClient: HTTPClientProtocol, @unchecked Sendable {
         }
 
         return request
+    }
+
+    /// RFC 3986 unreserved characters, the only ones a query value is sent with literally.
+    nonisolated static let queryValueAllowed = CharacterSet(
+        charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+
+    /// Query items with every name and value encoded against the unreserved set.
+    ///
+    /// `URLComponents.queryItems` leaves the sub-delimiters literal (`' : ( ) ! * , ; @ $ / ?` and
+    /// `+`). Seerr's request validator rejects a query value holding any of them with a 400, so a
+    /// search for "Grey's Anatomy" or "Mission: Impossible" came back empty (audit NETWORK-1), and a
+    /// literal `+` reads as a space to ASP.NET and Express alike. Jellyfin decodes the escaped form
+    /// before it splits a comma list, so `Fields=a%2Cb` binds as `Fields=a,b` did.
+    nonisolated static func percentEncoded(_ items: [URLQueryItem]?) -> [URLQueryItem]? {
+        items?.map { item in
+            URLQueryItem(
+                name: item.name.addingPercentEncoding(withAllowedCharacters: queryValueAllowed) ?? item.name,
+                value: item.value.map { $0.addingPercentEncoding(withAllowedCharacters: queryValueAllowed) ?? $0 }
+            )
+        }
     }
 
     /// Does this path still contain a `.` or `..` segment the server would resolve away?

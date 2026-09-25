@@ -72,10 +72,26 @@ final class HomeViewModel {
     /// refresh and a skipped one used to leave identical logs, so "did Home refresh?" could only be
     /// answered by watching the screen (Sodalite#117, classicjazz, four captures in one round).
     func refreshIfStale(trigger: RefreshTrigger, covered: Bool = false) async {
-        let decision = Self.refreshDecision(lastLoadedAt: lastLoadedAt, covered: covered, now: Date())
+        let decision = Self.refreshDecision(
+            lastLoadedAt: lastLoadedAt, covered: covered, dirty: isDirty, now: Date()
+        )
         LogTap.shared.note("[HomeRefresh] \(trigger.rawValue): \(decision.logText)")
         guard case .refetch = decision else { return }
+        isDirty = false
         await loadContent()
+    }
+
+    /// True when a change landed while Home was covered and only got an in-place patch (favorited,
+    /// watched, deleted, playback progress): the shelf may now be structurally wrong (reorder, a
+    /// finished item dropping out) but nothing behind a cover is worth a fan-out landing next to
+    /// whatever is covering it (Sodalite#12). The next `refreshIfStale` forces a refetch regardless
+    /// of age and clears it, so the one reload the cover's dismissal delivers carries the change.
+    private var isDirty = false
+
+    /// Record a change Home only patched in place while covered, for the next `refreshIfStale` to
+    /// pick up as a forced refetch.
+    func markDirty() {
+        isDirty = true
     }
 
     /// What asked the gate. Only the log reads it; the decision does not depend on it.
@@ -103,10 +119,13 @@ final class HomeViewModel {
 
     /// Covered wins over age, so the one refresh the cover's dismissal is there to deliver is not
     /// spent next to a player that is still rebuilding its pipeline (Sodalite#12).
-    static func refreshDecision(lastLoadedAt: Date?, covered: Bool, now: Date) -> RefreshDecision {
+    static func refreshDecision(
+        lastLoadedAt: Date?, covered: Bool, dirty: Bool = false, now: Date
+    ) -> RefreshDecision {
         let age = lastLoadedAt.map { now.timeIntervalSince($0) }
         if covered { return .covered(ageSeconds: age.map { Int($0) }) }
         guard let age else { return .neverLoaded }
+        if dirty { return .refetch(ageSeconds: Int(age)) }
         return age > refreshStaleSeconds ? .refetch(ageSeconds: Int(age)) : .fresh(ageSeconds: Int(age))
     }
 
@@ -343,8 +362,11 @@ final class HomeViewModel {
                 group.addTask { [weak self] in await self?.fetch(entry) ?? .empty }
             }
             for await result in group {
-                // Stale guard: a newer loadContent superseded this; drop the rest so we don't fight it for the rows array.
-                guard loadGeneration == myGen else { return }
+                // Stale guard: a newer loadContent superseded this; drop the rest so we don't fight it for the rows array. A `withTaskGroup` body returning does not cancel the remaining children on its own, so without cancelAll() every row fetch of the superseded generation keeps running to completion on the shared limiter (Audit 2026-09-25 BROWSE-2).
+                guard loadGeneration == myGen else {
+                    group.cancelAll()
+                    return
+                }
                 switch result {
                 case .media(let row):
                     if let idx = rows.firstIndex(where: { $0.id == row.id }) {

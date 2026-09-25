@@ -49,12 +49,15 @@ struct LoginView: View {
                 )
             }
         }
-        .task {
+        // Keyed on the view model's arrival: it is built in onAppear, which is not ordered against
+        // this task, and the route belongs to the sign-in client it owns.
+        .task(id: viewModel != nil) {
             // The view model pins an optimistic address in its init so the first frame has one; this
             // is the probe that corrects it. Reached directly (a server with one profile, a deep
             // link) the picker's own resolve never ran, and without this the sign-in would spend its
             // whole life on the last route that worked, which away from home is the LAN address.
-            await dependencies.resolveSignInRoute(for: server)
+            guard let viewModel else { return }
+            await dependencies.resolveSignInRoute(for: server, client: viewModel.signInClient)
         }
         .onDisappear {
             viewModel?.stopQuickConnect()
@@ -170,10 +173,14 @@ struct LoginView: View {
     // Identical composition to the UserPicker card so the transition reads as "same user, now enter password".
     @ViewBuilder
     private func userAvatar(for user: JellyfinUser) -> some View {
-        let url = dependencies.jellyfinImageService.userProfileImageURL(
-            userID: user.id,
-            tag: user.primaryImageTag
-        )
+        // On the server being signed in to and without a token, like the picker card: the live
+        // session's host and token belong to another server.
+        let url = viewModel.flatMap { vm in
+            vm.signInClient.baseURL.flatMap { base in
+                dependencies.jellyfinImageService.userProfileImageURL(
+                    userID: user.id, tag: user.primaryImageTag, baseURL: base, token: nil)
+            }
+        }
         ZStack {
             if let url {
                 AsyncCachedImage(url: url) { image in
@@ -379,15 +386,9 @@ struct LoginView: View {
 
     /// Restores the just-authed profile's Seerr session from keychain (or wipes it). Mirrors ProfileSettingsView.restoreSeerrForSwitchedProfile.
     private func syncSeerrToActiveProfile(userID: String, serverID: String) async {
-        let outcome = await dependencies.syncSeerrSession(
+        await dependencies.applySeerrSession(
             forJellyfinUserID: userID,
             jellyfinServerID: serverID
         )
-        if case .connected(let server, let user) = outcome {
-            appState.setSeerrConnected(server: server, user: user)
-            dependencies.scheduleRouteResolve()
-        } else {
-            appState.disconnectSeerr()
-        }
     }
 }

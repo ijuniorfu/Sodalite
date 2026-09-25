@@ -8,7 +8,11 @@ final class JellyfinClient {
     private let appVersion: String
 
     var baseURL: URL?
-    var accessToken: String?
+    var accessToken: String? {
+        didSet { if let accessToken { onAccessTokenSet?(accessToken) } }
+    }
+    /// Set by `DependencyContainer` on the live client only, so the token reaches the log redactors.
+    var onAccessTokenSet: ((String) -> Void)?
 
     init(httpClient: HTTPClientProtocol = HTTPClient()) {
         self.httpClient = httpClient

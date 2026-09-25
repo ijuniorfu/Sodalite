@@ -53,6 +53,7 @@ protocol CloudSyncServiceProtocol: AnyObject {
     func pullSettingsFromCloud() async
     func deleteCloudDataAndDisable() async
     func handleFullLogout()
+    func handleFactoryReset()
 }
 
 /// Owns the CKSyncEngine on the private database. All state and delegate work is
@@ -142,6 +143,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     func start() {
         guard preferences.isEnabled else {
             status = preferences.accountChangeLocked ? .accountChanged : .disabled
+            observeWhileOff()
             return
         }
         guard engine == nil, !startInFlight else { return }
@@ -187,7 +189,21 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         } else {
             teardownEngine()
             status = .disabled
+            observeWhileOff()
         }
+    }
+
+    /// Off on a device that has adopted the zone: nothing is sent, but every local edit is still
+    /// stamped and kept in the outbox, so switching sync back on publishes what changed meanwhile,
+    /// removals included, and an older edit from another device cannot overwrite it. Seeding the
+    /// snapshots first keeps a session restore from reading as an edit, as it does in `start()`.
+    private func observeWhileOff() {
+        guard preferences.tracksLocalEdits else { return }
+        removeObservers()
+        observationGeneration += 1
+        seedSettingsSnapshots()
+        observeSettingsStores()
+        observeHomeConfigChanges()
     }
 
     /// A different iCloud account than the one this device adopted against.
@@ -520,7 +536,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     /// From the container's mutation hooks: queued only when the record's content actually changed.
     func markServerDirty(serverID: String) {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         let snapshot = dependencies.collectServerPayload(serverID: serverID, stamp: .distantPast)
         guard snapshot == nil || snapshot != lastServerSnapshot[serverID] else { return }
         lastServerSnapshot[serverID] = snapshot
@@ -529,14 +545,14 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     /// Unconditional: adoption has to publish every server whatever it held before.
     private func stampServer(serverID: String) {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         let name = CloudSyncRecordName.server(id: serverID)
         preferences.setLocalStamp(preferences.nextStamp(), for: name)
         addPendingSave(recordName: name)
     }
 
     func markServerDeleted(serverID: String) {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         let name = CloudSyncRecordName.server(id: serverID)
         preferences.removeRecordCaches(for: name)
         // Also with a live engine, not just on the stashed path: a fetch landing between the
@@ -546,7 +562,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     func markSettingsDirty(_ key: CloudSyncStoreKey) {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         let name = CloudSyncRecordName.settings(key)
         preferences.setLocalStamp(preferences.nextStamp(), for: name)
         addPendingSave(recordName: name)
@@ -554,20 +570,20 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     /// Internal for tests.
     func markProfileDirty(_ kind: ProfileRecordKind, _ key: ProfileKey) {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         let name = CloudSyncRecordName.profile(kind, key)
         preferences.setLocalStamp(preferences.nextStamp(), for: name)
         addPendingSave(recordName: name)
     }
 
     func markSecurityDirty() {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         preferences.setLocalStamp(preferences.nextStamp(), for: CloudSyncRecordName.securitySingleton)
         addPendingSave(recordName: CloudSyncRecordName.securitySingleton)
     }
 
     func markSecurityDeleted() {
-        guard preferences.isEnabled else { return }
+        guard preferences.tracksLocalEdits else { return }
         let name = CloudSyncRecordName.securitySingleton
         preferences.removeRecordCaches(for: name)
         recentLocalDeletes.insert(name)
@@ -629,7 +645,11 @@ final class CloudSyncService: CloudSyncServiceProtocol {
     }
 
     func deleteCloudDataAndDisable() async {
-        if engine == nil, preferences.isEnabled {
+        guard preferences.isEnabled else {
+            await deleteZoneWhileOff()
+            return
+        }
+        if engine == nil {
             if !startInFlight { start() }
             await startTask?.value
         }
@@ -640,6 +660,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             preferences.isEnabled = false
             teardownEngine()
             if case .active = status { status = .disabled }
+            observeWhileOff()
             LogTap.shared.note("[CloudSync] cloud data delete not sent, no engine (status \(status))")
             return
         }
@@ -665,15 +686,48 @@ final class CloudSyncService: CloudSyncServiceProtocol {
             // of reporting success and leaving an unsaveable zone behind.
             teardownEngine()
             status = .error(CloudSyncRecovery.describe(failure))
+            observeWhileOff()
             LogTap.shared.note("[CloudSync] cloud data delete failed, local state kept: \(failure)")
             return
         }
+        finishCloudDataDeletion()
+        LogTap.shared.note("[CloudSync] cloud data deleted, sync disabled")
+    }
+
+    /// The delete asked for while sync is off. Starting the engine for it would first run the
+    /// adoption the zone is about to lose, uploads included, so the zone goes directly; the
+    /// confirmation is the consent. A failure has to reach the status row: "Off" alone read as done.
+    private func deleteZoneWhileOff() async {
+        status = .syncing
+        let container = CKContainer(identifier: Self.containerID)
+        do {
+            guard try await container.accountStatus() == .available else {
+                status = .noAccount
+                LogTap.shared.note("[CloudSync] cloud data delete not sent, no iCloud account")
+                return
+            }
+            do {
+                _ = try await container.privateCloudDatabase.deleteRecordZone(withID: Self.zoneID)
+            } catch let error as CKError where error.code == .zoneNotFound || error.code == .userDeletedZone {
+                LogTap.shared.note("[CloudSync] cloud data delete: no zone in iCloud")
+            }
+        } catch {
+            status = .error(CloudSyncRecovery.describe(error))
+            LogTap.shared.note("[CloudSync] cloud data delete failed while sync is off: \(error)")
+            return
+        }
+        // Switched on while the delete was out: that start owns the bookkeeping now.
+        guard !preferences.isEnabled else { return }
+        finishCloudDataDeletion()
+        LogTap.shared.note("[CloudSync] cloud data deleted while sync was off")
+    }
+
+    private func finishCloudDataDeletion() {
         preferences.resetForCloudDataDeletion()
         preferences.accountChangeLocked = false
         teardownEngine()
         statusLatch.clear()
         status = .disabled
-        LogTap.shared.note("[CloudSync] cloud data deleted, sync disabled")
     }
 
     /// Full local logout: stop syncing, keep cloud data intact (no multi-device
@@ -683,6 +737,20 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         preferences.accountChangeLocked = false
         preferences.resetForCloudDataDeletion()
         teardownEngine()
+        statusLatch.clear()
+        status = .disabled
+    }
+
+    /// A factory reset wiped the defaults domain this bookkeeping lives in, the off switch Log Out
+    /// had just written included, and the next launch read the missing key as the factory default:
+    /// on, with no adoption behind it, so it re-adopted the whole zone and signed the old household
+    /// back in. Call it after the wipe. Sync stays off until someone turns it on again, and the
+    /// account and every record identity go too, so that turn-on is a deliberate first adoption.
+    func handleFactoryReset() {
+        teardownEngine()
+        preferences.resetForAccountChange()
+        preferences.isEnabled = false
+        preferences.accountChangeLocked = false
         statusLatch.clear()
         status = .disabled
     }
@@ -770,7 +838,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     /// Internal for tests.
     func uploadSettingsIfChanged(_ key: CloudSyncStoreKey, profile: ProfileKey? = nil) {
-        guard preferences.isEnabled, !dependencies.isApplyingCloudChanges else { return }
+        guard preferences.tracksLocalEdits, !dependencies.isApplyingCloudChanges else { return }
         let snapshot = key.isProfileBacked
             ? dependencies.collectSettingsPayload(key, stamp: .distantPast, profile: profile)
             : dependencies.collectSettingsPayload(key, stamp: .distantPast)
@@ -781,7 +849,7 @@ final class CloudSyncService: CloudSyncServiceProtocol {
 
     /// Internal for tests. Takes the profile the edit was made in, never the active one.
     func uploadProfileIfChanged(_ kind: ProfileRecordKind, _ key: ProfileKey) {
-        guard preferences.isEnabled, !dependencies.isApplyingCloudChanges else { return }
+        guard preferences.tracksLocalEdits, !dependencies.isApplyingCloudChanges else { return }
         guard !dependencies.profileSettings.isProvisional(key, kind) else {
             LogTap.shared.note("[CloudSync] \(key.fingerprint) \(kind.rawValue) is a local copy, not uploaded")
             return

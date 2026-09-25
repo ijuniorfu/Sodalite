@@ -93,6 +93,24 @@ struct TrackSelectionMatcherTests {
         #expect(TrackSelectionMatcher.matchSubtitle(signature, in: streams)?.index == 5)
     }
 
+    /// Vincent, 2026-09-25: forced lines only and every line are different choices, so a
+    /// remembered forced pick never resolves to the full track. Audit 2026-09-25 PLAYER-PERIPHERY-5.
+    @Test("a remembered forced track never resolves to a full one of the same language")
+    func subtitleForcedIsAHardFilter() {
+        let signature = TrackSelectionMatcher.subtitleSignature(
+            sub(index: 3, lang: "eng", forced: true))
+        let streams = [sub(index: 4, lang: "eng", forced: false),
+                       sub(index: 5, lang: "eng", title: "English (SDH)")]
+        #expect(TrackSelectionMatcher.matchSubtitle(signature, in: streams) == nil)
+    }
+
+    @Test("a remembered full track may still take a forced one when nothing else is there")
+    func subtitleFullMayTakeForced() {
+        let signature = TrackSelectionMatcher.subtitleSignature(sub(index: 3, lang: "eng"))
+        let streams = [sub(index: 6, lang: "eng", forced: true)]
+        #expect(TrackSelectionMatcher.matchSubtitle(signature, in: streams)?.index == 6)
+    }
+
     @Test("an equal-scoring tie breaks on the lowest stream index")
     func subtitleTieBreak() {
         let signature = TrackSelectionMatcher.subtitleSignature(sub(index: 3, lang: "ger"))
@@ -161,6 +179,21 @@ struct TrackSelectionMatcherTests {
                                               subtitleStreams: [sub(index: 4, lang: "eng")],
                                               audioTracks: [])
         #expect(plan.subtitle == .fallThrough)
+    }
+
+    @Test("a remembered forced track with no forced counterpart plans subtitles off")
+    func planForcedMissStaysOff() {
+        let remembered = TrackSelectionMatcher.subtitleSignature(sub(index: 3, lang: "eng", forced: true))
+        let entry = TrackMemoryEntry(subtitle: .track(remembered), audio: nil,
+                                     updatedAt: Date(timeIntervalSince1970: 1))
+        let missing = TrackSelectionMatcher.plan(
+            entry: entry, subtitleStreams: [sub(index: 4, lang: "eng", forced: false)], audioTracks: [])
+        #expect(missing.subtitle == .off)
+        let present = TrackSelectionMatcher.plan(
+            entry: entry,
+            subtitleStreams: [sub(index: 4, lang: "eng", forced: false), sub(index: 7, lang: "eng", forced: true)],
+            audioTracks: [])
+        #expect(present.subtitle == .select(streamIndex: 7))
     }
 
     @Test("a remembered audio track is planned by engine track id")

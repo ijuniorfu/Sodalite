@@ -17,10 +17,17 @@ final class SeerrRequestEditModel {
     private let request: SeerrRequest
     private let configService: SeerrServiceConfigServiceProtocol
 
+    /// What the pickers showed for the request's own server before any edit. A field still on that value
+    /// goes back exactly as the request had it, nil included: Seerr assigns what it is sent, so echoing the
+    /// value that merely stood in for "default" would pin it (and turn off anime routing for good).
+    private var seededServerID: Int?
+    private var seededProfileID: Int?
+    private var seededRootFolder: String?
+    private var didSeed = false
+
     init(request: SeerrRequest, configService: SeerrServiceConfigServiceProtocol) {
         self.request = request
         self.configService = configService
-        self.serverID = request.media?.serviceId
         if let seasons = request.seasons {
             self.selectedSeasons = Set(seasons.map(\.seasonNumber))
         }
@@ -36,13 +43,31 @@ final class SeerrRequestEditModel {
             } else {
                 servers = try await configService.sonarrServers()
             }
-            if let activeID = serverID ?? servers.first(where: { $0.isDefault == true })?.id ?? servers.first?.id {
-                serverID = activeID
+            if serverID == nil {
+                serverID = Self.initialServerID(for: request, in: servers)
+            }
+            if let activeID = serverID {
                 try await loadDetails(forServerID: activeID)
+            }
+            if !didSeed {
+                didSeed = true
+                seededServerID = serverID
+                seededProfileID = profileID
+                seededRootFolder = rootFolder
             }
         } catch {
             loadError = ErrorText.user(for: error)
         }
+    }
+
+    /// The instance the request actually routes to: its own `serverId`, else the one Seerr falls back to,
+    /// the default of the request's OWN quality tier (a 4K request goes to the 4K default).
+    static func initialServerID(for request: SeerrRequest, in servers: [SeerrServiceServer]) -> Int? {
+        if let own = request.serverId, servers.contains(where: { $0.id == own }) { return own }
+        let is4k = request.is4k ?? false
+        return servers.first(where: { $0.isDefault == true && ($0.is4k ?? false) == is4k })?.id
+            ?? servers.first(where: { ($0.is4k ?? false) == is4k })?.id
+            ?? servers.first?.id
     }
 
     func selectServer(_ id: Int) async {
@@ -62,22 +87,36 @@ final class SeerrRequestEditModel {
             : try await configService.sonarrDetails(serverID: id)
         profiles = details.profiles
         rootFolders = details.rootFolders
-        if profileID == nil { profileID = details.profiles.first?.id }
-        if rootFolder == nil { rootFolder = details.rootFolders.first?.path }
+        let onOwnServer = id == (seededServerID ?? Self.initialServerID(for: request, in: servers))
+        let profileIDs = Set(details.profiles.map(\.id))
+        let folderPaths = Set(details.rootFolders.map(\.path))
+        if profileID == nil {
+            profileID = [onOwnServer ? request.profileId : nil, details.server.activeProfileId]
+                .compactMap { $0 }
+                .first(where: profileIDs.contains)
+                ?? details.profiles.first?.id
+        }
+        if rootFolder == nil {
+            rootFolder = [onOwnServer ? request.rootFolder : nil, details.server.activeDirectory]
+                .compactMap { $0 }
+                .first(where: folderPaths.contains)
+                ?? details.rootFolders.first?.path
+        }
     }
 
-    /// Partial body of only changed fields; avoids sending no-op values back to Jellyseerr (defensive against server-side validation rejecting a no-op edit).
+    /// The request's complete state with the edits applied (see `SeerrRequestUpdateBody`). Language profile
+    /// and tags are not edited here and their ids belong to one instance, so they stay on the request's own
+    /// server and fall back to that server's defaults on another.
     func buildUpdateBody() -> SeerrRequestUpdateBody {
-        let originalSeasons = Set((request.seasons ?? []).map(\.seasonNumber))
-        let newSeasons: [Int]? = (request.type == .tv && selectedSeasons != originalSeasons)
-            ? Array(selectedSeasons).sorted()
-            : nil
+        let sameServer = serverID == seededServerID
         return SeerrRequestUpdateBody(
-            serverId: serverID != request.media?.serviceId ? serverID : nil,
-            profileId: profileID,
-            rootFolder: rootFolder,
-            languageProfileId: nil,
-            seasons: newSeasons,
+            mediaType: request.type,
+            serverId: sameServer ? request.serverId : serverID,
+            profileId: sameServer && profileID == seededProfileID ? request.profileId : profileID,
+            rootFolder: sameServer && rootFolder == seededRootFolder ? request.rootFolder : rootFolder,
+            languageProfileId: request.type == .tv && sameServer ? request.languageProfileId : nil,
+            tags: sameServer ? request.tags : nil,
+            seasons: request.type == .tv ? selectedSeasons.sorted() : nil,
             userId: nil
         )
     }
@@ -236,7 +275,7 @@ struct SeerrRequestEditSheet: View {
         }
     }
 
-    /// TV requests need >=1 season: Jellyseerr's update endpoint accepts `seasons: []` and destructively clears the request to zero seasons. Movies are always valid (selectedSeasons empty by design).
+    /// TV requests need >=1 season: Seerr refuses a series edit without seasons (500, "Missing seasons"). Movies are always valid (selectedSeasons empty by design).
     private func isSeasonSelectionInvalid(model: SeerrRequestEditModel) -> Bool {
         guard request.type == .tv else { return false }
         guard request.seasons?.isEmpty == false else { return false }

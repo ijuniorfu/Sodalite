@@ -22,7 +22,8 @@ extension DependencyContainer {
         /// The token was refused and no stored password could mint a new one. The profile, its
         /// credentials and the session pointers are gone from this device; the caller does the routing.
         case rejected(profileName: String?)
-        /// No answer (offline, server down, request cancelled). Nothing was changed.
+        /// No answer (offline, server down, request cancelled), or the answer came back after another
+        /// profile became active. Nothing was changed.
         case unreachable(any Error)
     }
 
@@ -48,14 +49,21 @@ extension DependencyContainer {
               let userID = try? keychainService.loadString(for: KeychainKeys.userID(serverID: server.id)),
               (try? keychainService.loadString(for: KeychainKeys.accessToken(serverID: server.id))) != nil
         else { return .noSession }
+        // Every verdict below is about this profile. One switched to during a round trip owns the
+        // pointers by then, and acting would save this profile's token over it or delete its slots.
+        let profile = ProfileRef(serverID: server.id, userID: userID)
+        let superseded = SessionCheck.unreachable(CancellationError())
 
         do {
-            return .valid(try await jellyfinAuthService.getCurrentUser())
+            let user = try await jellyfinAuthService.getCurrentUser()
+            return isActiveProfile(profile) ? .valid(user) : superseded
         } catch APIError.unauthorized {
+            guard isActiveProfile(profile) else { return superseded }
             if let recovered = await reauthenticateWithStoredPassword(server: server, userID: userID) {
                 sessionNote("token for \(recovered.name) on \(server.name) was refused, the stored password minted a fresh one.")
                 return .valid(recovered)
             }
+            guard isActiveProfile(profile) else { return superseded }
             let name = listRememberedUsers(serverID: server.id).first { $0.id == userID }?.name
             sessionNote("\(server.name) refused the saved sign-in for \(name ?? userID), dropping the profile.")
             dropActiveProfile(serverID: server.id, userID: userID)
@@ -79,7 +87,8 @@ extension DependencyContainer {
               ),
               let name = listRememberedUsers(serverID: server.id).first(where: { $0.id == userID })?.name,
               let auth = try? await jellyfinAuthService.login(username: name, password: password),
-              auth.user.id == userID
+              auth.user.id == userID,
+              isActiveProfile(ProfileRef(serverID: server.id, userID: userID))
         else { return nil }
         try? saveSession(server: server, user: auth.user, token: auth.accessToken, password: password)
         return auth.user
@@ -124,6 +133,46 @@ extension DependencyContainer {
         sessionNote("removing the signed-in profile \(name ?? userID) from \(server.name).")
         dropActiveProfile(serverID: server.id, userID: userID)
         requestSessionReroute()
+    }
+
+    /// What "Sign out on all devices" removed besides the server-side token.
+    enum SignOutEverywhereOutcome: Equatable {
+        /// Another profile's card; the session stays where it is.
+        case forgotten
+        /// The profile this session was signed in as; the session ended with it and AppRouter re-routes.
+        case endedActiveSession
+    }
+
+    /// Revokes a remembered profile's token on its server, then removes the profile through the
+    /// synced path, so the tombstone reaches every device sharing it and takes their copy of the
+    /// token and the stored password with it. Plain Log Out stays local: the token travels through
+    /// iCloud, so revoking it there would sign out the whole household.
+    ///
+    /// The revocation is the point, so only a 2xx or a 401 (the token is already dead) goes on to
+    /// remove anything; every other failure throws with this device unchanged and can be retried.
+    /// `revoke` runs on a client of its own carrying this profile's token, never on the live one.
+    func signOutEverywhere(
+        _ user: RememberedUser,
+        server: JellyfinServer,
+        revoke: (JellyfinClient) async throws -> Void = {
+            try await $0.request(endpoint: JellyfinEndpoint.sessionLogout)
+        }
+    ) async throws -> SignOutEverywhereOutcome {
+        let client = makeSignInClient(for: server)
+        client.accessToken = user.token
+        do {
+            try await revoke(client)
+        } catch APIError.unauthorized {
+            sessionNote("\(server.name) had already dropped the token of \(user.name).")
+        }
+        sessionNote("revoked the token of \(user.name) on \(server.name), removing the profile on every device.")
+
+        if isActiveProfile(ProfileRef(serverID: server.id, userID: user.id)) {
+            signOutOfActiveProfile()
+            return .endedActiveSession
+        }
+        try forgetUser(id: user.id, serverID: server.id)
+        return .forgotten
     }
 
     /// Asks AppRouter to re-resolve where the session belongs, on the same signal a server switch

@@ -42,8 +42,11 @@ struct HomeCustomizeView: View {
 
     /// Fold new per-library rows into the config, mirroring HomeViewModel. Additive (keeps toggles/order); persists only on success so a transient failure can't wipe the dynamic rows.
     private func reconcileLibraries() async {
+        let scope = self.scope
         guard let userID = appState.activeUser?.id,
-              let libraries = try? await dependencies.jellyfinLibraryService.getLibraries(userID: userID)
+              let libraries = try? await dependencies.jellyfinLibraryService.getLibraries(userID: userID),
+              // `configs` were loaded for this scope; a switch during the fetch must not save them into the next.
+              scope == self.scope
         else { return }
         let reconciled = HomeRowConfig.reconciled(stored: configs, libraries: libraries)
         if reconciled != configs {

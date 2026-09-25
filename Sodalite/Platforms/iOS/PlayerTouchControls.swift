@@ -404,7 +404,7 @@ struct PlayerTouchControls: View {
         return VStack {
             Spacer()
             ScrollView {
-                VStack(spacing: 0) {
+                LazyVStack(spacing: 0) {
                     ForEach(Array(panelRows.enumerated()), id: \.offset) { _, row in
                         HStack(spacing: 0) {
                             Button {

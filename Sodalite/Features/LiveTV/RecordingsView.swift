@@ -3,6 +3,7 @@ import SwiftUI
 /// Recordings + scheduled timers (the "Aufnahmen" segment). Recordings are plain JellyfinItems and
 /// launch the normal VOD player.
 struct RecordingsView: View {
+    @Environment(\.appState) private var appState
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var hSizeClass
     let model: RecordingsViewModel
@@ -14,6 +15,14 @@ struct RecordingsView: View {
 
     private var imageService: JellyfinImageService { dependencies.jellyfinImageService }
     private var metrics: LayoutMetrics { LayoutMetrics.current(hSizeClass) }
+
+    /// Same rule as the detail pages: the server's own CanDelete (it knows a DVR-only deletion grant),
+    /// else the account policy.
+    private func canDelete(_ item: JellyfinItem) -> Bool {
+        item.canDelete ?? (appState.activeUser?.canDeleteContent == true)
+    }
+
+    private var canManageLiveTv: Bool { appState.activeUser?.canManageLiveTv == true }
 
     /// tvOS/iPad keep the fixed 4-column grid; compact goes adaptive so landscape tiles fit ~2-up
     /// on a phone (the poster-scaled gridMinimum would pack three cramped columns).
@@ -103,7 +112,7 @@ struct RecordingsView: View {
                             playerItem = item
                             isPlayerPresented = true
                         },
-                        onDelete: { recordingToDelete = item }
+                        onDelete: canDelete(item) ? { recordingToDelete = item } : nil
                     )
                 }
             }
@@ -124,7 +133,7 @@ struct RecordingsView: View {
                     subtitle: timerSubtitle(timer),
                     isSeries: timer.seriesTimerId != nil,
                     tint: tint,
-                    onCancel: { Task { await model.cancelTimer(timer) } }
+                    onCancel: canManageLiveTv ? { Task { await model.cancelTimer(timer) } } : nil
                 )
             }
         }
@@ -140,7 +149,7 @@ struct RecordingsView: View {
                     subtitle: timer.channelName,
                     isSeries: true,
                     tint: tint,
-                    onCancel: { Task { await model.cancelSeriesTimer(timer) } }
+                    onCancel: canManageLiveTv ? { Task { await model.cancelSeriesTimer(timer) } } : nil
                 )
             }
         }
@@ -165,7 +174,8 @@ private struct RecordingCard: View {
     let isInProgress: Bool
     let tint: Color
     let onPlay: () -> Void
-    let onDelete: () -> Void
+    /// nil when this profile may not delete it: no trash chip at all.
+    let onDelete: (() -> Void)?
 
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @FocusState private var focused: Bool
@@ -221,14 +231,16 @@ private struct RecordingCard: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Image(systemName: "trash")
-                    .font(.caption)
-                    .foregroundStyle(deleteFocused ? Color.black : .secondary)
-                    .padding(8)
-                    .background(Circle().fill(deleteFocused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.clear)))
-                    .focusable()
-                    .focused($deleteFocused)
-                    .stableTap(isFocused: deleteFocused) { onDelete() }
+                if let onDelete {
+                    Image(systemName: "trash")
+                        .font(.caption)
+                        .foregroundStyle(deleteFocused ? Color.black : .secondary)
+                        .padding(8)
+                        .background(Circle().fill(deleteFocused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.clear)))
+                        .focusable()
+                        .focused($deleteFocused)
+                        .stableTap(isFocused: deleteFocused) { onDelete() }
+                }
             }
         }
     }
@@ -239,7 +251,9 @@ private struct TimerRow: View {
     let subtitle: String?
     let isSeries: Bool
     let tint: Color
-    let onCancel: () -> Void
+    /// nil without Live TV management rights: the row stays (and stays focusable, so the list scrolls)
+    /// but offers no cancel.
+    let onCancel: (() -> Void)?
 
     @FocusState private var focused: Bool
 
@@ -254,18 +268,20 @@ private struct TimerRow: View {
                 }
             }
             Spacer()
-            Text("livetv.recordings.cancelTimer")
-                .font(.caption.bold())
-                .foregroundStyle(focused ? Color.black : .white)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(Capsule().fill(focused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.Theme.restFillStrong)))
+            if onCancel != nil {
+                Text("livetv.recordings.cancelTimer")
+                    .font(.caption.bold())
+                    .foregroundStyle(focused ? Color.black : .white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(focused ? AnyShapeStyle(tint) : AnyShapeStyle(Color.Theme.restFillStrong)))
+            }
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 20)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(focused ? 0.10 : 0.04)))
         .focusable()
         .focused($focused)
-        .stableTap(isFocused: focused) { onCancel() }
+        .stableTap(isFocused: focused) { onCancel?() }
     }
 }

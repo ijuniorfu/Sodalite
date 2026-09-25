@@ -112,6 +112,24 @@ struct CachedDataTests {
         }
     }
 
+    /// Audit 2026-09-25 SESSION-5: the shelf's items and rendered artwork outlived Log Out and a
+    /// reset in the group container. Log Out keeps only the shelf's own log.
+    @Test func theGroupCachesGoExceptWhatIsKept() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("groupCaches-\(UUID().uuidString)", isDirectory: true)
+        let bars = directory.appendingPathComponent("ResumeBars", isDirectory: true)
+        try FileManager.default.createDirectory(at: bars, withIntermediateDirectories: true)
+        try Data("jpg".utf8).write(to: bars.appendingPathComponent("item-50.jpg"))
+        try Data("items".utf8).write(to: directory.appendingPathComponent("topshelf-cache.json"))
+        try Data("log".utf8).write(to: directory.appendingPathComponent(ShelfLogFile.fileName))
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        DependencyContainer.clearGroupCaches(in: directory, keeping: [ShelfLogFile.fileName])
+
+        let left = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        #expect(left == [ShelfLogFile.fileName])
+    }
+
     private static func quotedValue(after label: String, in line: String) -> String? {
         guard let labelRange = line.range(of: label) else { return nil }
         let rest = line[labelRange.upperBound...]

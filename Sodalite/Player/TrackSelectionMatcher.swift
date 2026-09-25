@@ -85,8 +85,13 @@ enum TrackSelectionMatcher {
 
     // MARK: - Matching
 
+    /// Language is a hard filter, and so is a remembered FORCED pick: forced lines only and every
+    /// line are different choices, not a close match, so a forced memory never adopts a full track.
     static func matchSubtitle(_ signature: TrackSignature, in streams: [MediaStream]) -> MediaStream? {
-        best(in: streams.filter { languageMatches(signature.language, $0.language) },
+        best(in: streams.filter {
+                 languageMatches(signature.language, $0.language)
+                     && (!signature.isForced || subtitleSignature($0).isForced)
+             },
              index: { $0.index },
              score: { stream in
                  let candidate = subtitleSignature(stream)
@@ -128,6 +133,10 @@ enum TrackSelectionMatcher {
         case .track(let signature):
             if let match = matchSubtitle(signature, in: subtitleStreams) {
                 subtitle = .select(streamIndex: match.index)
+            } else if signature.isForced {
+                // No forced track of that language here: stay off rather than let the automatic
+                // path pick the full one. The silent forced fallback still applies on its own terms.
+                subtitle = .off
             } else {
                 subtitle = .fallThrough
             }

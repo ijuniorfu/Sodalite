@@ -9,6 +9,23 @@ struct ProfileShellLayout: Equatable {
     let tabs: [AppTab]
     let style: AppearancePreferences.NavigationStyle
 
+    /// Whether a profile switch pops the Settings stack. A gated screen (Parental Controls, Servers,
+    /// iCloud, Tabs, Seerr, Support) asks for the PIN only when it is opened, so a stack the previous
+    /// profile unlocked stayed open for the next one, and the reprompt handed exactly that over.
+    /// Where the new profile's escapes need no PIN, nothing on the stack was locked and it stays, so
+    /// adding a profile still returns to the screen it started from (Sodalite#141).
+    static func switchResetsSettings(from old: ProfileKey?, to new: ProfileKey?, escapesGated: Bool) -> Bool {
+        guard let old, let new, old != new else { return false }
+        return escapesGated
+    }
+
+    /// Whether a profile switch re-probes the optional Live TV and Music tabs, which are per user.
+    /// A server change is left to the server-switch and login probes, which also drop the stale set.
+    static func switchReprobesOptionalTabs(from old: ProfileKey?, to new: ProfileKey?) -> Bool {
+        guard let old, let new else { return false }
+        return old.serverID == new.serverID && old.userID != new.userID
+    }
+
     static func switchLandsOnHome(from old: ProfileShellLayout, to new: ProfileShellLayout) -> Bool {
         guard let before = old.profile, let after = new.profile, before != after else { return false }
         return old.tabs != new.tabs || old.style != new.style

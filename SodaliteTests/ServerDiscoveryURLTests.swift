@@ -79,4 +79,31 @@ struct ServerDiscoveryURLTests {
         // Degenerate input must never surface a candidate with a real (non-empty) host.
         #expect(ServerDiscoveryService().buildCandidateURLs(from: "   ").allSatisfy { ($0.host() ?? "").isEmpty })
     }
+
+    // MARK: Redirect adoption (audit NETWORK-4)
+
+    private func upgraded(_ candidate: String, _ final: String?) -> String {
+        ServerDiscoveryService.upgradedBaseURL(
+            candidate: URL(string: candidate)!,
+            finalURL: final.flatMap(URL.init(string:)),
+            endpointPath: "/System/Info/Public"
+        ).absoluteString
+    }
+
+    @Test func httpToHTTPSUpgradeOnSameHost_isAdopted() {
+        #expect(upgraded("http://jf.example.com", "https://jf.example.com/System/Info/Public")
+            == "https://jf.example.com")
+        #expect(upgraded("http://jf.example.com/jellyfin", "https://JF.example.com:8443/jellyfin/System/Info/Public")
+            == "https://JF.example.com:8443/jellyfin")
+    }
+
+    @Test func anyOtherRedirect_keepsTheTypedAddress() {
+        #expect(upgraded("http://jf.example.com", nil) == "http://jf.example.com")
+        #expect(upgraded("http://jf.example.com", "https://other.example.com/System/Info/Public")
+            == "http://jf.example.com")
+        #expect(upgraded("https://jf.example.com", "http://jf.example.com/System/Info/Public")
+            == "https://jf.example.com")
+        #expect(upgraded("http://jf.example.com", "https://jf.example.com/login?next=/System/Info/Public")
+            == "http://jf.example.com")
+    }
 }

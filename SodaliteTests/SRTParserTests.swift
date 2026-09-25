@@ -24,6 +24,23 @@ struct SRTParserTests {
         #expect(text(cues.first) == "Hi there")
     }
 
+    /// Jellyfin's ASS-to-SRT conversion keeps override blocks such as `{\an8}` for top placement.
+    @Test func stripsASSOverrideBlocks() {
+        let cues = SRTParser.parse("1\n00:00:01,000 --> 00:00:02,000\n{\\an8}Top line\n{\\i1}Second{\\i0}")
+        #expect(text(cues.first) == "Top line\nSecond")
+    }
+
+    @Test func keepsLiteralBracesThatAreNotOverrideTags() {
+        let cues = SRTParser.parse("1\n00:00:01,000 --> 00:00:02,000\n{laughs} a set {1, 2}")
+        #expect(text(cues.first) == "{laughs} a set {1, 2}")
+    }
+
+    @Test func dropsACueThatIsOnlyAnOverrideBlock() {
+        let cues = SRTParser.parse("1\n00:00:01,000 --> 00:00:02,000\n{\\an8}\n\n2\n00:00:03,000 --> 00:00:04,000\nKept")
+        #expect(cues.count == 1)
+        #expect(text(cues.first) == "Kept")
+    }
+
     @Test func skipsWebVTTHeaderBlock() {
         let content = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nCaption"
         let cues = SRTParser.parse(content)

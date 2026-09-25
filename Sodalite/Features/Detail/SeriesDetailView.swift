@@ -525,6 +525,14 @@ struct SeriesDetailView: View {
                             } else {
                                 // Seasons-only: refresh so deleted season tabs drop out instead of lingering until reopen.
                                 await vm.refreshSeasons()
+                                // The open episode panel is the view's own state, decoupled from the
+                                // VM's next-up tracking refreshSeasons() just reconciled: if its
+                                // season just went, Play would otherwise still read from a deleted
+                                // episode (Audit 2026-09-25 BROWSE-7).
+                                if let seasonID = selectedEpisode?.seasonId,
+                                   !vm.seasons.contains(where: { $0.id == seasonID }) {
+                                    selectedEpisode = nil
+                                }
                             }
                             return .success
                         } catch {

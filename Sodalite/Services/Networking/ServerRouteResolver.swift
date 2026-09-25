@@ -56,6 +56,23 @@ enum ServerRouteResolver {
             )
         }
     }
+
+    /// The slots a Seerr route may choose between.
+    ///
+    /// Seerr has no endpoint that names one installation (`api/v1/status` reports a version), so an
+    /// answer at its LAN address cannot be checked the way a Jellyfin one is, and on another network
+    /// whatever sits there would win the route and be sent the session cookie (audit NETWORK-2). Its
+    /// internal slot is therefore trusted only while Jellyfin's identity-checked internal address
+    /// answers: that is the proof of being on the home network. A single slot is left alone, there
+    /// is no choice to make.
+    static func seerrSlots(
+        internalURL: URL?, externalURL: URL?, onVerifiedHomeNetwork: Bool
+    ) -> (internalURL: URL?, externalURL: URL?) {
+        guard internalURL != nil, externalURL != nil, !onVerifiedHomeNetwork else {
+            return (internalURL, externalURL)
+        }
+        return (nil, externalURL)
+    }
 }
 
 /// Reachability probes against unauthenticated status endpoints. Per-request ephemeral session,
@@ -105,11 +122,46 @@ enum ServerProbe {
         await responds(at: base.appending(path: jellyfinReadinessPath))
     }
 
+    /// Readiness plus identity, for a probe whose winner becomes the session's address.
+    ///
+    /// Readiness alone crowned any host that answered, 401 and 404 included, so on another network
+    /// whatever sat at the LAN address (a router page, someone else's Jellyfin) won the route and
+    /// was sent the access token, the `api_key` URLs and the Top Shelf mirror (audit NETWORK-2). A
+    /// slot now only counts when `System/Info/Public` names the server this session belongs to.
+    /// A server stored without an id (discovery tolerates one) has nothing to compare against.
+    static func jellyfin(_ base: URL, expectedServerID: String) async -> Bool {
+        guard !expectedServerID.isEmpty else { return await jellyfin(base) }
+        async let ready = jellyfin(base)
+        guard let (data, response) = await fetch(base.appending(path: "System/Info/Public")),
+              (200...299).contains(response.statusCode),
+              identifies(data, as: expectedServerID)
+        else { return false }
+        return await ready
+    }
+
+    /// Whether a `System/Info/Public` body names this server. Jellyfin writes the id as 32 hex
+    /// digits; compared without case or dashes so a server that formats it as a UUID still matches.
+    static func identifies(_ body: Data, as expectedServerID: String) -> Bool {
+        guard let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let id = object["Id"] as? String
+        else { return false }
+        return normalizedServerID(id) == normalizedServerID(expectedServerID)
+    }
+
+    private static func normalizedServerID(_ id: String) -> String {
+        id.replacingOccurrences(of: "-", with: "").lowercased()
+    }
+
     static func seerr(_ base: URL) async -> Bool {
         await responds(at: base.appending(path: "api/v1/status"))
     }
 
     private static func responds(at url: URL) async -> Bool {
+        guard let (_, response) = await fetch(url) else { return false }
+        return answers(statusCode: response.statusCode)
+    }
+
+    private static func fetch(_ url: URL) async -> (Data, HTTPURLResponse)? {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = timeout
         config.timeoutIntervalForResource = timeout
@@ -117,13 +169,10 @@ enum ServerProbe {
         let session = URLSession(
             configuration: config, delegate: ServerTrustDelegate.shared, delegateQueue: nil)
         defer { session.invalidateAndCancel() }
-        do {
-            let (_, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse else { return false }
-            return answers(statusCode: http.statusCode)
-        } catch {
-            return false
-        }
+        guard let (data, response) = try? await session.data(from: url),
+              let http = response as? HTTPURLResponse
+        else { return nil }
+        return (data, http)
     }
 }
 

@@ -15,6 +15,11 @@ struct ServerDiscoveryInfo: Sendable {
     let version: String
 }
 
+private struct DiscoveredJellyfin: Sendable {
+    let info: ServerDiscoveryInfo
+    let url: URL
+}
+
 final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
     private let httpClient: HTTPClientProtocol
 
@@ -25,32 +30,42 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
     func discoverServer(input: String) async -> ServerDiscoveryResult {
         let candidates = buildCandidateURLs(from: input)
         let started = ContinuousClock.now
+        let infoPath = JellyfinEndpoint.publicInfo.path
 
         let verdicts = await DiscoveryProbeRace.run(candidates: candidates) { [httpClient] url in
             await DiscoveryProbeRace.attempt(
                 label: "jellyfin",
                 url: url,
-                describe: { (info: ServerDiscoveryInfo) in "\(info.serverName) v\(info.version)" }
+                describe: { (found: DiscoveredJellyfin) in "\(found.info.serverName) v\(found.info.version)" }
             ) {
-                let serverInfo = try await httpClient.request(
+                let (data, response) = try await httpClient.requestData(
                     baseURL: url,
                     endpoint: JellyfinEndpoint.publicInfo,
-                    headers: ["Accept": "application/json"],
-                    responseType: JellyfinPublicServerInfo.self
+                    headers: ["Accept": "application/json"]
                 )
+                let serverInfo: JellyfinPublicServerInfo
+                do {
+                    serverInfo = try JSONDecoder().decode(JellyfinPublicServerInfo.self, from: data)
+                } catch {
+                    throw APIError.decodingError(error)
+                }
                 // Only a decodable connection gates discovery; missing optional metadata must not.
-                return ServerDiscoveryInfo(
+                let info = ServerDiscoveryInfo(
                     id: serverInfo.id ?? "",
                     serverName: serverInfo.serverName ?? "Jellyfin",
                     version: serverInfo.version ?? ""
                 )
+                return DiscoveredJellyfin(
+                    info: info,
+                    url: Self.upgradedBaseURL(candidate: url, finalURL: response.url, endpointPath: infoPath)
+                )
             }
         }
 
-        for (index, verdict) in verdicts.enumerated() {
-            guard case .success(let info) = verdict else { continue }
-            LogTap.shared.note("[discovery] jellyfin resolved \(candidates[index].absoluteString) in \(DiscoveryProbeRace.elapsedText(since: started))")
-            return .success(url: candidates[index], serverInfo: info)
+        for verdict in verdicts {
+            guard case .success(let found) = verdict else { continue }
+            LogTap.shared.note("[discovery] jellyfin resolved \(found.url.absoluteString) in \(DiscoveryProbeRace.elapsedText(since: started))")
+            return .success(url: found.url, serverInfo: found.info)
         }
 
         DiscoveryProbeRace.logUnanswered(
@@ -61,6 +76,26 @@ final class ServerDiscoveryService: ServerDiscoveryServiceProtocol {
         )
         LogTap.shared.note("[discovery] jellyfin failed after \(DiscoveryProbeRace.elapsedText(since: started)) over \(candidates.count) candidate(s)")
         return .failure(DiscoveryProbeRace.aggregateError(verdicts))
+    }
+
+    /// The address to store for a candidate, given where its probe actually ended up.
+    ///
+    /// A server entered as `http://` behind a proxy that upgrades to https passed discovery on the
+    /// redirect, but the pre-redirect URL was stored, and every later request lost its credentials
+    /// on that hop (audit NETWORK-4). Only that one hop is adopted: same host, http to https, and the
+    /// endpoint still at the end of the path. Any other redirect keeps the address that was typed.
+    nonisolated static func upgradedBaseURL(candidate: URL, finalURL: URL?, endpointPath: String) -> URL {
+        guard let finalURL,
+              candidate.scheme?.lowercased() == "http", finalURL.scheme?.lowercased() == "https",
+              let candidateHost = candidate.host(percentEncoded: false)?.lowercased(),
+              candidateHost == finalURL.host(percentEncoded: false)?.lowercased(),
+              var components = URLComponents(url: finalURL, resolvingAgainstBaseURL: false),
+              components.path.hasSuffix(endpointPath)
+        else { return candidate }
+        components.path = String(components.path.dropLast(endpointPath.count))
+        components.query = nil
+        components.fragment = nil
+        return components.url ?? candidate
     }
 
     // Widened from private to internal so SodaliteTests can exercise the URL-candidate branches directly.

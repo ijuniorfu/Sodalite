@@ -30,11 +30,18 @@ enum ReplacedEpisodeLookup {
         case inconclusive
     }
 
-    static func outcome(staleID: String, episodeNumber: Int?, in episodes: [JellyfinItem]) -> Outcome {
+    static func outcome(
+        staleID: String, episodeNumber: Int?, seasonNumber: Int? = nil, in episodes: [JellyfinItem]
+    ) -> Outcome {
         guard !episodes.isEmpty else { return .inconclusive }
         guard !episodes.contains(where: { $0.id == staleID }) else { return .stillListed }
+        // The list can carry entries that share the number without being the episode: a missing one
+        // (Virtual, when "display missing episodes" is on) and a special listed inside the season.
         guard let episodeNumber,
-              let replacement = episodes.first(where: { $0.indexNumber == episodeNumber })
+              let replacement = episodes.first(where: {
+                  !$0.isVirtual && $0.indexNumber == episodeNumber
+                      && (seasonNumber == nil || $0.parentIndexNumber == nil || $0.parentIndexNumber == seasonNumber)
+              })
         else { return .inconclusive }
         return .replaced(id: replacement.id)
     }
@@ -50,7 +57,8 @@ struct ReplacedEpisodeResolver: Sendable {
 
         if let seasonID = stale.seasonId {
             let episodes = (try? await service.getEpisodes(seriesID: seriesID, seasonID: seasonID, userID: userID)) ?? []
-            switch ReplacedEpisodeLookup.outcome(staleID: stale.id, episodeNumber: stale.indexNumber, in: episodes) {
+            switch ReplacedEpisodeLookup.outcome(
+                staleID: stale.id, episodeNumber: stale.indexNumber, seasonNumber: stale.parentIndexNumber, in: episodes) {
             case .stillListed:
                 return nil
             case .replaced(let id):
@@ -68,7 +76,7 @@ struct ReplacedEpisodeResolver: Sendable {
               season.id != stale.seasonId,
               let episodes = try? await service.getEpisodes(seriesID: seriesID, seasonID: season.id, userID: userID),
               case .replaced(let id) = ReplacedEpisodeLookup.outcome(
-                  staleID: stale.id, episodeNumber: stale.indexNumber, in: episodes)
+                  staleID: stale.id, episodeNumber: stale.indexNumber, seasonNumber: seasonNumber, in: episodes)
         else { return nil }
 
         return episodes.first { $0.id == id }

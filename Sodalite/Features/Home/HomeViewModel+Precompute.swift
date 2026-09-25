@@ -27,9 +27,11 @@ extension HomeViewModel {
             userID: userID, query: allItemsQuery
         ).items, !Task.isCancelled else { return }
 
-        var tmdbMap: [Int: JellyfinItem] = [:]
+        var tmdbMap: [String: JellyfinItem] = [:]
         for item in allItems {
-            if let id = item.tmdbID { tmdbMap[id] = item }
+            if let id = item.tmdbID {
+                tmdbMap[ProviderMatchMerging.tmdbKey(type: item.type, tmdbID: id)] = item
+            }
         }
         // Snapshot into a Sendable struct: CatalogProvider is MainActor-isolated, so it can't cross into the detached task directly.
         let providerInfos: [ProviderResolveInfo] = CatalogProviders.networks.map {
@@ -42,7 +44,7 @@ extension HomeViewModel {
         let mapForTask = tmdbMap
 
         // Detached so the task-group closures don't inherit MainActor isolation.
-        let resolved: [(Int, [JellyfinItem])] = await Task.detached(priority: .utility) {
+        let resolveTask = Task.detached(priority: .utility) {
             await withTaskGroup(
                 of: (Int, [JellyfinItem]).self,
                 returning: [(Int, [JellyfinItem])].self
@@ -77,9 +79,17 @@ extension HomeViewModel {
                 }
                 return collected
             }
-        }.value
+        }
+        // A detached task doesn't inherit cancellation on its own; without the handler, cancelling
+        // providerCountsTask left this resolve running to completion (33 Jellyfin + ~190 Seerr
+        // requests) while the replacement pass started a second one (Audit 2026-09-25 BROWSE-4).
+        let resolved: [(Int, [JellyfinItem])] = await withTaskCancellationHandler {
+            await resolveTask.value
+        } onCancel: {
+            resolveTask.cancel()
+        }
 
-        // The detached resolve doesn't inherit cancellation; a cancelled precompute must not write superseded results over the replacement run's.
+        // A cancelled precompute must not write superseded results over the replacement run's.
         guard !Task.isCancelled else { return }
 
         // MainActor: write counts + cache + sample backdrop per provider.
@@ -115,7 +125,7 @@ extension HomeViewModel {
         let lib = libraryService
         let uid = userID
 
-        let resolved: [(String, [JellyfinItem])] = await Task.detached(priority: .utility) {
+        let resolveTask = Task.detached(priority: .utility) {
             await withTaskGroup(
                 of: (String, [JellyfinItem]).self,
                 returning: [(String, [JellyfinItem])].self
@@ -151,7 +161,14 @@ extension HomeViewModel {
                 }
                 return collected
             }
-        }.value
+        }
+        // Mirrors precomputeProviderCounts: a detached task doesn't inherit cancellation on its own
+        // (Audit 2026-09-25 BROWSE-4).
+        let resolved: [(String, [JellyfinItem])] = await withTaskCancellationHandler {
+            await resolveTask.value
+        } onCancel: {
+            resolveTask.cancel()
+        }
 
         // A cancelled pass must not persist stale results or latch; leaving genreCachesComputedAt nil lets the next appearance run to completion.
         guard !Task.isCancelled else { return }
@@ -177,7 +194,7 @@ extension HomeViewModel {
     private static func resolveProviderItems(
         info: ProviderResolveInfo,
         region: String,
-        tmdbMap: [Int: JellyfinItem],
+        tmdbMap: [String: JellyfinItem],
         libraryService: JellyfinLibraryServiceProtocol,
         discoverService: SeerrDiscoverServiceProtocol?,
         userID: String

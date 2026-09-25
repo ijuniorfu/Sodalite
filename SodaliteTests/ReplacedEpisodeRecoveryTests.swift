@@ -21,9 +21,11 @@ struct ReplacedEpisodeRecoveryTests {
         seriesID: String? = "series",
         seasonID: String? = "season-1",
         number: Int?,
-        seasonNumber: Int? = 1
+        seasonNumber: Int? = 1,
+        locationType: String? = nil
     ) throws -> JellyfinItem {
         var fields = ["\"Id\":\"\(id)\"", "\"Name\":\"Episode\"", "\"Type\":\"Episode\""]
+        if let locationType { fields.append("\"LocationType\":\"\(locationType)\"") }
         if let seriesID { fields.append("\"SeriesId\":\"\(seriesID)\"") }
         if let seasonID { fields.append("\"SeasonId\":\"\(seasonID)\"") }
         if let number { fields.append("\"IndexNumber\":\(number)") }
@@ -101,6 +103,28 @@ struct ReplacedEpisodeRecoveryTests {
         #expect(outcome == .inconclusive)
     }
 
+    /// "Display missing episodes" lists a Virtual row under the same number; it has no file to play.
+    @Test func aVirtualEpisodeWithTheSameNumberIsNotAReplacement() throws {
+        let outcome = ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old",
+            episodeNumber: 3,
+            seasonNumber: 1,
+            in: [try episode(id: "ep-missing", number: 3, locationType: "Virtual"),
+                 try episode(id: "ep-new", number: 3)]
+        )
+        #expect(outcome == .replaced(id: "ep-new"))
+    }
+
+    /// "Specials within seasons" lists season 0 inline, numbered on their own axis.
+    @Test func aSpecialListedInsideTheSeasonIsNotAReplacement() throws {
+        let special = try episode(id: "special-3", number: 3, seasonNumber: 0)
+        #expect(ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old", episodeNumber: 3, seasonNumber: 1, in: [special]) == .inconclusive)
+        #expect(ReplacedEpisodeLookup.outcome(
+            staleID: "ep-old", episodeNumber: 3, seasonNumber: 1,
+            in: [special, try episode(id: "ep-new", number: 3)]) == .replaced(id: "ep-new"))
+    }
+
     // MARK: - Resolver
 
     @Test func resolverReturnsTheEpisodeThatTookThePlaceOfTheDeadId() async throws {
@@ -125,7 +149,7 @@ struct ReplacedEpisodeRecoveryTests {
         let stale = try episode(id: "ep-old", seasonID: "season-old", number: 3, seasonNumber: 2)
         let catalog = Catalog(
             seasons: [try season(id: "season-new", number: 2)],
-            episodesBySeason: ["season-new": [try episode(id: "ep-new", seasonID: "season-new", number: 3)]]
+            episodesBySeason: ["season-new": [try episode(id: "ep-new", seasonID: "season-new", number: 3, seasonNumber: 2)]]
         )
         let resolved = await ReplacedEpisodeResolver(service: catalog, userID: "u").replacement(for: stale)
         #expect(resolved?.id == "ep-new")

@@ -85,6 +85,42 @@ struct LogExportServerTests {
         endpoint.url.lastPathComponent
     }
 
+    /// A connection that is opened and left silent. Returned open; the caller closes it.
+    private static func openSilent(port: UInt16) throws -> Int32 {
+        let fd = socket(AF_INET, SOCK_STREAM, 0)
+        try #require(fd >= 0, "client socket")
+        var addr = sockaddr_in()
+        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = port.bigEndian
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1")
+        let connected = withUnsafePointer(to: &addr) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                connect(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        try #require(connected == 0, "connect failed errno=\(errno)")
+        return fd
+    }
+
+    /// Audit DIAG-7: a LAN peer filling every slot with connections that never speak held the page
+    /// for the whole export. The silent ones are dropped on the receive bound, and the page answers
+    /// again well inside the export's lifetime.
+    @Test("silent connections at the cap are dropped and the page answers again", .enabled(if: hasNetwork))
+    func silentConnectionsDoNotHoldTheExport() async throws {
+        let server = LogExportServer()
+        defer { server.stop() }
+        let endpoint = try server.start(lines: Self.lines)
+        let port = try Self.port(of: endpoint)
+
+        let silent = try (0 ..< LogExportServer.maximumConnections).map { _ in try Self.openSilent(port: port) }
+        defer { silent.forEach { close($0) } }
+
+        try await Task.sleep(for: .seconds(LogExportServer.requestHeadDeadline))
+        let response = try Self.fetch(port: port, path: "/\(Self.token(of: endpoint))")
+        #expect(response.hasPrefix("HTTP/1.1 200 OK\r\n"))
+    }
+
     @Test("a started export answers a real connection with the page", .enabled(if: hasNetwork))
     func servesThePage() throws {
         let server = LogExportServer()

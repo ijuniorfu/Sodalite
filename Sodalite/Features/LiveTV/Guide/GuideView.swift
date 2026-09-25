@@ -92,8 +92,13 @@ struct GuideView: View {
     @ViewBuilder
     private var content: some View {
         if model.channels.isEmpty, let error = model.loadError {
-            ContentUnavailableView("livetv.loadFailed.title", systemImage: "tv.slash",
-                                   description: Text(error))
+            ContentUnavailableView {
+                Label("livetv.loadFailed.title", systemImage: "tv.slash")
+            } description: {
+                Text(error)
+            } actions: {
+                Button("home.retry") { Task { await model.recover() } }
+            }
         } else {
             VStack(spacing: 0) {
                 GuideHeroView(program: model.heroProgram, channel: model.heroChannel,

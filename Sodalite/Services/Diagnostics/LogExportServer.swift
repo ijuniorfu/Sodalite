@@ -48,6 +48,13 @@ nonisolated final class LogExportServer: @unchecked Sendable {
     /// the link would outlive its own countdown. Caught by `expiresOnItsOwn`, not by reading the code.
     private let expiryQueue = DispatchQueue(label: "de.superuser404.sodalite.logexport.expiry")
 
+    /// A browser opens a handful of connections for the page and the download. More than this at once
+    /// is a peer holding workers, and the export only has to serve one person (audit DIAG-7).
+    static let maximumConnections = 8
+    /// How long a peer gets to send its whole request head, however it paces the bytes: the receive
+    /// timeout alone restarts with every byte, so a slow drip held a worker without end.
+    static let requestHeadDeadline: TimeInterval = 5
+
     private var listenFd: Int32 = -1
     private var clientFds = Set<Int32>()
     private var shouldStop = false
@@ -156,7 +163,12 @@ nonisolated final class LogExportServer: @unchecked Sendable {
         let fdToClose = listenFd
         listenFd = -1
         session = nil
-        let clients = clientFds
+        // shutdown() and NOT close() on the clients: their handler still owns the descriptor and closes
+        // it itself. Under the lock, because the handler drops its fd from the set under the same lock
+        // before closing it, so every number in the set is still that client's and not a reused one.
+        for fd in clientFds {
+            shutdown(fd, SHUT_RDWR)
+        }
         clientFds.removeAll()
         expiryTimer?.cancel()
         expiryTimer = nil
@@ -169,12 +181,6 @@ nonisolated final class LogExportServer: @unchecked Sendable {
             shutdown(fdToClose, SHUT_RDWR)
             close(fdToClose)
         }
-        // shutdown() and NOT close() on the clients: their handler still owns the descriptor and closes
-        // it itself.
-        for fd in clients {
-            shutdown(fd, SHUT_RDWR)
-        }
-
         if wasRunning {
             LogTap.shared.note("[LogExport] stopped")
         }
@@ -225,12 +231,23 @@ nonisolated final class LogExportServer: @unchecked Sendable {
                 continue
             }
 
+            lock.lock()
+            let full = clientFds.count >= Self.maximumConnections
+            lock.unlock()
+            if full {
+                close(clientFd)
+                continue
+            }
+
             var on: Int32 = 1
             _ = setsockopt(clientFd, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<Int32>.size))
             // A connection that opens and then says nothing must not hold a worker forever.
-            var timeout = timeval(tv_sec: 10, tv_usec: 0)
-            _ = setsockopt(clientFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
-            _ = setsockopt(clientFd, SOL_SOCKET, SO_SNDTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+            // The receive side only ever reads a request head, so it gets the shorter bound; the send
+            // side streams the whole log to a slow browser.
+            var receiveTimeout = timeval(tv_sec: 3, tv_usec: 0)
+            var sendTimeout = timeval(tv_sec: 10, tv_usec: 0)
+            _ = setsockopt(clientFd, SOL_SOCKET, SO_RCVTIMEO, &receiveTimeout, socklen_t(MemoryLayout<timeval>.size))
+            _ = setsockopt(clientFd, SOL_SOCKET, SO_SNDTIMEO, &sendTimeout, socklen_t(MemoryLayout<timeval>.size))
 
             lock.lock()
             clientFds.insert(clientFd)
@@ -275,10 +292,12 @@ nonisolated final class LogExportServer: @unchecked Sendable {
     /// grow a buffer without end.
     private static func readRequest(_ fd: Int32) -> String? {
         let limit = 8 * 1024
+        let deadline = Date().addingTimeInterval(requestHeadDeadline)
         var buffer = [UInt8]()
         var chunk = [UInt8](repeating: 0, count: 1024)
 
         while buffer.count < limit {
+            guard Date() < deadline else { return nil }
             let read = recv(fd, &chunk, chunk.count, 0)
             guard read > 0 else { return buffer.isEmpty ? nil : String(decoding: buffer, as: UTF8.self) }
             buffer.append(contentsOf: chunk[0 ..< read])

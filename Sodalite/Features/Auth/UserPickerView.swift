@@ -16,6 +16,8 @@ struct UserPickerView: View {
     @State private var manualLogin = false
     /// True when /Users/Public returned profiles but all are already remembered: empty state says so instead of "no users visible".
     @State private var allProfilesAlreadyAdded = false
+    /// This picker's own client (see `DependencyContainer.makeSignInClient`); never the live one.
+    @State private var signInClient: JellyfinClient?
 
     var body: some View {
         VStack(spacing: 40) {
@@ -97,7 +99,7 @@ struct UserPickerView: View {
                         spacing: 32
                     ) {
                         ForEach(users) { user in
-                            UserPickerCard(user: user, server: server) {
+                            UserPickerCard(user: user, baseURL: signInClient?.baseURL) {
                                 selectedUser = user
                             }
                         }
@@ -205,13 +207,14 @@ struct UserPickerView: View {
     private func loadUsers() async {
         isLoading = true
         errorMessage = nil
-        // Scope JellyfinClient to this server: discovery leaves baseURL stale, and /Users/Public needs
-        // the right host. Probed rather than guessed, because the last route that worked is not the
-        // one that works from here: away from home the LAN slot has to lose to the external one, and
-        // nothing else in the sign-in flow asks.
-        await dependencies.resolveSignInRoute(for: server)
+        // Probed rather than guessed, because the last route that worked is not the one that works
+        // from here: away from home the LAN slot has to lose to the external one, and nothing else
+        // in the sign-in flow asks.
+        let client = signInClient ?? dependencies.makeSignInClient(for: server)
+        signInClient = client
+        await dependencies.resolveSignInRoute(for: server, client: client)
         do {
-            let fetched = try await dependencies.jellyfinAuthService.getPublicUsers()
+            let fetched = try await JellyfinAuthService(client: client).getPublicUsers()
             // Hide already-remembered profiles (re-adding overwrites the same entry). No-op on first login; re-auth a stale token by forgetting first (long-press).
             let remembered = Set(
                 dependencies.listRememberedUsers(serverID: server.id).map(\.id)
@@ -229,7 +232,7 @@ struct UserPickerView: View {
 
 private struct UserPickerCard: View {
     let user: JellyfinUser
-    let server: JellyfinServer
+    let baseURL: URL?
     let action: () -> Void
 
     @Environment(\.dependencies) private var dependencies
@@ -299,10 +302,15 @@ private struct UserPickerCard: View {
         return String(user.name.prefix(2)).uppercased()
     }
 
+    /// On the server being signed in to, and without a token: the active session's belongs to
+    /// another server, and an avatar needs none.
     private var profileImageURL: URL? {
-        dependencies.jellyfinImageService.userProfileImageURL(
+        guard let baseURL else { return nil }
+        return dependencies.jellyfinImageService.userProfileImageURL(
             userID: user.id,
-            tag: user.primaryImageTag
+            tag: user.primaryImageTag,
+            baseURL: baseURL,
+            token: nil
         )
     }
 }

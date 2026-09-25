@@ -10,19 +10,43 @@ final class SeerrRequestOptions {
     var profileID: Int?
     var rootFolder: String?
     var tagIDs: Set<Int> = []
+    /// What Seerr would do with the field left out. Every routing field Seerr receives is an override: it
+    /// beats the anime profile and folder, the Override Rules and the 4K/non-4K server choice
+    /// (MediaRequestSubscriber, MediaRequest.request), so a value still equal to this is not sent.
+    private(set) var implicit: SeerrRequestDefaults.Implicit?
     /// Distinguishes "still resolving" from "this server offers no options", which an empty section cannot.
     private(set) var isLoading = false
 
     /// Seeded from the page that pushed this one, where it already resolved them.
-    init(details: SeerrServiceDetails? = nil, profileID: Int? = nil, rootFolder: String? = nil) {
+    init(
+        details: SeerrServiceDetails? = nil,
+        profileID: Int? = nil,
+        rootFolder: String? = nil,
+        implicit: SeerrRequestDefaults.Implicit? = nil
+    ) {
         self.details = details
         self.profileID = profileID
         self.rootFolder = rootFolder
+        self.implicit = implicit
     }
 
-    /// The instance and its language profile ride along with the resolved server, they are never picked by hand.
+    /// The instance rides along with the resolved server, it is never picked by hand.
     var serverID: Int? { details?.server.id }
-    var languageProfileID: Int? { details?.server.activeLanguageProfileId }
+
+    /// Without a resolved baseline everything set counts as chosen.
+    var serverIDPayload: Int? {
+        implicit?.serverIsSeerrDefault == true ? nil : serverID
+    }
+
+    var profileIDPayload: Int? {
+        guard let implicit else { return profileID }
+        return profileID == implicit.profileID ? nil : profileID
+    }
+
+    var rootFolderPayload: String? {
+        guard let implicit else { return rootFolder }
+        return rootFolder == implicit.rootFolder ? nil : rootFolder
+    }
 
     /// Send nil, not [], for "no tags": older Jellyseerr lacks the field entirely.
     var tagsPayload: [Int]? {
@@ -47,6 +71,7 @@ final class SeerrRequestOptions {
             details = resolved.details
             profileID = resolved.profileID
             rootFolder = resolved.rootFolder
+            implicit = resolved.implicit
         } catch {
             // Swallow: the option rows simply stay absent.
         }
@@ -163,10 +188,10 @@ final class SeerrRequestDraft {
                 mediaType: mediaType,
                 tmdbID: tmdbID,
                 seasons: seasonsPayload,
-                serverID: options.serverID,
-                profileID: options.profileID,
-                rootFolder: options.rootFolder,
-                languageProfileID: options.languageProfileID,
+                serverID: options.serverIDPayload,
+                profileID: options.profileIDPayload,
+                rootFolder: options.rootFolderPayload,
+                languageProfileID: nil,
                 tags: options.tagsPayload
             )
             didSubmit = true
@@ -186,6 +211,16 @@ enum SeerrRequestDefaults {
         let details: SeerrServiceDetails
         let profileID: Int?
         let rootFolder: String?
+        let implicit: Implicit
+    }
+
+    /// What Seerr picks on its own for a request that leaves the field out: the `isDefault` server of the
+    /// request's tier and that server's configured profile and folder (or their anime variants, which the
+    /// client cannot see). A validated fallback that differs from the configured value still goes out.
+    struct Implicit: Equatable, Sendable {
+        let serverIsSeerrDefault: Bool
+        let profileID: Int?
+        let rootFolder: String?
     }
 
     static func resolve(
@@ -198,9 +233,7 @@ enum SeerrRequestDefaults {
         case .tv: servers = try await service.sonarrServers()
         case .person, .unknown: return nil
         }
-        guard let chosen = servers.first(where: { $0.isDefault == true }) ?? servers.first else {
-            return nil
-        }
+        guard let chosen = chooseServer(from: servers) else { return nil }
         let details: SeerrServiceDetails
         switch mediaType {
         case .movie: details = try await service.radarrDetails(serverID: chosen.id)
@@ -208,18 +241,41 @@ enum SeerrRequestDefaults {
         case .person, .unknown: return nil
         }
 
+        let configuredProfile = chosen.activeProfileId ?? details.server.activeProfileId
         let validProfileIDs = Set(details.profiles.map(\.id))
         let profileID = [chosen.activeProfileId, details.server.activeProfileId]
             .compactMap { $0 }
             .first(where: validProfileIDs.contains)
             ?? details.profiles.first?.id
 
+        let configuredFolder = chosen.activeDirectory ?? details.server.activeDirectory
         let validRootFolders = Set(details.rootFolders.map(\.path))
         let rootFolder = [chosen.activeDirectory, details.server.activeDirectory]
             .compactMap { $0 }
             .first(where: validRootFolders.contains)
             ?? details.rootFolders.first?.path
 
-        return Resolved(details: details, profileID: profileID, rootFolder: rootFolder)
+        return Resolved(
+            details: details,
+            profileID: profileID,
+            rootFolder: rootFolder,
+            implicit: Implicit(
+                serverIsSeerrDefault: isSeerrDefault(chosen),
+                profileID: configuredProfile,
+                rootFolder: configuredFolder
+            )
+        )
+    }
+
+    /// Sodalite never posts `is4k`, so its requests are standard quality and Seerr routes them to the
+    /// non-4K default. Picking by `isDefault` alone chose whichever default came first, often the 4K one.
+    static func chooseServer(from servers: [SeerrServiceServer]) -> SeerrServiceServer? {
+        servers.first(where: isSeerrDefault)
+            ?? servers.first(where: { $0.is4k != true })
+            ?? servers.first
+    }
+
+    private static func isSeerrDefault(_ server: SeerrServiceServer) -> Bool {
+        server.isDefault == true && server.is4k != true
     }
 }
