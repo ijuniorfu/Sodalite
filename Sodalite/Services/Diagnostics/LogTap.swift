@@ -158,7 +158,12 @@ final class LogTap: ObservableObject {
                 FileManager.default.createFile(atPath: url.path, contents: nil)
             }
         }
-        LogTap.shared.note("[LogTap] file sink armed at \(url.path)")
+        // environmentLine on its own (SodaliteApp.init) is noted before fileSinkEnabled is set, so
+        // it never reached the file; carrying it here instead covers both the launch path and the
+        // mid-session toggle, so every persisted segment names the build that wrote it
+        // (Audit 2026-09-25 DIAG-5, the AetherPlayer#7 failure mode environmentLine exists to
+        // prevent).
+        LogTap.shared.note("[LogTap] file sink armed at \(url.path) | \(environmentLine)")
     }
 
     nonisolated private func appendToFile(_ line: String) {
