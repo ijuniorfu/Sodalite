@@ -5,7 +5,11 @@ final class SeerrClient {
     let httpClient: HTTPClientProtocol
 
     var baseURL: URL?
-    var sessionCookie: String?
+    var sessionCookie: String? {
+        didSet { if let sessionCookie { onSessionCookieSet?(sessionCookie) } }
+    }
+    /// Set by `DependencyContainer`, so the cookie reaches the log redactors.
+    var onSessionCookieSet: ((String) -> Void)?
 
     private let decoder: JSONDecoder
 

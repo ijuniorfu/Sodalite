@@ -245,6 +245,11 @@ final class DependencyContainer {
             Task { @MainActor in self?.noteServerDidNotServe() }
         }
 
+        // Every credential the session holds is named to both log redactors as it arrives, so a line
+        // carrying it in an encoding no key matcher knows still loses it (audit DIAG-1).
+        jellyfinClient.onAccessTokenSet = { LogSecrets.register($0) }
+        seerrClient.onSessionCookieSet = { LogSecrets.registerCookie($0) }
+
         // Last, because the closures capture self and the migration reads the keychain through it.
         profileSettings.activeKey = { [weak self] in self?.appState?.profileKey }
         profileSettings.isApplyingCloudChanges = { [weak self] in self?.isApplyingCloudChanges ?? false }
