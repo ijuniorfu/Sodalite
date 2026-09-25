@@ -95,9 +95,12 @@ extension PlayerViewModel {
         // External subs are never deduped, so subtitleStreams' index set is a
         // sound "before" snapshot for spotting the newly attached one.
         let before = Set(subtitleStreams.map(\.index))
+        let itemID = item.id
+        let sourceID = mediaSourceID
         do {
-            try await playbackService.downloadRemoteSubtitle(itemID: item.id, subtitleID: info.id)
+            try await playbackService.downloadRemoteSubtitle(itemID: itemID, subtitleID: info.id)
         } catch {
+            guard item.id == itemID else { return }
             // Download request itself failed (real error, not slow-CDN pending).
             subtitleSearchState = .error(
                 String(localized: "player.subtitle.search.downloadFailed",
@@ -106,27 +109,34 @@ extension PlayerViewModel {
             subtitleSearchFocus = .language(subtitleSearchCurrentLanguageIndex)
             return
         }
-        await applyNewlyAttachedSubtitle(info: info, before: before)
+        await applyNewlyAttachedSubtitle(info: info, before: before, itemID: itemID, sourceID: sourceID)
     }
 
     /// Re-checks a timed-out download without re-issuing it. Backs "Try again".
     func retryTimedOutDownload() async {
         guard case .downloadTimedOut(let info, let before, _) = subtitleSearchState else { return }
         subtitleSearchState = .downloading(id: info.id)
-        await applyNewlyAttachedSubtitle(info: info, before: before)
+        await applyNewlyAttachedSubtitle(info: info, before: before, itemID: item.id, sourceID: mediaSourceID)
     }
 
     /// Polls PlaybackInfo (5 attempts) for an external subtitle not in `before`.
     /// On success applies + dismisses; on timeout parks in `.downloadTimedOut`.
     /// Per-attempt errors swallowed so a slow-CDN hiccup reads as pending.
-    private func applyNewlyAttachedSubtitle(info: RemoteSubtitleInfo, before: Set<Int>) async {
+    /// `itemID` / `sourceID` are the session the download was started for: the poll outlives an
+    /// auto-advance, and reading them live would apply this item's new stream index to the next one.
+    private func applyNewlyAttachedSubtitle(
+        info: RemoteSubtitleInfo, before: Set<Int>, itemID: String, sourceID: String
+    ) async {
         var newStream: MediaStream?
         for attempt in 0..<5 {
             if attempt > 0 { try? await Task.sleep(for: .milliseconds(600)) }
-            guard let response = try? await playbackService.getPlaybackInfo(
-                itemID: item.id, userID: userID, profile: nil
-            ) else { continue }
-            guard let source = response.mediaSources.first(where: { $0.id == mediaSourceID })
+            guard item.id == itemID else { return }
+            let response = try? await playbackService.getPlaybackInfo(
+                itemID: itemID, userID: userID, profile: nil
+            )
+            guard item.id == itemID else { return }
+            guard let response else { continue }
+            guard let source = response.mediaSources.first(where: { $0.id == sourceID })
                 ?? response.mediaSources.first else { continue }
             let refreshed = Self.dedupedSubtitleStreams(from: source.mediaStreams)
             if let added = refreshed.first(where: {
