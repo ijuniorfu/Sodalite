@@ -53,6 +53,7 @@ protocol CloudSyncServiceProtocol: AnyObject {
     func pullSettingsFromCloud() async
     func deleteCloudDataAndDisable() async
     func handleFullLogout()
+    func handleFactoryReset()
 }
 
 /// Owns the CKSyncEngine on the private database. All state and delegate work is
@@ -736,6 +737,20 @@ final class CloudSyncService: CloudSyncServiceProtocol {
         preferences.accountChangeLocked = false
         preferences.resetForCloudDataDeletion()
         teardownEngine()
+        statusLatch.clear()
+        status = .disabled
+    }
+
+    /// A factory reset wiped the defaults domain this bookkeeping lives in, the off switch Log Out
+    /// had just written included, and the next launch read the missing key as the factory default:
+    /// on, with no adoption behind it, so it re-adopted the whole zone and signed the old household
+    /// back in. Call it after the wipe. Sync stays off until someone turns it on again, and the
+    /// account and every record identity go too, so that turn-on is a deliberate first adoption.
+    func handleFactoryReset() {
+        teardownEngine()
+        preferences.resetForAccountChange()
+        preferences.isEnabled = false
+        preferences.accountChangeLocked = false
         statusLatch.clear()
         status = .disabled
     }

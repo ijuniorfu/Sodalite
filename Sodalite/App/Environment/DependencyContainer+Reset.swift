@@ -5,17 +5,22 @@ import Foundation
 /// signing out of a server is no reason to lose a theme. A reset keeps nothing (Sodalite#76).
 extension DependencyContainer {
 
-    /// Clears every credential, server and preference on this device.
+    /// Clears every credential, server and preference on this device, and leaves iCloud sync off
+    /// until someone turns it on again.
     ///
-    /// `deleteCloudCopy` also removes the copy in iCloud. Without it the reset holds only as long as
-    /// sync stays off: the zone still describes the same servers, and re-enabling sync hands them
-    /// straight back. With it, there is nothing left to come back from.
+    /// `deleteCloudCopy` also removes the copy in iCloud. Without it the zone still describes the
+    /// same servers, and turning sync back on (Settings, or "Load from iCloud" on the first screen)
+    /// hands them straight back; nothing turns it on by itself. With it, there is nothing left to
+    /// come back from.
     func resetToFactoryState(deleteCloudCopy: Bool) async {
         sessionNote("reset: starting, deleteCloudCopy=\(deleteCloudCopy).")
 
         // Before the local wipe: deleting the zone needs the engine that clearSession tears down.
         if deleteCloudCopy {
             await cloudSync?.deleteCloudDataAndDisable()
+            if case .error = cloudSync?.status {
+                sessionNote("reset: the iCloud copy was NOT deleted; sync stays off, so it does not come back by itself.")
+            }
         }
 
         // Servers, tokens, profiles, passwords, Seerr, and cloud sync off on this device.
@@ -33,6 +38,8 @@ extension DependencyContainer {
         // The app group is its own domain: the TopShelf extension reads the accent out of it.
         UserDefaults(suiteName: Self.appGroupSuiteName)?
             .removePersistentDomain(forName: Self.appGroupSuiteName)
+        // The wipe took the off switch Log Out had just written, and a missing key reads as on.
+        cloudSync?.handleFactoryReset()
         // Per-profile stores are cached in memory like every other store here; without this the next
         // edit in a cached profile writes its pre-reset values back into the wiped domain.
         profileSettings.resetAll()

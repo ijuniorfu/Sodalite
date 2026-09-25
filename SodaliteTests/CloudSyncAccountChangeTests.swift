@@ -96,7 +96,7 @@ struct CloudSyncAccountChangeTests {
         #expect(prefs.drainPendingChanges().saves == [CloudSyncRecordName.server(id: "srv")])
     }
 
-    // MARK: Switched off (audit 2026-09-25 CS-5)
+    // MARK: Switched off (audit 2026-09-25 CS-3, CS-5)
 
     /// Switching sync off on an adopted device used to drop every edit on the floor: the next start
     /// seeded its snapshots from the edited values and nothing ever went up, removals included.
@@ -136,5 +136,30 @@ struct CloudSyncAccountChangeTests {
         #expect(pending.saves.isEmpty)
         #expect(pending.deletes.isEmpty)
         withExtendedLifetime(container) {}
+    }
+
+    /// The reset wiped the defaults domain after Log Out had written the off switch, and the next
+    /// launch read the missing key as on and re-adopted the whole zone.
+    @Test func aFactoryResetLeavesSyncOffAcrossALaunch() {
+        let suite = "accountChange.reset.sync.\(UUID().uuidString)"
+        let store = UserDefaults(suiteName: suite)!
+        let prefs = CloudSyncPreferences(store: store)
+        prefs.accountID = "_account-a"
+        prefs.adoptionCompleted = true
+        let container = DependencyContainer(keychainService: InMemoryKeychain(),
+                                            defaults: UserDefaults(suiteName: "\(suite).app")!)
+        let service = CloudSyncService(dependencies: container, preferences: prefs)
+
+        service.handleFullLogout()
+        store.removePersistentDomain(forName: suite)
+        service.handleFactoryReset()
+
+        let relaunched = CloudSyncPreferences(store: store)
+        #expect(!relaunched.isEnabled)
+        #expect(!relaunched.adoptionCompleted)
+        #expect(relaunched.accountID == nil)
+        #expect(!relaunched.accountChangeLocked)
+        #expect(service.status == .disabled)
+        store.removePersistentDomain(forName: suite)
     }
 }
