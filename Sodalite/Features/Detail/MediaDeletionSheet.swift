@@ -157,31 +157,38 @@ struct MediaDeletionSheet: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-            // Bounded scroll: many-season series (One Piece, 11+) overflowed the sheet and pushed the footer off-screen. Cap at content height (~64pt/row) up to 420pt so a short series stays compact.
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(seasons) { season in
-                        BoolPillRow(
-                            title: LocalizedStringKey(season.title),
-                            isOn: Binding(
-                                get: { selectedSeasonIDs.contains(season.id) },
-                                set: { isOn in
-                                    if isOn {
-                                        selectedSeasonIDs.insert(season.id)
-                                    } else {
-                                        selectedSeasonIDs.remove(season.id)
-                                    }
-                                }
-                            ),
-                            disabled: false
-                        )
-                    }
+            // Bounded scroll: many-season series (One Piece, 11+) overflowed the sheet and pushed the footer off-screen. ViewThatFits instead of a per-row height estimate: the old `count * 64` cap undershot a tvOS row and clipped a single season in half.
+            ViewThatFits(in: .vertical) {
+                seasonRows(seasons: seasons)
+                ScrollView {
+                    seasonRows(seasons: seasons)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
             }
-            .frame(maxHeight: min(CGFloat(seasons.count) * 64, 420))
+            .frame(maxHeight: 420)
         }
+    }
+
+    private func seasonRows(seasons: [SeasonOption]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(seasons) { season in
+                BoolPillRow(
+                    title: LocalizedStringKey(season.title),
+                    isOn: Binding(
+                        get: { selectedSeasonIDs.contains(season.id) },
+                        set: { isOn in
+                            if isOn {
+                                selectedSeasonIDs.insert(season.id)
+                            } else {
+                                selectedSeasonIDs.remove(season.id)
+                            }
+                        }
+                    ),
+                    disabled: false
+                )
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
     }
 
     private var footer: some View {
